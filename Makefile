@@ -19,18 +19,15 @@ LLIBH := $(shell find $(LIBDIR) -name *include -type d)
 LLIBHINC := $(patsubst $(LIBDIR)%,-I $(LIBDIR)%, $(LLIBH))
 
 INC := -I include $(LLIBHINC)
-# LIB := ...
+LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
 CXXFLAGS := -std=c++17 -g -Wall -fsanitize=leak
 #CXXFLAGS := -std=c++17 -O2 -Wall
 
 $(EXEC): $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB)
-	$(CXX) $(OBJECTS) $(LLIB) -o $(EXEC)
+	$(CXX) $(OBJECTS) $(LLIB) $(LIB) -o $(EXEC)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
-	@echo " $(INC)"
-	@echo " $(LLIB)"
-	@echo " $(LLIBH)"
 	$(CXX) -c $(CXXFLAGS) $(INC) $< -o $@
 
 $(BUILDSTRUCT):
