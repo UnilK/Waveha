@@ -1,14 +1,22 @@
-CXX := g++
 EXEC := bin/waveha
 TEST := test
+MAINAPP := main
 
-TESTDIR := test
+INCDIR := include
 SRCDIR := src
+LIBDIR := lib
+TESTDIR := test
 BUILDDIR := build
 BINDIR := bin
-LIBDIR := lib
 
-SOURCES := $(shell find $(SRCDIR) -name *.cpp)
+CXX := g++
+#CXXFLAGS := -std=c++17 -g -Wall -fsanitize=leak
+CXXFLAGS := -std=c++17 -O3 -Wall
+
+
+
+INCLUDES := $(shell find $(INCDIR) -name *.h)
+SOURCES := $(shell find $(SRCDIR) -name *.cpp -not -name *$(MAINAPP).cpp)
 OBJECTS := $(patsubst $(SRCDIR)%,$(BUILDDIR)%, $(SOURCES:.cpp=.o))
 
 SRCSTRUCT := $(shell find $(SRCDIR) -type d)
@@ -18,15 +26,15 @@ LLIB := $(shell find $(LIBDIR) -name *.a)
 LLIBH := $(shell find $(LIBDIR) -name *include -type d)
 LLIBHINC := $(patsubst $(LIBDIR)%,-I $(LIBDIR)%, $(LLIBH))
 
-INC := -I include $(LLIBHINC)
+INC := -I $(INCDIR) $(LLIBHINC)
 LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
-CXXFLAGS := -std=c++17 -g -Wall -fsanitize=leak
-#CXXFLAGS := -std=c++17 -O2 -Wall
 
-$(EXEC): $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB)
-	$(CXX) $(OBJECTS) $(LLIB) $(LIB) -o $(EXEC)
 
+$(EXEC): $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(BUILDDIR)/$(MAINAPP).o $(LLIB) $(INCLUDES)
+	$(CXX) $(BUILDDIR)/$(MAINAPP).o $(OBJECTS) $(LLIB) $(LIB) -o $(EXEC)
+
+#build OBJECTS
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -c $(CXXFLAGS) $(INC) $< -o $@
 
@@ -38,10 +46,13 @@ $(BINDIR):
 	@echo "mkdir -p $(BINDIR)"
 	@mkdir -p $(BINDIR)
 
+$(BUILDDIR)/$(MAINAPP).o: $(SRCDIR)/$(MAINAPP).cpp
+	$(CXX) -c $(CXXFLAGS) $(INC) $< -o $@
+
 .PHONY: test
 test: $(EXEC)
 	$(CXX) -c $(CXXFLAGS) $(INC) $(TESTDIR)/$(TEST).cpp -o $(BUILDDIR)/$(TEST).o
-	$(CXX) $(OBJECTS) $(BUILDDIR)/$(TEST).o -o $(BINDIR)/$(TEST)
+	$(CXX) $(OBJECTS) $(LLIB) $(LIB) $(BUILDDIR)/$(TEST).o -o $(BINDIR)/$(TEST)
 
 .PHONY: clean
 clean:
