@@ -33,7 +33,7 @@ void FFT::resize_precalc_tables(){
 
 		*/
 
-		uint32_t z = 1<<this->w.size(), b = this->w.size();
+		uint32_t z = (uint32_t)1<<this->w.size(), b = this->w.size();
 		
 		this->w.resize(this->w.size()+1);
 		this->w[b].resize(z);
@@ -83,7 +83,7 @@ void FFT::fft(std::vector<std::complex<float> > &v, bool inv){
 	this->B = std::max(b, this->B);
 	this->resize_precalc_tables();
 
-	v.resize(1<<b, {0, 0});
+	v.resize((uint32_t)1<<b, {0, 0});
 	uint32_t n = v.size();
 
 	// the invbit array for b-1 is the same as for b,
@@ -136,10 +136,10 @@ std::vector<float> FFT::convolution(
 
 	std::vector<std::complex<float> > cx(1<<b, {0, 0}), cy(1<<b, {0, 0});
 
-	if(revx) for(uint32_t i=zx-1; i>=0; i--) cx[zx-1-i] = {x[i], 0};
+	if(revx) for(uint32_t i=0; i<zx; i++) cx[i] = {x[zx-i-1], 0};
 	else for(uint32_t i=0; i<zx; i++) cx[i] = {x[i], 0};
 	
-	if(revy) for(uint32_t i=zy-1; i>=0; i--) cy[zy-1-i] = {y[i], 0};
+	if(revy) for(uint32_t i=0; i<zy; i++) cy[i] = {y[zy-i-1], 0};
 	else for(uint32_t i=0; i<zy; i++) cy[i] = {y[i], 0};
 
 	this->fft(cx, 0);
