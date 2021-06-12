@@ -111,6 +111,40 @@ void FFT::fft(std::vector<std::complex<float> > &v, bool inv){
 	}
 }
 
+void FFT::fft(std::complex<float> *v, uint32_t n, bool inv){
+	
+	uint32_t b = 0;
+	while((uint32_t)1<<b < n) b++;
+
+	this->B = std::max(b, this->B);
+	this->resize_precalc_tables();
+
+    if((uint32_t)1<<b != n) return;
+
+	uint32_t shift = B-b;
+
+	for(uint32_t i=0; i<n; i++){
+		if(i < this->invbit[i]>>shift) std::swap(v[i], v[this->invbit[i]>>shift]);
+	}
+
+	for(uint32_t r=0; r<b; r++){
+		uint32_t rd = 1<<r;
+		for(uint32_t i=0; i<n; i+=2*rd){
+			for(uint32_t j=i; j<i+rd; j++){
+				std::complex<float> tmp = w[r][j-i]*v[j+rd];
+				v[j+rd] = v[j]-tmp;
+				v[j] = v[j]+tmp;
+			}
+		}
+	}
+
+	if(inv){
+		std::reverse(v+1, v+n);
+		for(uint32_t i=0; i<n; i++) v[i] /= n;
+	}
+}
+
+
 std::vector<std::complex<float> > FFT::dft(std::vector<float> &v){
 	std::vector<std::complex<float> > cv(v.size());
 	for(uint32_t i=0; i<v.size(); i++) cv[i] = {v[i], 0};
@@ -118,12 +152,28 @@ std::vector<std::complex<float> > FFT::dft(std::vector<float> &v){
 	return cv;
 }
 
+std::complex<float> *FFT::dft(float *v, uint32_t n){
+	std::complex<float> *cv = new std::complex<float>[n];
+	for(uint32_t i=0; i<n; i++) cv[i] = {v[i], 0};
+	this->fft(cv, n, 0);
+	return cv;
+}
+
+
 std::vector<float> FFT::idft(std::vector<std::complex<float> > &cv){
 	this->fft(cv, 1);
 	std::vector<float> v(cv.size());
 	for(uint32_t i=0; i<cv.size(); i++) v[i] = cv[i].real();
 	return v;
 }
+
+float *FFT::idft(std::complex<float> *cv, uint32_t n){
+	this->fft(cv, n, 1);
+	float *v = new float[n];
+	for(uint32_t i=0; i<n; i++) v[i] = cv[i].real();
+	return v;
+}
+
 
 std::vector<float> FFT::convolution(
 		std::vector<float> &x, std::vector<float> &y,
@@ -156,4 +206,33 @@ std::vector<float> FFT::convolution(
 	return xy;
 }
 
+float *FFT::convolution(
+		float *x, float *y, uint32_t zx, uint32_t zy,
+		uint32_t n, bool revx, bool revy){
+	
+	uint32_t b = 0;
+	if(!n) n = zx+zy-1;
+	
+	while((uint32_t)1<<b < std::max(n, std::max(zx, zy))) b++;
+
+	std::complex<float> *cx = new std::complex<float>[(uint32_t)1<<b]();
+	std::complex<float> *cy = new std::complex<float>[(uint32_t)1<<b]();
+
+	if(revx) for(uint32_t i=0; i<zx; i++) cx[i] = {x[zx-i-1], 0};
+	else for(uint32_t i=0; i<zx; i++) cx[i] = {x[i], 0};
+	
+	if(revy) for(uint32_t i=0; i<zy; i++) cy[i] = {y[zy-i-1], 0};
+	else for(uint32_t i=0; i<zy; i++) cy[i] = {y[i], 0};
+
+	this->fft(cx, (uint32_t)1<<b, 0);
+	this->fft(cy, (uint32_t)1<<b, 0);
+
+	for(uint32_t i=0; i<(uint32_t)1<<b; i++) cx[i] *= cy[i];
+
+	this->fft(cx, (uint32_t)1<<b, 1);
+	float *xy = new float[n];
+	for(uint32_t i=0; i<n; i++) xy[i] = cx[i].real();
+
+	return xy;
+}
 

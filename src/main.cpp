@@ -12,6 +12,7 @@
 
 #include "wavestream.h"
 #include "FFT.h"
+#include "FIR.h"
 
 const float PI = 3.14159265;
 
@@ -19,6 +20,7 @@ int main(){
 
 	iwavestream I;
 	FFT myFFT;
+    SincFIR myFIR(30, 1<<18);
 
 	std::string file;
 	std::cin >> file;
@@ -27,6 +29,10 @@ int main(){
         std::cout << "file not found\n";
         std::cin >> file;
     }
+
+    std::vector<float> waves;
+    I.read_file(&waves);
+    I.close();
 
 	int N = 1<<10;
    
@@ -62,10 +68,6 @@ int main(){
     frequencyIndicator.setFillColor(needleColor);
     frequencyIndicator.setPosition(20.0f, 20.0f+indicatorSize*2);
 
-    std::vector<float> waves;
-    I.read_file(&waves);
-    I.close();
-   
     int wpos = 0, ipos = 0, indpos = 0;
 
     float graphLeft = indicatorSize*2 + 50;
@@ -82,7 +84,7 @@ int main(){
     float zoom[3] = {1, 1, 1};
     float wip[3] = {0, 0, 0};
 
-    float fundamental = 0, maxFundamental = 800;
+    float fundamental = 0, maxFundamental = 860, minFundamental = 86;
 
     while (window.isOpen()){
 
@@ -162,6 +164,14 @@ int main(){
                         N = std::max(4, N/2);
                         sizeChanged = 1;
                         break;
+                    case 21:
+                        graphChanged = 1;
+                        wpos = std::max(0, wpos-10);
+                        break;
+                    case 1:
+                        graphChanged = 1;
+                        wpos = std::min((int)waves.size()-N-1, wpos+10);
+                        break;
                     default:
                         std::cout << event.key.code << '\n';
                 }
@@ -202,13 +212,18 @@ int main(){
                     // autocorrelation
                     tmp = myFFT.convolution(tmp, tmp, 2*N-1, 0, 1);
                     spectrum.resize(N);
-                    for(int i=0; i<N; i++) spectrum[i] = {tmp[N-1+i]*(1+i)/N, 0};
+
+                    myFIR.filter(&tmp, 44100/3000);
+                    for(int i=0; i<N; i++) spectrum[i] = {tmp[N-1+i]*N/(N-i), 0};
 
                     float maxs = -1e9;
 
                     for(int i=1; i<N; i++){
-                        if(fileFrequency/i < maxFundamental && tmp[N-1+i] > maxs){
-                            maxs = tmp[N-1+i];
+                        if(
+                                fileFrequency/i < maxFundamental
+                                && fileFrequency/i > minFundamental
+                                && spectrum[i].real() > maxs){
+                            maxs = spectrum[i].real();
                             fundamental = fileFrequency/i;
                         }
                     }
@@ -264,7 +279,7 @@ int main(){
             indicatorNeedle[0].position = sf::Vector2f(indicatorSize, indicatorSize);
             indicatorNeedle[1].position = sf::Vector2f(
                     indicatorSize*(1+std::polar(1.0f, std::arg(spectrum[ipos])).real()),
-                    indicatorSize*(1+std::polar(1.0f, std::arg(spectrum[ipos])).imag()));
+                    indicatorSize*(1-std::polar(1.0f, std::arg(spectrum[ipos])).imag()));
 
             indicatorLine[0].position = sf::Vector2f(indpos, graphDown);
             indicatorLine[1].position = sf::Vector2f(indpos, 50);
