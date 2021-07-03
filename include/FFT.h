@@ -49,6 +49,14 @@ class FFT{
 				float *x, float *y, uint32_t xz, uint32_t yz,
 				uint32_t n=0, bool revx=0, bool revy=0);
 		
+        std::vector<std::complex<float> > convolution(
+				std::vector<std::complex<float> > x, std::vector<std::complex<float> > y,
+				uint32_t n=0, bool revx=0, bool revy=0);
+		
+        std::complex<float> *convolution(
+				std::complex<float> *x, std::complex<float> *y, uint32_t xz, uint32_t yz,
+				uint32_t n=0, bool revx=0, bool revy=0);
+		
 };
 
 #endif

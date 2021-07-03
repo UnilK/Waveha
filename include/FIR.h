@@ -8,55 +8,33 @@ class FIR{
     
     // template class for Finite Impulse Responses.
 
+    protected:
+
+        // the "quality" of the impulse i.e. how long the impulse is simulated,
+        // to each side.
+        int32_t length = 0;
+
     public:
 
         FIR();
+        FIR(int32_t length_);
 
         // evaluate function 
         virtual float get(double num) = 0;
         
-        // resample. ratio = new
-        virtual bool resample(std::vector<float> *waves,
-                double ratio, double filterCoefficient = 1) = 0;
-        virtual bool resample(float *&waves, int32_t wsize,
-                double ratio, double filterCoefficient = 1) = 0;
-       
-        // lowpass filter
-        virtual bool filter(std::vector<float> *waves, double coefficient) = 0;
-        virtual bool filter(float *&waves, int32_t wsize, double coefficient) = 0;
+        // resample. ratio = new frequency / old frequency.
+        // return a new & resized signal at new frequency.
+        bool resample(std::vector<float> *waves, double ratio, double filterCoefficient);
+        bool resample(float *&waves, int32_t wsize, double ratio, double filterCoefficient);
 
-};
-
-class SincFIR : public FIR{
-    
-    protected:
-
-        // sinc(t) = sin(pi*t)/(pi*t)
-
-        // zeros zero-crossings, each interval between zero-crossings
-        // is evaluated at resolution points and stored to sinc.
-
-        int32_t zeros = 0, resolution = 0, size = 0;
-        float *sinc;
-
-    public:
-
-        SincFIR();
-        SincFIR(int32_t zeros_, int32_t resolution_);
-
-        // zeros*resolution < 2^31
-        bool initialize(int32_t zeros_, int32_t resolution_);
-        
-        float get(double num);
-        
-        bool resample(std::vector<float> *waves,
-                double ratio, double filterCoefficient = 1);
-        bool resample(float *&waves, int32_t wsize,
-                double ratio, double filterCoefficient = 1);
-       
+        // lowpass filter. To filter out any frequencies above 4000 Hz on a 44100 Hz
+        // recording, filter with coefficient = 44100/8000, as if you were resampling
+        // a 8000 Hz recording to 44100 Hz. 
         bool filter(std::vector<float> *waves, double coefficient);
         bool filter(float *&waves, int32_t wsize, double coefficient);
 
+        void impulse(std::vector<float> *waves, float amplitude, double pos, double conv=1);
+        void impulse(float *waves, int32_t wsize, float amplitude, double pos, double conv=1);
 };
 
 #endif

@@ -10,17 +10,21 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "mathConstants.h"
 #include "wavestream.h"
 #include "FFT.h"
-#include "FIR.h"
-
-const float PI = 3.14159265;
+#include "sincFIR.h"
+#include "sinusoidFT.h"
+#include "voiceTransform.h"
+#include "vocal.h"
+#include "vocalTransform.h"
+#include "FT.h"
 
 int main(){
 
 	iwavestream I;
 	FFT myFFT;
-    SincFIR myFIR(30, 1<<18);
+    FastSincFIR myFIR(30, 1<<18);
 
 	std::string file;
 	std::cin >> file;
@@ -40,6 +44,10 @@ int main(){
     float frameHeight = 800, frameWidth = 1400;
     float indicatorSize = 100, graphHeight = frameHeight - 100;
 
+    SinusoidFT mySFT(fileFrequency);
+    VoiceTransform voitra((int32_t)fileFrequency, N);
+    FT myFT(fileFrequency);
+
     sf::RenderWindow window(sf::VideoMode(frameWidth, frameHeight), "wave analyzer");
 
     sf::RectangleShape background({frameWidth, frameHeight});
@@ -51,17 +59,21 @@ int main(){
     sf::VertexArray graph(sf::LineStrip, N);
     sf::VertexArray indicatorNeedle(sf::LineStrip, 2);
     sf::VertexArray indicatorLine(sf::LineStrip, 2);
+    sf::VertexArray intervalLine(sf::LineStrip, 2);
+    std::vector<sf::VertexArray> intervals;
     
     sf::Color graphColor(0xff, 0xaa, 0xaa);
     sf::Color needleColor(0xaa, 0xff, 0xaa);
     sf::Color lineColor(0xaa, 0xaa, 0xff);
+    sf::Color intervalColor(0x88, 0x77, 0x55);
 
     for(int i=0; i<N; i++) graph[i].color = graphColor;
     for(int i=0; i<2; i++) indicatorNeedle[i].color = needleColor;
     for(int i=0; i<2; i++) indicatorLine[i].color = lineColor;
+    for(int i=0; i<2; i++) intervalLine[i].color = intervalColor;
     
     sf::Font font;
-    font.loadFromFile("../res/fonts/UbuntuMono-R.ttf");
+    font.loadFromFile("./res/fonts/UMR.ttf");
     sf::Text frequencyIndicator("Frequancy: NaN", font);
     
     frequencyIndicator.setCharacterSize(20);
@@ -78,13 +90,20 @@ int main(){
     bool sizeChanged = 0, graphChanged = 1, viewChanged = 1, indicatorChanged = 1, redraw = 1;
     
     int windowMode = 0;
-    int analyses = 3, analysisMode = 0;
+    int analyses = 4, analysisMode = 0;
 
-    float magnify[3] = {1, 10, 40};
-    float zoom[3] = {1, 1, 1};
-    float wip[3] = {0, 0, 0};
+    float magnify[4] = {1, 10, 0.1, 5};
+    float zoom[4] = {1, 1, 1, 1};
+    float wip[4] = {0, 0, 0, 0};
 
-    float fundamental = 0, maxFundamental = 860, minFundamental = 86;
+    float fundamental = 0;
+
+    bool purewave = 0;
+    float phase = 0, freq = 100;
+    bool scrollSpeed = 1;
+    
+    float freqLow = 80, freqHigh = 700, powa = 1.0f;
+    float interval = 120;
 
     while (window.isOpen()){
 
@@ -157,8 +176,10 @@ int main(){
                         graphChanged = 1;
                         break;
                     case 19:
-                        N = std::min(1<<18, N*2);
-                        sizeChanged = 1;
+                        if(wpos+N < (int)waves.size()){
+                            N = std::min(1<<18, N*2);
+                            sizeChanged = 1;
+                        }
                         break;
                     case 6:
                         N = std::max(4, N/2);
@@ -172,6 +193,55 @@ int main(){
                         graphChanged = 1;
                         wpos = std::min((int)waves.size()-N-1, wpos+10);
                         break;
+                    case 15:
+                        purewave ^= 1;
+                        graphChanged = 1;
+                        break;
+                    case 8:
+                        if(scrollSpeed) phase += 0.1;
+                        else phase += 0.01;
+                        graphChanged = 1;
+                        std::cout << phase << "\n";
+                        break;
+                    case 10:
+                        if(scrollSpeed) phase -= 0.1;
+                        else phase -= 0.01;
+                        graphChanged = 1;
+                        std::cout << phase << "\n";
+                        break;
+                    case 14:
+                        if(scrollSpeed) freq += 20;
+                        else freq += 0.1;
+                        graphChanged = 1;
+                        std::cout << freq << "\n";
+                        break;
+                    case 11:
+                        if(scrollSpeed) freq -= 20;
+                        else freq -= 0.1;
+                        graphChanged = 1;
+                        std::cout << freq << "\n";
+                        break;
+                    case 20:
+                        scrollSpeed ^= 1;
+                        break;
+                    case 9:
+                        std::cin >> freqLow >> freqHigh >> powa;
+                        graphChanged = 1;
+                        break;
+                    case 24:
+                        if(scrollSpeed) interval += 20;
+                        else interval += 0.1;
+                        std::cout << interval << ' '
+                            << mySFT.get_sinusoid(spectrum, interval) << '\n';
+                        indicatorChanged = 1;
+                        break;
+                    case 7:
+                        if(scrollSpeed) interval -= 20;
+                        else interval -= 0.1;
+                        std::cout << interval << ' '
+                            << mySFT.get_sinusoid(spectrum, interval) << '\n';
+                        indicatorChanged = 1;
+                        break;
                     default:
                         std::cout << event.key.code << '\n';
                 }
@@ -183,7 +253,8 @@ int main(){
 		}
 
         if(sizeChanged){
-            graph = sf::VertexArray(sf::LineStrip, N);
+            graph.resize(N);
+            voitra.set_size(N);
             for(int i=0; i<N; i++) graph[i].color = graphColor;
             graphChanged = 1;
         }
@@ -191,12 +262,35 @@ int main(){
         if(graphChanged){
             
             std::vector<float > tmp(N);
-            
-            if(windowMode){
-                for(int i=0; i<N; i++) tmp[i] = waves[wpos+i]*(0.5f-std::cos(2*PI*i/N)*0.5f);
+           
+            if(purewave){
+                
+                if(windowMode){
+                    float coeff = 2*PIF*freq/fileFrequency;
+                    for(int i=0; i<N; i++){
+                        tmp[i] = std::cos(phase+coeff*i);
+                    }
+                } else {
+
+                    spectrum.clear();
+                    spectrum.resize(N, {0, 0});
+
+                    mySFT.add_sinusoid(spectrum, freq, phase, 1.0f);
+                    tmp = myFFT.idft(spectrum);
+                }
+
+                spectrum = myFFT.dft(tmp);
+
             } else {
-                for(int i=0; i<N; i++) tmp[i] = waves[wpos+i];
+                if(windowMode){
+                    for(int i=0; i<N; i++) tmp[i] = waves[wpos+i]*(0.5f-std::cos(2*PIF*i/N)*0.5f);
+                } else {
+                    for(int i=0; i<N; i++) tmp[i] = waves[wpos+i];
+                }
             }
+                    
+            float minf = 80, maxf = 800, maxAmp = 0;
+            int buffe = 20;
 
             switch(analysisMode){
                 case 0:
@@ -210,23 +304,60 @@ int main(){
                     break;
                 case 2:
                     // autocorrelation
-                    tmp = myFFT.convolution(tmp, tmp, 2*N-1, 0, 1);
+
+                    tmp = myFFT.convolution(tmp, tmp, 2*N, 0, 1);
+
                     spectrum.resize(N);
+                    for(int i=0; i<N; i++) spectrum[i] = {tmp[N-1+i], 0};
 
-                    myFIR.filter(&tmp, 44100/3000);
-                    for(int i=0; i<N; i++) spectrum[i] = {tmp[N-1+i]*N/(N-i), 0};
-
-                    float maxs = -1e9;
+                    fundamental = 0;
 
                     for(int i=1; i<N; i++){
+                        if(spectrum[i].real() > spectrum[i-1].real()) buffe--;
                         if(
-                                fileFrequency/i < maxFundamental
-                                && fileFrequency/i > minFundamental
-                                && spectrum[i].real() > maxs){
-                            maxs = spectrum[i].real();
+                                buffe <= 0
+                                && fileFrequency/i >= minf
+                                && fileFrequency/i <= maxf
+                                && spectrum[i].real() > maxAmp){
+                            maxAmp = spectrum[i].real();
                             fundamental = fileFrequency/i;
                         }
                     }
+                    break;
+                case 3:
+                    // peak match
+
+                    float *wololo = new float[N]();
+                    for(int i=0; i<N; i++) wololo[i] = tmp[i];
+                   
+                    
+                    float step = (freqHigh-freqLow)/N;
+
+                    std::complex<float> *yee = myFFT.dft(wololo, N);
+
+                    fundamental = voitra.get_pitch(wololo);
+
+                    spectrum.resize(N);
+                    for(int i=0; i<N; i++){
+                        float freq = freqLow+step*i;
+                        spectrum[i] = voitra.get_pitch_match(yee, freq);
+                    }
+
+                    delete[] yee;
+                    delete[] wololo;
+
+                    /*
+                    float maxAmp = 0;
+                    for(int i=0; i<N; i++){
+                        float freq = freqLow+step*i;
+                        spectrum[i] = myFT.calc_match(wololo, 
+                                (int32_t)std::ceil(fileFrequency/freq), freq);
+                        if(maxAmp < spectrum[i].real()){
+                            maxAmp = spectrum[i].real();
+                            fundamental = freq;
+                        }
+                    }
+                    */
 
                     break;
             }
@@ -263,7 +394,16 @@ int main(){
                                 +wip[analysisMode],
                                 (float)graphDown-graphHeight/2
                                 -spectrum[i].real()
-                                *graphHeight*magnify[analysisMode]/(2*N));
+                                *graphHeight*magnify[analysisMode]/2);
+                    }
+                    break;
+                case 3:
+                    // peak match
+                    for(int i=0; i<N; i++){
+                        graph[i].position = sf::Vector2f(graphLeft+i*zoom[analysisMode]
+                                +wip[analysisMode],
+                                (float)graphDown-(std::abs(spectrum[i])/N)
+                                *graphHeight*magnify[analysisMode]);
                     }
                     break;
             }
@@ -297,12 +437,27 @@ int main(){
                     "Frequency: "+std::to_string((int)std::round(fileFrequency*ipos/N))+" Hz\n"
                     +"Amplitude: "+std::to_string(std::abs(spectrum[ipos]))+"\n"
                     +"Phase: "+std::to_string(std::arg(spectrum[ipos]))+" rad");
+
+                    for(int i=0; interval*i<fileFrequency; i++){
+                        intervals.push_back(intervalLine);
+                        float pos = graphLeft+interval*i*N*zoom[analysisMode]/fileFrequency
+                                +wip[analysisMode];
+                        intervals[i][0].position = sf::Vector2f(pos, graphDown);
+                        intervals[i][1].position = sf::Vector2f(pos, 50);
+                    }
+
                     break;
                 case 2:
                     // autocorrelation
                     frequencyIndicator.setString(
-                    "Time shift: "+std::to_string(ipos/fileFrequency)+" s\n"
                     +"Frequency: "+std::to_string(fileFrequency/ipos)+" Hz\n"
+                    +"Fundamental: "+std::to_string(fundamental)+ " Hz\n"
+                    +"Amplitude: "+std::to_string(spectrum[ipos].real()));
+                    break;
+                case 3:
+                    // peak match
+                    frequencyIndicator.setString(
+                    +"Frequency: "+std::to_string(freqLow+(freqHigh-freqLow)/N*ipos)+" Hz\n"
                     +"Fundamental: "+std::to_string(fundamental)+ " Hz\n"
                     +"Amplitude: "+std::to_string(spectrum[ipos].real()));
                     break;
@@ -316,6 +471,7 @@ int main(){
             window.clear();
             window.draw(background);
             window.draw(phaseIndicator);
+            for(auto &i : intervals) window.draw(i);
             window.draw(graph);
             window.draw(indicatorLine);
             window.draw(frequencyIndicator);
@@ -330,6 +486,7 @@ int main(){
         viewChanged = 0;
         indicatorChanged = 0;
         redraw = 0;
+        intervals.clear();
 
     }
 

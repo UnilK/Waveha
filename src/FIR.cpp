@@ -1,54 +1,13 @@
-#include <math.h>
 #include <algorithm>
+#include <math.h>
 
 #include "FIR.h"
 
+FIR::FIR(){ this->length = 0; }
 
-const double PI = 3.14159265358979323;
+FIR::FIR(int32_t length_){ this->length = length_; }
 
-FIR::FIR(){}
-
-
-
-SincFIR::SincFIR(){
-    this->zeros = 0;
-    this->resolution = 0;
-    this->size = 0;
-}
-
-SincFIR::SincFIR(int32_t zeros_, int32_t resolution_){
-    this->initialize(zeros_, resolution_);
-}
-
-bool SincFIR::initialize(int32_t zeros_, int32_t resolution_){
-    
-    if((int64_t)zeros_*resolution_ >= 1ll<<31) return 0;
-   
-    this->zeros = zeros_;
-    this->resolution = resolution_;
-    this->size = zeros_*resolution_;
-
-    this->sinc = new float[this->size];
-    
-	this->sinc[0] = 1;
-
-    float coeff = PI/this->resolution;
-
-	for(int32_t i=1; i<this->size; i++){
-		this->sinc[i] = std::sin(coeff*i)/(coeff*i);
-	}
-
-	this->sinc[this->size-1] = 0;
-
-    return 1;
-}
-
-float SincFIR::get(double num){
-    return this->sinc[std::min(this->size-1, (int32_t)std::abs(num*this->resolution))];
-}
-
-bool SincFIR::resample(std::vector<float> *waves,
-                        double ratio, double filterCoefficient){
+bool FIR::resample(std::vector<float> *waves, double ratio, double filterCoefficient){
 
     int32_t wsize = waves->size();
 
@@ -63,8 +22,8 @@ bool SincFIR::resample(std::vector<float> *waves,
     for(int32_t i=0; i<wsize; i++){
         
         double pos = ratio*i;
-        int32_t left = std::max(0, (int32_t)std::ceil(pos-conv*this->zeros));
-        int32_t right = std::min(nsize-1, (int32_t)std::floor(pos+conv*this->zeros));
+        int32_t left = std::max(0, (int32_t)std::ceil(pos-conv*this->length));
+        int32_t right = std::min(nsize-1, (int32_t)std::floor(pos+conv*this->length));
 
         for(int32_t j=left; j<right; j++){
             nwaves[j] += (*waves)[i]*this->get(((double)j-pos)*iconv);
@@ -77,8 +36,7 @@ bool SincFIR::resample(std::vector<float> *waves,
 
 }
 
-bool SincFIR::resample(float *&waves, int32_t wsize,
-                        double ratio, double filterCoefficient){
+bool FIR::resample(float *&waves, int32_t wsize, double ratio, double filterCoefficient){
 
     if(std::ceil(ratio*wsize) >= (double)(1ll<<31)) return 0;
 
@@ -91,8 +49,8 @@ bool SincFIR::resample(float *&waves, int32_t wsize,
     for(int32_t i=0; i<wsize; i++){
         
         double pos = ratio*i;
-        int32_t left = std::max(0, (int32_t)std::ceil(pos-conv*this->zeros));
-        int32_t right = std::min(nsize-1, (int32_t)std::floor(pos+conv*this->zeros));
+        int32_t left = std::max(0, (int32_t)std::ceil(pos-conv*this->length));
+        int32_t right = std::min(nsize-1, (int32_t)std::floor(pos+conv*this->length));
 
         for(int32_t j=left; j<right; j++){
             nwaves[j] += waves[i]*this->get(((double)j-pos)*iconv);
@@ -106,11 +64,39 @@ bool SincFIR::resample(float *&waves, int32_t wsize,
 
 }
 
-bool SincFIR::filter(std::vector<float> *waves, double coefficient){
-    return this->resample(waves, 1, coefficient);
+bool FIR::filter(std::vector<float> *waves, double coefficient){
+    bool ret = this->resample(waves, 1, coefficient);
+    if(ret) for(int32_t i=0; i<(int32_t)waves->size(); i++) (*waves)[i] /= coefficient;
+    return ret;
 }
 
-bool SincFIR::filter(float *&waves, int32_t wsize, double coefficient){
-    return this->resample(waves, 1, coefficient);
+bool FIR::filter(float *&waves, int32_t wsize, double coefficient){
+    bool ret = this->resample(waves, wsize, 1, coefficient);
+    if(ret) for(int32_t i=0; i<wsize; i++) waves[i] /= coefficient;
+    return ret;
 }
 
+void FIR::impulse(std::vector<float> *waves, float amplitude, double pos, double conv){
+ 
+    double iconv = 1.0/conv;
+
+    int32_t left = std::max(0, (int32_t)std::ceil(pos-this->length*conv));
+    int32_t right = std::min((int32_t)waves->size()-1, 
+            (int32_t)std::floor(pos+this->length*conv));
+
+    for(int32_t j=left; j<right; j++){
+        (*waves)[j] += amplitude*this->get(((double)j-pos)*iconv);
+    }
+}
+
+void FIR::impulse(float *waves, int32_t wsize, float amplitude, double pos, double conv){
+ 
+    double iconv = 1.0/conv;
+
+    int32_t left = std::max(0, (int32_t)std::ceil(pos-this->length*conv));
+    int32_t right = std::min(wsize, (int32_t)std::floor(pos+this->length*conv));
+
+    for(int32_t j=left; j<right; j++){
+        waves[j] += amplitude*this->get(((double)j-pos)*iconv);
+    }
+}

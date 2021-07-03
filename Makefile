@@ -10,8 +10,8 @@ BUILDDIR := build
 BINDIR := bin
 
 CXX := g++
-#CXXFLAGS := -std=c++17 -g -Wall -fsanitize=leak
-CXXFLAGS := -std=c++17 -O3 -Wall
+CXXFLAGS := -std=c++17 -g -Og -Wall
+#CXXFLAGS := -std=c++17 -O3 -Wall
 
 
 

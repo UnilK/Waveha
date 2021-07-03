@@ -1,8 +1,8 @@
 #include <algorithm>
+#include <string.h>
 
 #include "FFT.h"
-
-const float PI = 3.14159265358979323; // more that enough digits.
+#include "mathConstants.h"
 
 FFT::FFT(){
 	this->B = 0;
@@ -38,7 +38,7 @@ void FFT::resize_precalc_tables(){
 		this->w.resize(this->w.size()+1);
 		this->w[b].resize(z);
 
-		for(uint32_t i=0; i<z; i++) this->w[b][i] = std::polar(1.0f, PI*i/z);
+		for(uint32_t i=0; i<z; i++) this->w[b][i] = std::polar(1.0f, PIF*i/z);
 
 		this->invbit.resize(z, 0);
 		for(uint32_t i=0; i<z/2; i++){
@@ -200,7 +200,7 @@ std::vector<float> FFT::convolution(
 
 	// inverse
 	this->fft(cx, 1);
-	std::vector<float> xy(n);
+	std::vector<float> xy(n, 0);
 	for(uint32_t i=0; i<n; i++) xy[i] = cx[i].real();
 
 	return xy;
@@ -230,8 +230,71 @@ float *FFT::convolution(
 	for(uint32_t i=0; i<(uint32_t)1<<b; i++) cx[i] *= cy[i];
 
 	this->fft(cx, (uint32_t)1<<b, 1);
-	float *xy = new float[n];
+	float *xy = new float[n]();
+
 	for(uint32_t i=0; i<n; i++) xy[i] = cx[i].real();
+
+    delete[] cx;
+    delete[] cy;
+
+	return xy;
+}
+
+std::vector<std::complex<float> > FFT::convolution(
+		std::vector<std::complex<float> > x, std::vector<std::complex<float> > y,
+		uint32_t n, bool revx, bool revy){
+	
+	uint32_t b = 0, zx = x.size(), zy = y.size();
+	if(!n) n = zx+zy-1;
+	
+	while((uint32_t)1<<b < std::max(n, std::max(zx, zy))) b++;	
+	
+    x.resize(1<<b, {0, 0});
+    y.resize(1<<b, {0, 0});
+
+	this->fft(x, 0);
+	this->fft(y, 0);
+
+	// calculating convolution
+	for(uint32_t i=0; i<(uint32_t)1<<b; i++) x[i] *= y[i];
+
+	// inverse
+	this->fft(x, 1);
+	std::vector<std::complex<float> > xy(n, {0, 0});
+	for(uint32_t i=0; i<n; i++) xy[i] = x[i];
+
+	return xy;
+}
+
+std::complex<float> *FFT::convolution(
+		std::complex<float> *x, std::complex<float> *y, uint32_t zx, uint32_t zy,
+		uint32_t n, bool revx, bool revy){
+	
+	uint32_t b = 0;
+	if(!n) n = zx+zy-1;
+	
+	while((uint32_t)1<<b < std::max(n, std::max(zx, zy))) b++;
+
+	std::complex<float> *cx = new std::complex<float>[(uint32_t)1<<b]();
+	std::complex<float> *cy = new std::complex<float>[(uint32_t)1<<b]();
+
+    memcpy(cx, x, sizeof(std::complex<float>)*zx);
+    memcpy(cy, y, sizeof(std::complex<float>)*zy);
+
+    if(revx) std::reverse(cx, cx+zx);
+    if(revy) std::reverse(cy, cy+zy);
+
+	this->fft(cx, (uint32_t)1<<b, 0);
+	this->fft(cy, (uint32_t)1<<b, 0);
+
+	for(uint32_t i=0; i<(uint32_t)1<<b; i++) cx[i] *= cy[i];
+
+	this->fft(cx, (uint32_t)1<<b, 1);
+    std::complex<float> *xy = new std::complex<float>[n](); 
+    memcpy(cx, xy, sizeof(std::complex<float>)*n);
+
+    delete[] cx;
+    delete[] cy;
 
 	return xy;
 }
