@@ -1,7 +1,7 @@
+#include "math/FIR.h"
+
 #include <algorithm>
 #include <math.h>
-
-#include "FIR.h"
 
 FIR::FIR(){ this->length = 0; }
 

@@ -1,10 +1,10 @@
 #ifndef VOCALTRANSFORM_H
 #define VOCALTRANSFORM_H
 
+#include "wave/vocal.h"
+
 #include <vector>
 #include <complex>
-
-#include "vocal.h"
 
 class VocalTransform{
     

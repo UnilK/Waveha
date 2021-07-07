@@ -1,6 +1,5 @@
-#include "sincFIR.h"
-
-#include "mathConstants.h"
+#include "math/sincFIR.h"
+#include "math/constants.h"
 
 FastSincFIR::FastSincFIR(){
     this->length = 0;

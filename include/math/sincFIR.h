@@ -1,7 +1,7 @@
 #ifndef SINCFIR_H
 #define SINCFIR_H
 
-#include "FIR.h"
+#include "math/FIR.h"
 
 class FastSincFIR : public FIR{
     

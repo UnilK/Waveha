@@ -1,8 +1,7 @@
+#include "wave/vocal.h"
+
 #include <math.h>
 #include <algorithm>
-
-#include "vocal.h"
-
 
 Vocal::Vocal(){
     this->size = 64;

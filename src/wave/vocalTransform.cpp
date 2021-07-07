@@ -1,6 +1,6 @@
-#include <algorithm>
+#include "wave/vocalTransform.h"
 
-#include "vocalTransform.h"
+#include <algorithm>
 
 VocalTransform::VocalTransform(){
     this->set_size(90);
