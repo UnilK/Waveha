@@ -1,0 +1,3 @@
+[submodule "lib/Wavestream"]
+	path = lib/Wavestream
+	url = git@github.com:UnilK/Wavestream.git
