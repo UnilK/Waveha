@@ -3,33 +3,38 @@
 
 #include "wave/vocal.h"
 
+#include <cstdint>
 #include <vector>
 #include <complex>
 
+namespace wave{
+
 class VocalTransform{
-    
-    protected:
 
-        int32_t size = 90;
-        float fundShift = 1.0f;
-        std::vector<std::vector<std::complex<float> > > trans;
+protected:
 
-    public:
+    int32_t size = 90;
+    float fundShift = 1.0f;
+    std::vector<std::vector<std::complex<float> > > trans;
 
-        VocalTransform();
-        VocalTransform(int32_t size_);
+public:
 
-        void set_size(int32_t size_);
-        int32_t get_size();
+    VocalTransform();
+    VocalTransform(int32_t size_);
 
-        void set_fundamental_shift(float fundShift_);
-        float get_fundamental_shift();
+    void set_size(int32_t size_);
+    int32_t get_size();
 
-        void set_value(int32_t from, int32_t to, std::complex<float> value);
-        void set_transform(std::vector<std::vector<std::complex<float> > > trans_);
+    void set_fundamental_shift(float fundShift_);
+    float get_fundamental_shift();
 
-        Vocal transform(Vocal source);
+    void set_value(int32_t from, int32_t to, std::complex<float> value);
+    void set_transform(std::vector<std::vector<std::complex<float> > > trans_);
+
+    Vocal transform(Vocal source);
 
 };
+
+}
 
 #endif
