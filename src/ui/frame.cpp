@@ -1,6 +1,7 @@
 #include "ui/frame.h"
-#include "ui/style.h"
 
+#include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
 #include <sstream>
 #include <algorithm>
 #include <math.h>
@@ -18,8 +19,7 @@ TextureFrame::TextureFrame(const sf::Texture &tex_, float wwpos_, float whpos_) 
 
 Frame::Frame(){}
 
-Frame::Frame(App *app_, Core *core_, Window *master_, std::map<std::string, std::string> values){ 
-    app = app_;
+Frame::Frame(Core *core_, Window *master_, std::map<std::string, std::string> values){ 
     core = core_;
     master = master_;
     parent = nullptr;
@@ -28,7 +28,6 @@ Frame::Frame(App *app_, Core *core_, Window *master_, std::map<std::string, std:
 
 Frame::Frame(Frame *parent_, std::map<std::string, std::string> values){
     parent = parent_;
-    app = parent->app;
     core = parent->core;
     master = parent->master;
     setup(values);
@@ -43,7 +42,7 @@ bool Frame::setup(std::map<std::string, std::string> values){
     if(values["hpos"] != "") std::stringstream(values["hpos"]) >> hpos;
     if(values["rowSpan"] != "") std::stringstream(values["rowSpan"]) >> rowSpan;
     if(values["columnSpan"] != "") std::stringstream(values["columnSpan"]) >> columnSpan;
-   
+
     return 1;
 }
         
@@ -168,7 +167,6 @@ bool Frame::delete_grid(){
     return 1;
 }
 
-// directions: 0=stop, 1=down, 2=up, 3=both
 bool Frame::update_grid(int32_t direction){
 
     std::fill(rmax.begin(), rmax.end(), 0);

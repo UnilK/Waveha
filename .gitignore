@@ -3,3 +3,4 @@ build
 *.swp
 *.wav
 *.bak
+vimsetup.sh

@@ -6,7 +6,6 @@ class Window;
 }
 
 #include "ui/core.h"
-#include "ui/app.h"
 #include "ui/frame.h"
 
 #include <cstdint>
@@ -14,19 +13,21 @@ class Window;
 #include <vector>
 #include <map>
 
-#include <SFML/Window.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 
 namespace ui{
 
 class Window{
 
     
-    // Class built around sf::RenderWindow.
-    
+    /*
+       Class built around sf::RenderWindow.
+       Create new instances of this class with "new",
+       core will handle the memory.
+    */
 
 protected:
 
-    App *app;
     Core *core;
     Frame *mainframe;
     sf::RenderWindow window;
@@ -47,7 +48,10 @@ public:
     float mwpos = 0, mhpos = 0;
 
     Window();
-    Window(App *app_, Core *core_, Frame *mainframe, std::map<std::string, std::string> values);
+    Window(Core *core_, Frame *mainframe, std::map<std::string, std::string> values);
+
+    // destroy window by removing it from the core.
+    bool destroy();
     
     // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
     bool setup(std::map<std::string, std::string> values);

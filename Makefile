@@ -30,7 +30,7 @@ LLIBH := $(shell find $(LIBDIR) -type d -name *include)
 LLIBHINC := $(patsubst $(LIBDIR)%,-I $(LIBDIR)%, $(LLIBH))
 
 INC := -I $(HEADIR) $(LLIBHINC)
-LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
+LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lpthread
 
 
 
@@ -85,6 +85,9 @@ build/wave/waveTransform.o: include/math/sincFIR.h include/math/FIR.h
 build/wave/vocalTransform.o: include/wave/vocalTransform.h include/wave/vocal.h
 build/wave/audioClassifier.o: include/wave/audioClassifier.h
 build/wave/vocal.o: include/wave/vocal.h include/math/constants.h
+build/app/style.o: include/app/style.h include/ui/style.h
+build/app/app.o: include/app/app.h include/ui/core.h include/ui/style.h
+build/app/app.o: include/ui/window.h include/ui/frame.h include/app/style.h
 build/math/FFT.o: include/math/FFT.h include/math/constants.h
 build/math/FIR.o: include/math/FIR.h
 build/math/sincFIR.o: include/math/sincFIR.h include/math/FIR.h
@@ -92,11 +95,11 @@ build/math/sincFIR.o: include/math/constants.h
 build/math/FT.o: include/math/FT.h include/math/constants.h
 build/ui/style.o: include/ui/style.h
 build/ui/window.o: include/ui/window.h include/ui/core.h include/ui/style.h
-build/ui/window.o: include/ui/app.h include/ui/frame.h
+build/ui/window.o: include/ui/frame.h
 build/ui/frame.o: include/ui/frame.h include/ui/core.h include/ui/style.h
-build/ui/frame.o: include/ui/window.h include/ui/app.h
+build/ui/frame.o: include/ui/window.h
 build/ui/core.o: include/ui/core.h include/ui/style.h include/ui/window.h
-build/ui/core.o: include/ui/app.h include/ui/frame.h
+build/ui/core.o: include/ui/frame.h
 build/main.o: include/math/FT.h include/math/FFT.h include/wave/waveTransform.h
 build/main.o: include/wave/vocal.h include/wave/vocalTransform.h
 build/main.o: include/wave/pitchHandler.h include/wave/audioClassifier.h

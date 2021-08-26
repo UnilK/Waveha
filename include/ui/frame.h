@@ -7,7 +7,6 @@ class Frame;
 }
 
 #include "ui/core.h"
-#include "ui/app.h"
 #include "ui/window.h"
 
 #include <cstdint>
@@ -16,8 +15,8 @@ class Frame;
 #include <array>
 #include <map>
 
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Graphics/Texture.hpp>
 
 namespace ui{
 
@@ -48,7 +47,6 @@ class Frame{
 
 protected:
 
-    App *app;
     Core *core;
     Frame *parent;
     Window *master;
@@ -109,7 +107,7 @@ public:
     bool refreshFlag = 1;
 
     Frame();
-    Frame(App *app_, Core *core_, Window *master_, std::map<std::string, std::string> values);
+    Frame(Core *core_, Window *master_, std::map<std::string, std::string> values);
     Frame(Frame *parent_, std::map<std::string, std::string> values);
 
     // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
@@ -132,7 +130,9 @@ public:
     bool setup_grid(int32_t rows_, int32_t columns_);
     bool delete_grid();
 
-    // update window sizes in the grid.
+    // update window sizes in the grid. Call this with
+    // direction = 1 on mainframe when initializing a window.
+    // Directions in the frame tree: 0=stop, 1=down, 2=up, 3=both
     bool update_grid(int32_t direction = 0);
 
     // configure extra space allocation among rows & columns.

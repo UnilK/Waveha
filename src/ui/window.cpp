@@ -8,13 +8,18 @@ namespace ui{
 Window::Window(){}
 
 Window::Window(
-        App *app_, Core *core_, Frame *mainframe_,
+        Core *core_, Frame *mainframe_,
         std::map<std::string, std::string> values){
-    app = app_;
     core = core_;
     mainframe = mainframe_;
     setup(values); 
     sf::RenderWindow window(sf::VideoMode(width, height), title);
+    core->add_window(this);
+}
+
+bool Window::destroy(){
+    core->delete_window(this);
+    return 1;
 }
 
 bool Window::setup(std::map<std::string, std::string> values){
@@ -61,7 +66,7 @@ bool Window::listen_events(){
         }
     }
 
-    return 1;
+    return destroy();
 }
 
 bool Window::refresh(){

@@ -2,8 +2,6 @@
 
 #include <math.h>
 
-#include <iostream>
-
 namespace wave{
 
 bool is_noise(
@@ -29,8 +27,6 @@ bool is_noise(
     }
     avg1 = (waves[0]+waves[size-1]+avg1)/size;
     sum /= size*avg1;
-    
-    std::cout << sum << '\n';
 
     return sum > tolerance;
 }
