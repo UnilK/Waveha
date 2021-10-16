@@ -48,7 +48,7 @@ public:
     float mwpos = 0, mhpos = 0;
 
     Window();
-    Window(Core *core_, Frame *mainframe, std::map<std::string, std::string> values);
+    Window(Core *core_, Frame *mainframe, std::map<std::string, std::string> values = {});
 
     // destroy window by removing it from the core.
     bool destroy();

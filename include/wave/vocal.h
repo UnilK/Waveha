@@ -1,5 +1,5 @@
-#ifndef VOCAL_H
-#define VOCAL_H
+#ifndef WAVE_VOCAL_H
+#define WAVE_VOCAL_H
 
 #include <cstdint>
 #include <vector>

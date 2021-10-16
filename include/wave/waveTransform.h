@@ -1,5 +1,5 @@
-#ifndef WAVETRANSFORM_H
-#define WAVETRANSFORM_H
+#ifndef WAVE_WAVETRANSFORM_H
+#define WAVE_WAVETRANSFORM_H
 
 #include "wave/vocal.h"
 #include "wave/vocalTransform.h"

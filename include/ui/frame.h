@@ -107,8 +107,8 @@ public:
     bool refreshFlag = 1;
 
     Frame();
-    Frame(Core *core_, Window *master_, std::map<std::string, std::string> values);
-    Frame(Frame *parent_, std::map<std::string, std::string> values);
+    Frame(Core *core_, Window *master_, std::map<std::string, std::string> values = {});
+    Frame(Frame *parent_, std::map<std::string, std::string> values = {});
 
     // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
     bool setup(std::map<std::string, std::string> values);

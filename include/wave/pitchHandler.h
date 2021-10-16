@@ -1,5 +1,5 @@
-#ifndef PITCHHANDLER_H
-#define PITCHHANDLER_H
+#ifndef WAVE_PITCHHANDLER_H
+#define WAVE_PITCHHANDLER_H
 
 #include <cstdint>
 #include <complex>

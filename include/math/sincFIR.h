@@ -1,5 +1,5 @@
-#ifndef SINCFIR_H
-#define SINCFIR_H
+#ifndef MATH_SINCFIR_H
+#define MATH_SINCFIR_H
 
 #include "math/FIR.h"
 

@@ -1,6 +1,8 @@
 bin
 build
+dev
 *.swp
 *.wav
 *.bak
 vimsetup.sh
+addfile.sh

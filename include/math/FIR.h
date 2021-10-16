@@ -1,5 +1,5 @@
-#ifndef FIR_H
-#define FIR_H
+#ifndef MATH_FIR_H
+#define MATH_FIR_H
 
 #include <cstdint>
 #include <vector>

@@ -1,5 +1,5 @@
-#ifndef FT_H
-#define FT_H
+#ifndef MATH_FT_H
+#define MATH_FT_H
 
 #include <cstdint>
 #include <complex>

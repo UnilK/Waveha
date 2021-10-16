@@ -14,7 +14,7 @@
 #include "wavestream.h"
 #include "math/FFT.h"
 #include "math/sincFIR.h"
-#include "wave/voiceTransform.h"
+#include "wave/waveTransform.h"
 #include "wave/vocal.h"
 #include "wave/vocalTransform.h"
 #include "math/FT.h"

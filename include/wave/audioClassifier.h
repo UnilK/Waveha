@@ -1,5 +1,5 @@
-#ifndef AUDIOCLASSIFIER_H
-#define AUDIOCLASSIFIER_H
+#ifndef WAVE_AUDIOCLASSIFIER_H
+#define WAVE_AUDIOCLASSIFIER_H
 
 #include <cstdint>
 #include <vector>
