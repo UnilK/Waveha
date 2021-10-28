@@ -1,8 +1,6 @@
-#ifndef APP_MAINFRAME_H
-#define APP_MAINFRAME_H
+#pragma once
 
 #include "ui/frame.h"
-
 
 class MainFrame : ui::Frame{
 
@@ -11,8 +9,7 @@ protected:
 public:
 
     MainFrame();
-    MainFrame(Core *core_, Window *master_, std::map<std::string, std::string> values = {});
+    MainFrame(ui::Core *core_, ui::Window *master_, std::map<std::string, std::string> values = {});
 
 };
 
-#endif

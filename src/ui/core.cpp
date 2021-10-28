@@ -9,12 +9,12 @@ void listen_terminal(Core *core){
     std::string command = "";
     while(1){
         std::string input;
-        std::cin >> input;
+        std::getline(std::cin, input);
         command += input;
         if(command.back() != '\\'){
             core->add_command(command);
             command.clear();
-        }
+        } else command.pop_back();
     }
 }
 
@@ -22,7 +22,7 @@ Core::Core(){
     terminal = std::thread(listen_terminal, this);
 }
 
-bool Core::start(){
+int32_t Core::start(){
 
     while(running){
         
@@ -38,33 +38,28 @@ bool Core::start(){
         std::this_thread::sleep_for(std::chrono::milliseconds(1)); 
     }
 
-    return 1;
+    return 0;
 }
 
-bool Core::stop(){
+int32_t Core::stop(){
     running = 0;
-    return 1;
+    return 0;
 }
 
-bool Core::add_window(Window *window){
+int32_t Core::add_window(Window *window){
     windows.push_back(window);
-    return 1;
+    return 0;
 }
 
-bool Core::delete_window(Window *window){
+int32_t Core::delete_window(Window *window){
     windows.remove(window);
     delete window;
-    return 1;
+    return 0;
 }
 
-bool Core::add_command(std::string command){
+int32_t Core::add_command(std::string command){
     commands.push_back(command);
-    return 1;
-}
-
-bool Core::execute_command(std::string command){
-    // app should override this
-    return 1;
+    return 0;
 }
 
 }

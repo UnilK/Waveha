@@ -1,5 +1,6 @@
-#ifndef APP_GRAPHFRAME_H
-#define APP_GRAPHFRAME_H
+#pragma once
+
+#include "ui/frame.h"
 
 class GraphFrame : ui::Frame{
 
@@ -8,5 +9,3 @@ protected:
 public:
 
 };
-
-#endif

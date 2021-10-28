@@ -1,8 +1,7 @@
 bin
 build
 dev
+tags
 *.swp
 *.wav
 *.bak
-vimsetup.sh
-addfile.sh

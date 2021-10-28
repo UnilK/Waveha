@@ -1,5 +1,4 @@
-#ifndef APP_APP_H
-#define APP_APP_H
+#pragma once
 
 #include "ui/core.h"
 #include "ui/window.h"
@@ -17,4 +16,3 @@ public:
 
 };
 
-#endif

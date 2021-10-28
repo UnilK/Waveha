@@ -1,5 +1,4 @@
-#ifndef MATH_FT_H
-#define MATH_FT_H
+#pragma once
 
 #include <cstdint>
 #include <complex>
@@ -10,6 +9,5 @@ namespace math{
 // extract frequency from waves
 std::complex<float> roll(std::vector<float> &waves, int32_t size, float frequency);
 
-};
+}
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef MATH_FIR_H
-#define MATH_FIR_H
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -39,4 +38,3 @@ public:
 
 }
 
-#endif

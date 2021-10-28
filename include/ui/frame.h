@@ -1,5 +1,4 @@
-#ifndef UI_FRAME_H
-#define UI_FRAME_H
+#pragma once
 
 namespace ui{
 class TextureFrame;
@@ -41,7 +40,7 @@ class Frame{
        built around this class.
        
        Frames are structured in a tree-like fashion,
-       with app, core and window linked to every frame.
+       with the core and window (master frame) linked to every frame.
 
     */
 
@@ -111,41 +110,40 @@ public:
     Frame(Frame *parent_, std::map<std::string, std::string> values = {});
 
     // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
-    bool setup(std::map<std::string, std::string> values);
+    int32_t setup(std::map<std::string, std::string> values);
 
     // updates.
-    bool event_update(sf::Event);
-    bool coreapp_update();
+    int32_t event_update(sf::Event);
+    int32_t coreapp_update();
 
     // find the frame where the cursor is.
     Frame *find_focus();
     
     // send a texture to the next frame up that has the refreshFlag set.
-    bool send_texture(TextureFrame &tex);
+    int32_t send_texture(TextureFrame &tex);
 
     // Redraw & render.
-    bool refresh();
+    int32_t refresh();
 
     // setup a nullptr grid of size {rows_, columns_}
-    bool setup_grid(int32_t rows_, int32_t columns_);
-    bool delete_grid();
+    int32_t setup_grid(int32_t rows_, int32_t columns_);
+    int32_t delete_grid();
 
     // update window sizes in the grid. Call this with
     // direction = 1 on mainframe when initializing a window.
     // Directions in the frame tree: 0=stop, 1=down, 2=up, 3=both
-    bool update_grid(int32_t direction = 0);
+    int32_t update_grid(int32_t direction = 0);
 
     // configure extra space allocation among rows & columns.
     // each row gets value[row]/values_sum extra space allocated to it.
     // if none of the rows or columns use the extra then
     // frames stick to the top left corner.
-    bool config_row(std::vector<float> rfill_);
-    bool config_column(std::vector<float> cfill_);
-    bool config_row(int32_t row, float value);
-    bool config_column(int32_t column, float value);
+    int32_t config_row(std::vector<float> rfill_);
+    int32_t config_column(std::vector<float> cfill_);
+    int32_t config_row(int32_t row, float value);
+    int32_t config_column(int32_t column, float value);
     
 };
 
 }
 
-#endif

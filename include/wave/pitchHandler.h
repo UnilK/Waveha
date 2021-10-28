@@ -1,5 +1,4 @@
-#ifndef WAVE_PITCHHANDLER_H
-#define WAVE_PITCHHANDLER_H
+#define pragma once
 
 #include <cstdint>
 #include <complex>
@@ -69,4 +68,3 @@ std::vector<float> wave_correlation_graph(
 
 }
 
-#endif

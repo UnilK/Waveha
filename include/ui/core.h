@@ -1,5 +1,4 @@
-#ifndef UI_CORE_H
-#define UI_CORE_H
+#pragma once
 
 namespace ui{
 class Core;
@@ -13,9 +12,6 @@ class Core;
 #include <thread>
 
 namespace ui{
-
-class Core;
-class Window;
 
 void listen_terminal(Core *core);
 
@@ -40,16 +36,15 @@ public:
 
     Core();
 
-    bool start();
-    bool stop();
+    int32_t start();
+    int32_t stop();
     
-    bool add_window(Window *window);
-    bool delete_window(Window *window);
+    int32_t add_window(Window *window);
+    int32_t delete_window(Window *window);
 
-    bool add_command(std::string command);
-    bool execute_command(std::string command);
+    int32_t add_command(std::string command);
+    virtual int32_t execute_command(std::string command) = 0;
 };
 
 }
 
-#endif

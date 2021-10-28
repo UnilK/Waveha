@@ -1,5 +1,4 @@
-#ifndef WAVE_AUDIOCLASSIFIER_H
-#define WAVE_AUDIOCLASSIFIER_H
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -24,4 +23,3 @@ bool is_silent(
 
 }
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef MATH_FFT_H
-#define MATH_FFT_H
+#pragma once
 
 #include <cstdint>
 #include <complex>
@@ -18,4 +17,3 @@ std::vector<std::complex<float> > fft(std::vector<float> &v);
     	
 }
 
-#endif

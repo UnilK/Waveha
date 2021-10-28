@@ -1,5 +1,4 @@
-#ifndef UI_STYLE_H
-#define UI_STYLE_H
+#pragma once
 
 #include <string>
 #include <map>
@@ -46,4 +45,3 @@ class Style{
 
 }
 
-#endif

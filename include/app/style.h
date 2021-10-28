@@ -1,8 +1,6 @@
-#ifndef APP_STYLE_H
-#define APP_STYLE_H
+#pragma once
 
 #include "ui/style.h"
 
 ui::Style init_style();
 
-#endif

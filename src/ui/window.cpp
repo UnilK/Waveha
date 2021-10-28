@@ -17,31 +17,31 @@ Window::Window(
     core->add_window(this);
 }
 
-bool Window::destroy(){
+int32_t Window::destroy(){
     core->delete_window(this);
-    return 1;
+    return 0;
 }
 
-bool Window::setup(std::map<std::string, std::string> values){
+int32_t Window::setup(std::map<std::string, std::string> values){
     if(values["title"] != "") title = values["title"];
     if(values["width"] != "") std::stringstream(values["width"]) >> width;
     if(values["height"] != "") std::stringstream(values["height"]) >> height;
-    return 1;
+    return 0;
 }
 
-bool Window::send_texture(TextureFrame &texture){
+int32_t Window::send_texture(TextureFrame &texture){
     textures.push_back(texture); 
-    return 1;
+    return 0;
 }
 
-bool Window::coreapp_update(){
+int32_t Window::coreapp_update(){
     mainframe->coreapp_update();
-    return 1;
+    return 0;
 }
 
-bool Window::listen_events(){
+int32_t Window::listen_events(){
     
-    if(!window.isOpen()) return 0;
+    if(!window.isOpen()) return 1;
 
     sf::Event event;
     while (window.pollEvent(event)){
@@ -69,9 +69,9 @@ bool Window::listen_events(){
     return destroy();
 }
 
-bool Window::refresh(){
+int32_t Window::refresh(){
     
-    if(!window.isOpen()) return 0;
+    if(!window.isOpen()) return 1;
 
     mainframe->refresh();
     
@@ -90,7 +90,7 @@ bool Window::refresh(){
     
     textures.clear();
 
-    return 1;
+    return 0;
 }
 
 }

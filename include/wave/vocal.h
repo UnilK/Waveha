@@ -1,5 +1,4 @@
-#ifndef WAVE_VOCAL_H
-#define WAVE_VOCAL_H
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -57,4 +56,3 @@ public:
 
 }
 
-#endif

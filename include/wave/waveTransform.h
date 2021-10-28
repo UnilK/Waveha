@@ -1,5 +1,4 @@
-#ifndef WAVE_WAVETRANSFORM_H
-#define WAVE_WAVETRANSFORM_H
+#pragma once
 
 #include "wave/vocal.h"
 #include "wave/vocalTransform.h"
@@ -93,4 +92,3 @@ public:
 
 }
 
-#endif

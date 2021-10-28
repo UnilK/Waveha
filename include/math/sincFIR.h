@@ -1,5 +1,4 @@
-#ifndef MATH_SINCFIR_H
-#define MATH_SINCFIR_H
+#pragma once
 
 #include "math/FIR.h"
 
@@ -44,4 +43,3 @@ public:
 
 }
 
-#endif

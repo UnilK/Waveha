@@ -33,7 +33,7 @@ Frame::Frame(Frame *parent_, std::map<std::string, std::string> values){
     setup(values);
 }
 
-bool Frame::setup(std::map<std::string, std::string> values){
+int32_t Frame::setup(std::map<std::string, std::string> values){
     
     if(values["look"] != "") look = values["look"];
     if(values["width"] != "") std::stringstream(values["width"]) >> width;
@@ -46,12 +46,12 @@ bool Frame::setup(std::map<std::string, std::string> values){
     return 1;
 }
         
-bool Frame::event_update(sf::Event){
+int32_t Frame::event_update(sf::Event){
     
     return 1;
 }
 
-bool Frame::coreapp_update(){
+int32_t Frame::coreapp_update(){
 
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
@@ -83,8 +83,10 @@ Frame *Frame::find_focus(){
     return this;
 }
 
-bool Frame::send_texture(TextureFrame &tex){
-    
+int32_t Frame::send_texture(TextureFrame &tex){
+   
+    // cut out the parts that don't fit in the frame and send upwards if necessary.
+
     tex.wpos = std::max(tex.wpos, wwpos-tex.wwpos);
     tex.hpos = std::max(tex.hpos, whpos-tex.whpos);
     tex.width = std::min(tex.width, wwpos+wwidth-tex.wwpos-tex.wpos);
@@ -103,7 +105,7 @@ bool Frame::send_texture(TextureFrame &tex){
     return 1;
 }
 
-bool Frame::refresh(){
+int32_t Frame::refresh(){
 
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
@@ -139,7 +141,7 @@ bool Frame::refresh(){
     return 1;
 }
 
-bool Frame::setup_grid(int32_t rows_, int32_t columns_){
+int32_t Frame::setup_grid(int32_t rows_, int32_t columns_){
     
     if(rows_ < 0 || columns_ < 0) return 0;
     delete_grid();
@@ -158,7 +160,7 @@ bool Frame::setup_grid(int32_t rows_, int32_t columns_){
     return 1;
 }
 
-bool Frame::delete_grid(){
+int32_t Frame::delete_grid(){
     columns = 0;
     rows = 0;
     rfill.clear();
@@ -167,7 +169,7 @@ bool Frame::delete_grid(){
     return 1;
 }
 
-bool Frame::update_grid(int32_t direction){
+int32_t Frame::update_grid(int32_t direction){
 
     std::fill(rmax.begin(), rmax.end(), 0);
     std::fill(cmax.begin(), cmax.end(), 0);
@@ -247,25 +249,25 @@ bool Frame::update_grid(int32_t direction){
     return 1;
 }
 
-bool Frame::config_row(std::vector<float> rfill_){
+int32_t Frame::config_row(std::vector<float> rfill_){
    rfill = rfill_;
    rfill.resize(std::max(rows, (int32_t)rfill.size()), 0);
    return 1;
 }
 
-bool Frame::config_column(std::vector<float> cfill_){
+int32_t Frame::config_column(std::vector<float> cfill_){
    cfill = cfill_;
    cfill.resize(std::max(columns, (int32_t)cfill.size()), 0);
    return 1;
 }
 
-bool Frame::config_row(int32_t row, float value){
+int32_t Frame::config_row(int32_t row, float value){
     rfill.resize(row+1, 0);
     rfill[row] = value;
     return 1;
 }
 
-bool Frame::config_column(int32_t column, float value){
+int32_t Frame::config_column(int32_t column, float value){
     cfill.resize(column+1, 0);
     cfill[column] = value;
     return 1;
