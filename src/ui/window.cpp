@@ -1,5 +1,6 @@
 #include "ui/window.h"
 
+#include <iostream>
 #include <sstream>
 #include <math.h>
 
@@ -7,22 +8,22 @@ namespace ui{
 
 Window::Window(){}
 
-Window::Window(
-        Core *core_, Frame *mainframe_,
-        std::map<std::string, std::string> values){
+Window::Window(Core *core_, std::map<std::string, std::string> values){
     core = core_;
-    mainframe = mainframe_;
     setup(values); 
-    sf::RenderWindow window(sf::VideoMode(width, height), title);
+    window = new sf::RenderWindow(sf::VideoMode(width, height), title);
     core->add_window(this);
 }
 
 int32_t Window::destroy(){
-    core->delete_window(this);
+    if(destroyed) return 1;
+    delete window;
+    destroyed = 1;
     return 0;
 }
 
 int32_t Window::setup(std::map<std::string, std::string> values){
+    if(destroyed) return 1;
     if(values["title"] != "") title = values["title"];
     if(values["width"] != "") std::stringstream(values["width"]) >> width;
     if(values["height"] != "") std::stringstream(values["height"]) >> height;
@@ -30,48 +31,54 @@ int32_t Window::setup(std::map<std::string, std::string> values){
 }
 
 int32_t Window::send_texture(TextureFrame &texture){
+    if(destroyed) return 0;
     textures.push_back(texture); 
     return 0;
 }
 
 int32_t Window::coreapp_update(){
+    if(destroyed) return 0;
     mainframe->coreapp_update();
     return 0;
 }
 
 int32_t Window::listen_events(){
     
-    if(!window.isOpen()) return 1;
+    if(destroyed) return 0;
 
     sf::Event event;
-    while (window.pollEvent(event)){
+    while (window->pollEvent(event)){
         switch(event.type){
             case sf::Event::Closed:
-                window.close();
-                break;
+                window->close();
+                on_close(event);
+                return destroy();
             case sf::Event::Resized:
                 width = event.size.width;
                 height = event.size.height;
-				window.setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
-                mainframe->wwidth = width;
-                mainframe->wheight = height;
-                mainframe->update_grid();
+				window->setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
+                mainframe->set_size(width, height);
+                mainframe->update_grid(3);
+                on_resize(event);
                 break;
             case sf::Event::MouseMoved:
                 mwpos = event.mouseMove.x;
                 mhpos = event.mouseMove.y;
+                on_mouse_move(event);
+                break;
             default:
                 mainframe->event_update(event);
                 break;
         }
     }
 
-    return destroy();
+
+    return 0;
 }
 
 int32_t Window::refresh(){
     
-    if(!window.isOpen()) return 1;
+    if(destroyed) return 0;
 
     mainframe->refresh();
     
@@ -80,17 +87,23 @@ int32_t Window::refresh(){
             sf::Rect<int32_t> rect(
                     std::round(tex.wpos), std::round(tex.hpos),
                     std::round(tex.width), std::round(tex.height));
-            sf::Sprite sprite(tex.tex, rect);
-            sprite.setPosition(-tex.wwpos+tex.wpos, -tex.whpos+tex.hpos);
-            window.draw(sprite);
+            sf::Sprite sprite(*tex.tex, rect);
+            sprite.setPosition(tex.wwpos+tex.wpos, tex.whpos+tex.hpos);
+            window->draw(sprite);
         }
     }
 
-    if(!textures.empty()) window.display();
+    if(!textures.empty()) window->display();
     
     textures.clear();
 
     return 0;
 }
+
+int32_t Window::on_close(sf::Event event){ return 0; }
+
+int32_t Window::on_resize(sf::Event event){ return 0;  }
+
+int32_t Window::on_mouse_move(sf::Event event){ return 0; }
 
 }

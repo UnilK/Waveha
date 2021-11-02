@@ -1,5 +1,5 @@
 #include "math/sincFIR.h"
-#include "math/constants.h"
+#include "math/constants.hpp"
 
 #include <math.h>
 

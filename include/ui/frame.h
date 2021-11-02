@@ -16,6 +16,7 @@ class Frame;
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
 
 namespace ui{
 
@@ -25,11 +26,15 @@ class TextureFrame{
 
 public:
 
-    // texture and it's offset position
-    const sf::Texture &tex;
+    // texture and it's offset position. wwpos, whpos is the texture's
+    // global position. wpos, hpos is the left upper corner of the
+    // remaining window on the texture. width, height are the
+    // dimensions of the remaining window.
+
+    const sf::Texture *tex;
     float wwpos, whpos, wpos, hpos, width, height;
 
-    TextureFrame(const sf::Texture &tex_, float wwpos_, float whpos_);
+    TextureFrame(const sf::Texture *tex_, float wwpos_, float whpos_);
 };
 
 class Frame{
@@ -70,19 +75,30 @@ protected:
         window (window width, window height)
         
         The dimensions of the large canvas must be larger than or
-        equal to the dimnsions of the window i.e. the canvas is
+        equal to the dimensions of the window i.e. the canvas is
         responsible for using ALL the space that the window provides.
         The canvas is also responsible for providing enough space for
         all of it's child frames. However, the target width & height
-        are used for determining how much space a frame needs.
+        are used for determining how much space a frame needs in it's
+        parent's window.
+
+        Rubber band analogy. There are 3 steps to putting a rubber
+        around your wrist:
+
+        1. Get a rubber band (target dimensions)
+        2. Strecth it so that it fits through your hand (canvas dimensions)
+        3. Snap it around you wrist (window dimensions)
     */
 
+    // the actual window
+    sf::RenderTexture *window;
+    
     // actual canvas dinmensions
     float cwidth = 0, cheight = 0;
 
     // grid layout management
     int32_t columns = 0, rows = 0;
-    std::vector<float> cfill, rfill, cmax, rmax;
+    std::vector<float> wfill, hfill, wmax, hmax;
     std::vector<std::vector<Frame*> > grid;
 
     // textures that are sent to be rendered on to this frame.
@@ -91,7 +107,7 @@ protected:
 public:
 
     // canvas target dimensions & coordinates of the upper left corner of the canvas
-    // with respect to the window upper left corner of the window.
+    // with respect to the upper left corner of the window.
     // Down and right are the positive directions.
     float width = 0, height = 0;
     float wpos = 0, hpos = 0;
@@ -106,13 +122,14 @@ public:
     bool refreshFlag = 1;
 
     Frame();
-    Frame(Core *core_, Window *master_, std::map<std::string, std::string> values = {});
+    Frame(Window *master_, std::map<std::string, std::string> values = {});
     Frame(Frame *parent_, std::map<std::string, std::string> values = {});
+    ~Frame();
 
     // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
     int32_t setup(std::map<std::string, std::string> values);
 
-    // updates.
+    // updates. Overload these needed
     int32_t event_update(sf::Event);
     int32_t coreapp_update();
 
@@ -125,9 +142,12 @@ public:
     // Redraw & render.
     int32_t refresh();
 
+    // set the window size
+    int32_t set_size(float wwidth_, float wheight_);
+    int32_t set_position(float wwpos_, float whpos_);
+
     // setup a nullptr grid of size {rows_, columns_}
     int32_t setup_grid(int32_t rows_, int32_t columns_);
-    int32_t delete_grid();
 
     // update window sizes in the grid. Call this with
     // direction = 1 on mainframe when initializing a window.
@@ -142,7 +162,6 @@ public:
     int32_t config_column(std::vector<float> cfill_);
     int32_t config_row(int32_t row, float value);
     int32_t config_column(int32_t column, float value);
-    
 };
 
 }

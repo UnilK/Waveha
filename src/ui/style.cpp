@@ -1,5 +1,6 @@
 #include <ui/style.h>
 
+#include <iostream>
 #include <sstream>
 #include <iomanip>
 
@@ -22,14 +23,13 @@ std::string Look::get(std::string key){
 sf::Color Look::color(std::string key){
 
     std::string color = values[key];
-    while(color.size() < 8) color.push_back('f');
-    uint8_t r, g, b, a;
-    std::stringstream(color.substr(0, 2)) >> std::hex >> r;
-    std::stringstream(color.substr(2, 2)) >> std::hex >> g;
-    std::stringstream(color.substr(4, 2)) >> std::hex >> b;
-    std::stringstream(color.substr(6, 2)) >> std::hex >> a;
+    while(color.size() < 8) color.push_back('0');
+    
+    uint32_t rgba;
+    std::stringstream(color) >> std::hex >> rgba >> std::dec;
 
-    return sf::Color(r, g, b, a);
+
+    return sf::Color(rgba>>24&0xff, rgba>>16&0xff, rgba>>8&0xff, rgba&0xff);
 }
 
 

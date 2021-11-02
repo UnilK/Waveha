@@ -29,29 +29,30 @@ class Window{
 
         Core *core;
         Frame *mainframe;
-        sf::RenderWindow window;
+        sf::RenderWindow *window;
 
         std::string title = "";
 
         // textures that are sent to be rendered on to this window.
         std::vector<TextureFrame> textures;
 
-        float height = 10, width = 10;
-        
-        // frame with forced focus
-        Frame *focused = nullptr;
+        friend class Frame;
 
     public:
+
+        // access only, don't change these.
+        float height = 100, width = 100;
        
         // mouse position
         float mwpos = 0, mhpos = 0;
 
         Window();
-        Window(Core *core_, Frame *mainframe, std::map<std::string, std::string> values = {});
+        Window(Core *core_, std::map<std::string, std::string> values = {});
 
-        // destroy window by removing it from the core.
+        // delete the window and set the destroyed flag.
         int32_t destroy();
-        
+        bool destroyed = 0;
+
         // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
         int32_t setup(std::map<std::string, std::string> values);
 
@@ -61,6 +62,11 @@ class Window{
         // updates.
         int32_t coreapp_update();
         int32_t listen_events();
+
+        // overloadable responses to events.
+        virtual int32_t on_close(sf::Event event);
+        virtual int32_t on_resize(sf::Event event);
+        virtual int32_t on_mouse_move(sf::Event event);
         
         // Redraw & render.
         int32_t refresh();

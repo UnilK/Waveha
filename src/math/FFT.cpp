@@ -1,5 +1,5 @@
 #include "math/FFT.h"
-#include "math/constants.h"
+#include "math/constants.hpp"
 
 #include <algorithm>
 
