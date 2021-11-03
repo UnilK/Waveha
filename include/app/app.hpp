@@ -8,6 +8,8 @@ class App;
 #include "app/style.hpp"
 #include "app/mainFrame.hpp"
 
+#include <iostream>
+
 class App : public ui::Core {
 
 public:
@@ -19,6 +21,7 @@ public:
     }
 
     int32_t execute_command(std::string command){
+        std::cout << command << '\n';
         return 0;
     }
 

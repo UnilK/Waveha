@@ -68,24 +68,22 @@ public:
     MainFrame();
     MainFrame(ui::Window *master_, std::map<std::string, std::string> values = {}) :
         ui::Frame(master_, values),
-        toolBar(this, {{"height", "20"}}),
+        toolBar(this, {{"height", "40"}}),
         mainView(this),
         sideBar(this, {{"width", "200"}}){
 
         setup({{"look", "MainFrame"}});
         setup_grid(2, 2);
-        config_row({1, 0});
+
         config_column({1, 0});
+        config_row({0,
+                    1});
 
-        std::cout << "toolbar:" << &toolBar << '\n';
-        std::cout << "sidebar:" << &sideBar << '\n';
-        std::cout << "mainview:" << &mainView << '\n';
-
-        grid[1][0] = &toolBar;
+        grid[0][0] = &toolBar;
         toolBar.columnSpan = 2;
         
-        grid[0][1] = &sideBar;
-        grid[0][0] = &mainView;
+        grid[1][1] = &sideBar;
+        grid[1][0] = &mainView;
 
         update_grid(3);
     }

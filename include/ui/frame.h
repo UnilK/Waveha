@@ -88,34 +88,46 @@ protected:
         1. Get a rubber band (target dimensions)
         2. Strecth it so that it fits through your hand (canvas dimensions)
         3. Snap it around you wrist (window dimensions)
+
+        Dimension directions on the grid are:
+        
+          0 1 2 +
+        0 # # #
+        1 # # #
+        2 # # #
+        +
+
     */
 
     // the actual window
     sf::RenderTexture *window;
     
-    // actual canvas dinmensions
+    // canvas dimensions & coordinates of the upper left corner of the canvas
+    // with respect to the upper left corner of the window.
     float cwidth = 0, cheight = 0;
+    float cwpos = 0, chpos = 0;
+    
+    // canvas target dimensions
+    float twidth = 0, theight = 0;
+
+    // window dimensions & global position of the window in the main frame.
+    float wwidth = 0, wheight = 0;
+    float wwpos = 0, whpos = 0;
 
     // grid layout management
     int32_t columns = 0, rows = 0;
     std::vector<float> wfill, hfill, wmax, hmax;
     std::vector<std::vector<Frame*> > grid;
 
+    // padding & alignment
+    float lpad = 0, rpad = 0, upad = 0, dpad = 0;
+    float lalign = 0, ralign = 0, ualign = 0, dalign = 0;
+
     // textures that are sent to be rendered on to this frame.
     std::vector<TextureFrame> textures;
 
 public:
 
-    // canvas target dimensions & coordinates of the upper left corner of the canvas
-    // with respect to the upper left corner of the window.
-    // Down and right are the positive directions.
-    float width = 0, height = 0;
-    float wpos = 0, hpos = 0;
-
-    // window dimensions & global position of the window in the main frame.
-    float wwidth = 0, wheight = 0;
-    float wwpos = 0, whpos = 0;
-    
     // this frame claims this much space in it's parent's grid.
     int32_t rowSpan = 1, columnSpan = 1; 
     
@@ -129,9 +141,9 @@ public:
     // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
     int32_t setup(std::map<std::string, std::string> values);
 
-    // updates. Overload these needed
-    int32_t event_update(sf::Event);
-    int32_t coreapp_update();
+    // updates. Overload these if needed
+    virtual int32_t event_update(sf::Event);
+    virtual int32_t coreapp_update();
 
     // find the frame where the cursor is.
     Frame *find_focus();
@@ -143,9 +155,15 @@ public:
     int32_t refresh();
 
     // set the window size
-    int32_t set_size(float wwidth_, float wheight_);
-    int32_t set_position(float wwpos_, float whpos_);
+    int32_t set_window_size(float wwidth_, float wheight_);
+    int32_t set_window_position(float wwpos_, float whpos_);
 
+    // set and get canvas target dimensions. padding is included
+    // int the target dimensions.
+    int32_t set_target_dimensions(float twidth_, float theight_);
+    float target_width();
+    float target_height();
+    
     // setup a nullptr grid of size {rows_, columns_}
     int32_t setup_grid(int32_t rows_, int32_t columns_);
 
@@ -162,6 +180,20 @@ public:
     int32_t config_column(std::vector<float> cfill_);
     int32_t config_row(int32_t row, float value);
     int32_t config_column(int32_t column, float value);
+
+    // set padding around the frame contents
+    int32_t pad(float left, float right, float up, float down);
+
+    // by default the frame sticks to the lower left corner.
+    // align the frame contents. examples for cases where the frame
+    // itself does not use any of the extra space it is allocated:
+    // align(1, 1, 1, 1) -> stay in the middle
+    // align(0, 1, 0, 1) -> stick to the upper left corner
+    // align(1, 2, 3, 0.5) -> stick third way from left and seventh
+    //                        way from bottom.
+    int32_t align(float left, float right, float up, float down);
+    
+
 };
 
 }

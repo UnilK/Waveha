@@ -36,12 +36,11 @@ class Window{
         // textures that are sent to be rendered on to this window.
         std::vector<TextureFrame> textures;
 
+        float height = 100, width = 100;
+
         friend class Frame;
 
     public:
-
-        // access only, don't change these.
-        float height = 100, width = 100;
        
         // mouse position
         float mwpos = 0, mhpos = 0;

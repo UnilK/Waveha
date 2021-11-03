@@ -57,7 +57,7 @@ int32_t Window::listen_events(){
                 width = event.size.width;
                 height = event.size.height;
 				window->setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
-                mainframe->set_size(width, height);
+                mainframe->set_window_size(width, height);
                 mainframe->update_grid(3);
                 on_resize(event);
                 break;

@@ -25,7 +25,7 @@ protected:
 
     std::set<Window*> windows;
 
-    std::thread terminal;
+    std::thread *terminal;
     std::mutex command_lock;
     std::vector<std::string> commands;
 

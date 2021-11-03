@@ -21,9 +21,10 @@ void listen_terminal(Core *core){
 Core::Core(bool hasTerminal_, bool hasWindow_){
     hasTerminal = hasTerminal_;
     hasWindow = hasWindow_;
-    
-    // if(hasTerminal) terminal = std::thread(listen_terminal, this);
-
+    if(hasTerminal){
+        terminal = new std::thread(listen_terminal, this);
+        terminal->detach();
+    }
 }
 
 int32_t Core::start(){
