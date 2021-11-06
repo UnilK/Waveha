@@ -1,5 +1,5 @@
 #include "wave/vocal.h"
-#include "math/constants.h"
+#include "math/constants.hpp"
 
 #include <math.h>
 #include <algorithm>

@@ -1,7 +1,7 @@
 #include "wave/waveTransform.h"
 #include "math/FFT.h"
 #include "math/FT.h"
-#include "math/constants.h"
+#include "math/constants.hpp"
 #include "math/sincFIR.h"
 
 #include <math.h>
