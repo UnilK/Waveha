@@ -1,0 +1,34 @@
+#!/bin/bash
+
+openmath="gnome-terminal --tab -t math -- vim -S dev/.vimrc -p include/math/*.hpp src/math/*.cpp"
+openwave="gnome-terminal --tab -t wave -- vim -S dev/.vimrc -p src/wave/*.cpp"
+openui="gnome-terminal --tab -t ui -- vim -S dev/.vimrc -p src/ui/*.cpp"
+openapp="gnome-terminal --tab -t app -- vim -S dev/.vimrc -p include/app/*.hpp"
+
+if [ $# -eq 0 ]
+then
+    $openmath
+    $openwave
+    $openui
+    $openapp
+fi
+
+while [[ $# -gt 0 ]]
+do
+    case $1 in
+        math)
+            $openmath
+            ;;
+        wave)
+            $openwave
+            ;;
+        ui)
+            $openui
+            ;;
+        app)
+            $openapp
+            ;;
+    esac
+    shift 1
+done
+
