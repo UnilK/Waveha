@@ -16,8 +16,6 @@ public:
         
         setup({{"look", "ToolBar"}});
         setup_grid(1, 1);
-        config_row({1});
-        config_column({1});
 
     }
 
@@ -33,8 +31,6 @@ public:
 
         setup({{"look", "MainView"}});
         setup_grid(1, 1);
-        config_row({1});
-        config_column({1});
 
     }
 
@@ -50,8 +46,6 @@ public:
 
         setup({{"look", "SideBar"}});
         setup_grid(1, 1);
-        config_row({1});
-        config_column({1});
 
     }
 
@@ -74,16 +68,6 @@ public:
 
         setup({{"look", "MainFrame"}});
         setup_grid(2, 2);
-
-        config_column({1, 0});
-        config_row({0,
-                    1});
-
-        grid[0][0] = &toolBar;
-        toolBar.columnSpan = 2;
-        
-        grid[1][1] = &sideBar;
-        grid[1][0] = &mainView;
 
         update_grid(3);
     }

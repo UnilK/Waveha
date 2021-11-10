@@ -6,22 +6,15 @@
 #include <math.h>
 
 namespace ui{
-    
-TextureFrame::TextureFrame(const sf::Texture *tex_, float wwpos_, float whpos_) : tex(tex_){
-    wwpos = wwpos_;
-    whpos = whpos_;
-    wpos = hpos = 0;
-    sf::Vector2<uint32_t> size = tex->getSize();
-    width = size.x;
-    height = size.y;
-}
+
+TextureFrame::TextureFrame(const sf::Texture *tex_, float x_, float y_) : tex(tex_), x(x_), y(y_) {}
 
 Frame::Frame(){
-    window = new sf::RenderTexture();
+    canvas = new sf::RenderTexture();
 }
 
 Frame::Frame(Window *master_, std::map<std::string, std::string> values){ 
-    window = new sf::RenderTexture();
+    canvas = new sf::RenderTexture();
     master = master_;
     core = master->core;
     parent = nullptr;
@@ -29,46 +22,75 @@ Frame::Frame(Window *master_, std::map<std::string, std::string> values){
 }
 
 Frame::Frame(Frame *parent_, std::map<std::string, std::string> values){
-    window = new sf::RenderTexture();
+    canvas = new sf::RenderTexture();
     parent = parent_;
     core = parent->core;
     master = parent->master;
     setup(values);
 }
 
-Frame::~Frame(){ delete window; }
+Frame::~Frame(){ delete canvas; }
+
+int32_t Frame::border(float left, float right, float up, float down){
+    borderLeft = left;
+    borderRight = right;
+    borderUp = up;
+    borderDown = down;
+    return 0;
+}
+
+int32_t Frame::border(float thickness){
+    borderLeft = thickness;
+    borderRight = thickness;
+    borderUp = thickness;
+    borderDown = thickness;
+    return 0;
+}
+
+int32_t Frame::align(float left, float right, float up, float down){
+    alignPadLeft = left;
+    alignPadRight = right;
+    alignPadDown = up;
+    alignPadUp = down;
+    return 0;
+}
+
+int32_t Frame::align_fill(float left, float right, float up, float down){
+    alignFillLeft = left;
+    alignFillRight = right;
+    alignFillDown = up;
+    alignFillUp = down;
+    return 0;
+}
+
+int32_t Frame::frame_fill(float width, float height){
+    frameFillWidth = width;
+    frameFillHeight = height;
+    return 0;
+}
 
 int32_t Frame::setup(std::map<std::string, std::string> values){
     
     if(values["look"] != "") look = values["look"];
-    if(values["width"] != "") std::stringstream(values["width"]) >> twidth;
-    if(values["height"] != "") std::stringstream(values["height"]) >> theight;
+    if(values["width"] != "") std::stringstream(values["width"]) >> canvasWidth;
+    if(values["height"] != "") std::stringstream(values["height"]) >> canvasHeight;
     if(values["columnSpan"] != "") std::stringstream(values["columnSpan"]) >> columnSpan;
     if(values["rowSpan"] != "") std::stringstream(values["rowSpan"]) >> rowSpan;
 
     return 0;
 }
         
-int32_t Frame::event_update(sf::Event){
-    
-    return 0;
-}
+int32_t Frame::event_update(sf::Event){ return 0; }
 
-int32_t Frame::coreapp_update(){
-
-    for(int32_t i=0; i<rows; i++){
-        for(int32_t j=0; j<columns; j++){
-            if(grid[i][j] != nullptr) grid[i][j]->coreapp_update();
-        }
-    }
-
-    return 0;
-}
+int32_t Frame::coreapp_update(){ return 0; }
 
 Frame *Frame::find_focus(){
 
-    float x = master->mwpos;
-    float y = master->mhpos;
+    // TODO rework
+    
+    /*
+    float x = master->mouseX;
+    float y = master->mouseY;
 
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
@@ -82,34 +104,16 @@ Frame *Frame::find_focus(){
             }
         }
     }
+    */
 
     return this;
 }
 
-int32_t Frame::send_texture(TextureFrame &tex){
-   
-    // cut out the parts that don't fit in the frame and send upwards if necessary.
-
-    tex.wpos -= std::min(0.0f, tex.wpos+tex.wwpos+cwpos-wwpos);
-    tex.hpos -= std::min(0.0f, tex.hpos+tex.whpos+chpos-whpos);
-    tex.width = std::min(tex.width, (wwpos+wwidth)-(tex.wpos+tex.wwpos+cwpos));
-    tex.height = std::min(tex.height, (whpos+wheight)-(tex.hpos+tex.whpos+chpos));
-   
-    if(refreshFlag){
-        textures.push_back(tex);
-    } else {
-        if(parent == this || parent == nullptr){
-            master->send_texture(tex);
-        } else {
-            parent->send_texture(tex);
-        }
-    }
-
-    return 0;
-}
-
 int32_t Frame::refresh(){
 
+    // TODO rework
+
+    /*
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
             if(grid[i][j] != nullptr) grid[i][j]->refresh();
@@ -139,34 +143,11 @@ int32_t Frame::refresh(){
     textures.clear();
     refreshFlag = 0;
 
-    send_texture(texf);
+    master->send_texture(texf);
+    */
 
     return 0;
 }
-
-int32_t Frame::set_window_size(float wwidth_, float wheight_){
-    wwidth = wwidth_;
-    wheight = wheight_;
-    if(wwidth*wheight > 0) window->create(wwidth, wheight);
-    else window->create(1, 1);
-    return 0;
-}
-
-int32_t Frame::set_window_position(float wwpos_, float whpos_){
-    wwpos = wwpos_;
-    whpos = whpos_;
-    return 0;
-}
-
-int32_t Frame::set_target_dimensions(float twidth_, float theight_){
-    twidth = twidth_;
-    theight = theight_;
-    return 0;
-}
-
-float Frame::target_width(){ return twidth+lpad+rpad; }
-
-float Frame::target_height(){ return theight+upad+dpad; }
 
 int32_t Frame::setup_grid(int32_t rows_, int32_t columns_){
     
@@ -176,16 +157,19 @@ int32_t Frame::setup_grid(int32_t rows_, int32_t columns_){
     columns = columns_;
     
     grid = std::vector<std::vector<Frame*> >(rows, std::vector<Frame*>(columns, nullptr));
-    hfill.resize(rows, 0);
-    wfill.resize(columns, 0);
-    hmax.resize(rows+1, 0);
-    wmax.resize(columns+1, 0);
+    heightFill.resize(rows, 0);
+    widthFill.resize(columns, 0);
+    heightMax.resize(rows+1, 0);
+    widthMax.resize(columns+1, 0);
     
     return 0;
 }
 
 int32_t Frame::update_grid(int32_t direction){
 
+    // TODO rework
+    
+    /*
     std::fill(hmax.begin(), hmax.end(), 0);
     std::fill(wmax.begin(), wmax.end(), 0);
    
@@ -264,41 +248,64 @@ int32_t Frame::update_grid(int32_t direction){
     if(direction&2 && parent != this && parent != nullptr) parent->update_grid(2);
 
     refreshFlag = 1;
+    */
     
     return 0;
 }
 
-int32_t Frame::config_row(std::vector<float> hfill_){
-   hfill = hfill_;
-   hfill.resize(rows, 0);
+int32_t Frame::set_window_size(float windowWidth_, float windowHeight_){
+    windowWidth = windowWidth_;
+    windowHeight = windowHeight_;
+    return 0;
+}
+
+int32_t Frame::set_window_position(float windowX_, float windowY_){
+    windowX = windowX_;
+    windowY = windowY_;
+    return 0;
+}
+
+int32_t Frame::set_global_position(float globalX_, float globalY_){
+    globalX = globalX_;
+    globalY = globalY_;
+    return 0;
+}
+
+int32_t Frame::set_canvas_size(float canvasWidth_, float canvasHeight_){
+    canvasWidth = canvasWidth_;
+    canvasWidth = canvasHeight_;
+    return 0;
+}
+
+
+float Frame::canvas_width(){
+    return canvasWidth + alignPadLeft + alignPadRight;
+}
+
+float Frame::canvas_height(){
+    return canvasHeight + alignPadUp + alignPadDown;
+}
+
+
+int32_t Frame::fill_height(std::vector<float> heightFill_){
+    heightFill = heightFill_;
+    heightFill.resize(rows, 0);
+    return 0;
+}
+
+int32_t Frame::fill_width(std::vector<float> widthFill_){
+    widthFill = widthFill_;
+    widthFill.resize(columns, 0);
+    return 0;
+}
+
+int32_t Frame::fill_height(int32_t row, float value){
+   heightFill[row] = value;
    return 0;
 }
 
-int32_t Frame::config_column(std::vector<float> wfill_){
-   wfill = wfill_;
-   wfill.resize(columns, 0);
-   return 0;
-}
-
-int32_t Frame::config_row(int32_t row, float value){
-    hfill.resize(row+1, 0);
-    hfill[row] = value;
-    return 0;
-}
-
-int32_t Frame::config_column(int32_t column, float value){
-    wfill.resize(column+1, 0);
-    wfill[column] = value;
-    return 0;
-}
-
-int32_t Frame::pad(float left, float right, float up, float down){
-    lpad = left; rpad = right; upad = up; dpad = down;
-    return 0;
-}
-
-int32_t Frame::align(float left, float right, float up, float down){
-    lalign = left; ralign = right; ualign = up; dalign = down;
+int32_t Frame::fill_width(int32_t column, float value){
+    widthFill[column] = value;
     return 0;
 }
 

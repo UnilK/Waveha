@@ -62,8 +62,8 @@ int32_t Window::listen_events(){
                 on_resize(event);
                 break;
             case sf::Event::MouseMoved:
-                mwpos = event.mouseMove.x;
-                mhpos = event.mouseMove.y;
+                mouseX = event.mouseMove.x;
+                mouseY = event.mouseMove.y;
                 on_mouse_move(event);
                 break;
             default:
@@ -83,14 +83,10 @@ int32_t Window::refresh(){
     mainframe->refresh();
     
     for(TextureFrame &tex : textures){
-        if(tex.height >= 0.5f && tex.width >= 0.5f){
-            sf::Rect<int32_t> rect(
-                    std::round(tex.wpos), std::round(tex.hpos),
-                    std::round(tex.width), std::round(tex.height));
-            sf::Sprite sprite(*tex.tex, rect);
-            sprite.setPosition(tex.wwpos+tex.wpos, tex.whpos+tex.hpos);
-            window->draw(sprite);
-        }
+        sf::Sprite sprite(*tex.tex);
+        float texHeight = tex.tex->getSize().y;
+        sprite.setPosition(tex.x, height-tex.y-texHeight);
+        window->draw(sprite);
     }
 
     if(!textures.empty()) window->display();

@@ -43,7 +43,7 @@ class Window{
     public:
        
         // mouse position
-        float mwpos = 0, mhpos = 0;
+        float mouseX = 0, mouseY = 0;
 
         Window();
         Window(Core *core_, std::map<std::string, std::string> values = {});
