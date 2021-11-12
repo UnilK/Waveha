@@ -6,15 +6,6 @@
 
 namespace ui{
 
-
-/*
-textureframe::TextureFrame(const sf::Texture *tex_, float globalX_, float globalY_,
-            float localX_, float localY_, float width_, float height_) : tes(tex:), x{}
-*/
-
-Frame::Frame(){
-}
-
 Frame::Frame(Window *master_, std::map<std::string, std::string> values){ 
     master = master_;
     core = master->core;
@@ -28,8 +19,6 @@ Frame::Frame(Frame *parent_, std::map<std::string, std::string> values){
     master = parent->master;
     setup(values);
 }
-
-Frame::~Frame(){}
 
 int32_t Frame::setup(std::map<std::string, std::string> values){
     
@@ -114,26 +103,29 @@ Frame *Frame::find_focus(){
     return this;
 }
 
+bool Frame::degenerate(){
+    return windowWidth < 0.5f || windowHeight < 0.5f;
+}
+
+int32_t Frame::draw(){
+    return 0;
+}
+
 int32_t Frame::refresh(){
 
-    Look s = core->style.get(look);
-
-    if(windowWidth < 0.5f || windowHeight < 0.5f) return 0;
+    if(degenerate()) return 0;
 
     if(refreshFlag){
-        canvas.clear(s.color("background")); 
-        TextureFrame texf{&canvas.getTexture(), globalX, globalY,
-                windowX, windowY, windowWidth, windowHeight};
-        master->send_texture(texf);
+        draw();
+        refreshFlag = 0;
+        master->displayFlag = 1;
     }
-
+    
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
             if(grid[i][j] != nullptr) grid[i][j]->refresh();
         }
     }
-    
-    refreshFlag = 0;
 
     return 0;
 }
@@ -265,11 +257,6 @@ int32_t Frame::update_grid(){
                     std::min(childCanvasY + childCanvasHeight, canvasY + windowY + windowHeight)
                     - childWindowY);
            
-            /*
-            std::cout << i << ' ' << j << " = " << childWindowX << ' ' << childWindowY << " L "
-                << childGlobalX << ' ' << childGlobalY << " G " << childCanvasWidth << ' '
-                << childCanvasHeight << " C " << childWindowWidth << ' ' << childWindowHeight << " W\n";
-            */
             child->set_global_position(childGlobalX, childGlobalY);
             
             child->set_window_position(childWindowX - childCanvasX, childWindowY - childCanvasY);
@@ -310,18 +297,8 @@ int32_t Frame::set_target_size(float targetWidth_, float targetHeight_){
 }
 
 int32_t Frame::set_canvas_size(float canvasWidth_, float canvasHeight_){
-    
-    float previousWidth = canvasWidth;
-    float previousHeight = canvasHeight;
-    
     canvasWidth = std::max(0.0f, canvasWidth_);
     canvasHeight = std::max(0.0f, canvasHeight_);
-
-    if(canvasWidth > 0.5f && canvasHeight > 0.5f
-            && (previousWidth != canvasWidth || previousHeight != canvasHeight)){
-        canvas.create(canvasWidth, canvasHeight);
-    }
-
     return 0;
 }
 
@@ -395,6 +372,52 @@ int32_t Frame::set_span(int32_t rowSpan_, int32_t columnSpan_){
     columnSpan = std::max(1, columnSpan_);
     return 0;
 };
+
+
+
+SolidFrame::SolidFrame(Window *master_, std::map<std::string, std::string> values) :
+    Frame(master_, values) {}
+
+SolidFrame::SolidFrame(Frame *parent_, std::map<std::string, std::string> values) :
+    Frame(parent_, values) {}
+
+
+int32_t SolidFrame::draw(){
+    
+    background.setSize(sf::Vector2f(windowWidth, windowHeight));
+    background.setPosition(sf::Vector2f(globalX, globalY));
+    background.setFillColor(core->style.get(look).color("background"));
+    master->draw(background);
+    
+    return 0;
+}
+
+
+
+ContentFrame::ContentFrame(Window *master_, std::map<std::string, std::string> values) :
+    Frame(master_, values) {}
+
+ContentFrame::ContentFrame(Frame *parent_, std::map<std::string, std::string> values) :
+    Frame(parent_, values) {}
+
+
+int32_t ContentFrame::initialize(){
+
+    if(canvasWidth < 0.5f || canvasHeight < 0.5f) canvas.create(1, 1);
+    else canvas.create(canvasWidth, canvasHeight);
+
+    return 0;
+}
+
+int32_t ContentFrame::display(){
+
+    sf::IntRect area(windowX, windowY, windowWidth, windowHeight);
+    sf::Sprite sprite(canvas.getTexture(), area);
+    sprite.setPosition(globalX, globalY);
+    master->draw(sprite);
+
+    return 0;
+}
 
 }
 

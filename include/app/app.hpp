@@ -16,7 +16,10 @@ public:
 
     MainWindow window;
 
-    App() : Core(1, 1), window(this) {
+    App() :
+        Core(1, 1),
+        window(this)
+    {
         style = defaultStyle;
     }
 

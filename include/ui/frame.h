@@ -17,24 +17,9 @@ class Frame;
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 
 namespace ui{
-
-class Frame;
-
-class TextureFrame{
-
-public:
-
-    // utility class for passing textures to master window.
-    const sf::Texture *tex;
-    float globalX, globalY, localX, localY, width, height;
-
-    /*
-    TextureFrame(const sf::Texture *tex_, float globalX_, float globalY_,
-            float localX_, float localY_, float width_, float height_);
-    */
-};
 
 class Frame{
 
@@ -119,12 +104,6 @@ protected:
 
     */
 
-    // the actual canvas
-    sf::RenderTexture canvas;
-
-    // if the frame has no content, then set this flag
-    bool transparent = 0;
-
     // canvas dimensions.
     float targetWidth = 0, targetHeight = 0;
     float canvasWidth = 0, canvasHeight = 0;
@@ -161,17 +140,21 @@ protected:
 
 public:
 
-    Frame();
     Frame(Window *master_, std::map<std::string, std::string> values = {});
     Frame(Frame *parent_, std::map<std::string, std::string> values = {});
-    ~Frame();
 
     // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
     int32_t setup(std::map<std::string, std::string> values);
 
+    // is the window size 0?
+    bool degenerate();
+
     // updates. Overload these if needed
     virtual int32_t event_update(sf::Event);
     virtual int32_t coreapp_update();
+
+    // draw contents and display them on the window
+    virtual int32_t draw();
 
     // determine mouse position
     std::array<float, 2> global_mouse();
@@ -223,6 +206,41 @@ public:
     int32_t align(float left, float right, float up, float down);
     int32_t align_fill(float left, float right, float up, float down);
     int32_t frame_fill(float width, float height);
+};
+
+
+
+class SolidFrame : public Frame {
+ 
+protected:
+
+    // frame with a background color
+    sf::RectangleShape background;
+
+public:
+
+    SolidFrame(Window *master_, std::map<std::string, std::string> values = {});
+    SolidFrame(Frame *parent_, std::map<std::string, std::string> values = {});
+
+    int32_t draw();
+};
+
+
+
+class ContentFrame : public Frame {
+ 
+protected:
+
+    // frame with an independent canvas to draw on
+    sf::RenderTexture canvas;
+
+public:
+
+    ContentFrame(Window *master_, std::map<std::string, std::string> values = {});
+    ContentFrame(Frame *parent_, std::map<std::string, std::string> values = {});
+
+    int32_t initialize();
+    int32_t display();
 };
 
 }

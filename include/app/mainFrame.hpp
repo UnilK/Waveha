@@ -6,26 +6,24 @@
 class MainFrame;
 class MainWindow;
 
-class ToolBar : public ui::Frame{
+class ToolBar : public ui::SolidFrame{
 
 public:
 
-    ToolBar(){}
-    ToolBar(MainFrame *parent_, std::map<std::string, std::string> values = {}) :
-        ui::Frame((Frame*)parent_, values)
+    ToolBar(Frame *parent_, std::map<std::string, std::string> values = {}) :
+        ui::SolidFrame(parent_, values)
     {    
         setup({{"look", "ToolBar"}});
     }
 
 };
 
-class MainView : public ui::Frame{
+class MainView : public ui::SolidFrame{
 
 public:
 
-    MainView(){}
     MainView(Frame *parent_, std::map<std::string, std::string> values = {}) :
-        ui::Frame(parent_, values)
+        ui::SolidFrame(parent_, values)
     {
 
         setup({{"look", "MainView"}});
@@ -35,7 +33,7 @@ public:
 
         for(int i=0; i<5; i++){
             for(int j=0; j<5; j++){
-                grid[i][j] = new ui::Frame(this, {
+                grid[i][j] = new ui::SolidFrame(this, {
                         {"look", "MainFrame"},
                         {"width", "200"},
                         {"height", "200"},
@@ -47,20 +45,19 @@ public:
 
 };
 
-class SideBar : public ui::Frame{
+class SideBar : public ui::SolidFrame{
 
 public:
 
-    SideBar(){}
     SideBar(Frame *parent_, std::map<std::string, std::string> values = {}) :
-        ui::Frame(parent_, values)
+        ui::SolidFrame(parent_, values)
     {
         setup({{"look", "SideBar"}});
     }
 
 };
 
-class MainFrame : public ui::Frame {
+class MainFrame : public ui::SolidFrame {
 
 public:
     
@@ -68,10 +65,9 @@ public:
     ToolBar toolBar; 
     SideBar sideBar;
 
-    MainFrame(){}
     MainFrame(ui::Window *master_, std::map<std::string, std::string> values = {}) :
         
-        ui::Frame(master_, values),
+        ui::SolidFrame(master_, values),
         
         mainView(this, {
                 {"pad", "10 10  10 10"},
@@ -106,11 +102,7 @@ public:
     MainFrame mainFrame;
 
     MainWindow(ui::Core *core_) : 
-        ui::Window(core_, {
-            {"title", "waveha"},
-            {"width", "1200"},
-            {"height", "800"}}),
-
+        ui::Window(core_, 1200, 800, "Waveha"),
         mainFrame(this)
     {
         mainframe = &mainFrame;

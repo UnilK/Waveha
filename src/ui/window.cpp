@@ -1,59 +1,24 @@
 #include "ui/window.h"
 
+#include <iostream>
 #include <sstream>
 #include <math.h>
 
 namespace ui{
 
-Window::Window(){}
-
-Window::Window(Core *core_, std::map<std::string, std::string> values){
+Window::Window(Core *core_, float width_, float height_, std::string title_) :
+    sf::RenderWindow(sf::VideoMode(width_, height_), title_)
+{
     core = core_;
-    setup(values); 
-    window = new sf::RenderWindow(sf::VideoMode(width, height), title);
+    width = width_;
+    height = height_;
+    title = title_;
     core->add_window(this);
 }
-
-Window::~Window(){ delete window; }
 
 int32_t Window::destroy(){
     if(destroyed) return 1;
     destroyed = 1;
-    return 0;
-}
-
-int32_t Window::setup(std::map<std::string, std::string> values){
-    if(destroyed) return 1;
-    
-    std::map<std::string, int> index = {
-        {"title", 1},
-        {"width", 2},
-        {"height", 3}
-    };
-
-    for(auto [k, v] : values){
-        std::stringstream values(v);
-        switch(index[k]){
-            case 0:
-                break;
-            case 1:
-                values >> title;
-                break;
-            case 2:
-                values >> width;
-                break;
-            case 3:
-                values >> height;
-                break;
-        }
-    }
-
-    return 0;
-}
-
-int32_t Window::send_texture(TextureFrame &texture){
-    if(destroyed) return 0;
-    textures.push_back(texture); 
     return 0;
 }
 
@@ -68,27 +33,38 @@ int32_t Window::listen_events(){
     if(destroyed) return 0;
 
     sf::Event event;
-    while (window->pollEvent(event)){
+    while (pollEvent(event)){
         switch(event.type){
             case sf::Event::Closed:
-                window->close();
+                
+                close();
                 on_close();
+                
                 return destroy();
+
             case sf::Event::Resized:
+                
                 width = event.size.width;
                 height = event.size.height;
-				window->setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
+				
+                setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
+                
                 mainframe->set_window_size(width, height);
                 mainframe->set_canvas_size(width, height);
                 mainframe->update_grid();
+                
                 on_resize();
+                
                 break;
             case sf::Event::MouseMoved:
+                
                 mouseX = event.mouseMove.x;
                 mouseY = event.mouseMove.y;
                 on_mouse_move();
+                
                 break;
             default:
+                
                 mainframe->event_update(event);
                 break;
         }
@@ -98,22 +74,43 @@ int32_t Window::listen_events(){
     return 0;
 }
 
+/*
+void Window::draw(
+        const sf::Drawable &drawable,
+        const sf::RenderStates &states){
+    window.draw(drawable, states);
+}
+
+void Window::draw(
+        const sf::Vertex *vertices,
+        std::size_t vertexCount,
+        sf::PrimitiveType type,
+        const sf::RenderStates &states){
+    window.draw(vertices, vertexCount, type, states);
+}
+
+void Window::draw(
+        const sf::VertexBuffer &vertexBuffer,
+        const sf::RenderStates &states){
+    window.draw(vertexBuffer, states);
+}
+
+void Window::draw(
+        const sf::VertexBuffer &vertexBuffer,
+        std::size_t firstVertex,
+        std::size_t vertexCount,
+        const sf::RenderStates &states){
+    window.draw(vertexBuffer, firstVertex, vertexCount, states);
+}
+*/
+
 int32_t Window::refresh(){
     
     if(destroyed) return 0;
 
     mainframe->refresh();
-    
-    for(TextureFrame &tex : textures){
-        sf::IntRect area(tex.localX, tex.localY, tex.width, tex.height);
-        sf::Sprite sprite(*tex.tex, area);
-        sprite.setPosition(tex.globalX, tex.globalY);
-        window->draw(sprite);
-    }
-
-    if(!textures.empty()) window->display();
-    
-    textures.clear();
+    if(displayFlag) display();
+    displayFlag = 0;
 
     return 0;
 }
