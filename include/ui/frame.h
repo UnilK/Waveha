@@ -28,9 +28,12 @@ public:
 
     // utility class for passing textures to master window.
     const sf::Texture *tex;
-    float x, y;
+    float globalX, globalY, localX, localY, width, height;
 
-    TextureFrame(const sf::Texture *tex_, float x_, float y_);
+    /*
+    TextureFrame(const sf::Texture *tex_, float globalX_, float globalY_,
+            float localX_, float localY_, float width_, float height_);
+    */
 };
 
 class Frame{
@@ -47,9 +50,9 @@ class Frame{
 
 protected:
 
-    Core *core;
-    Frame *parent;
-    Window *master;
+    Core *core = nullptr;
+    Frame *parent = nullptr;
+    Window *master = nullptr;
 
     std::string look = "";
 
@@ -64,14 +67,12 @@ protected:
         2. Alignment of any kind should be separate from frame
            contents. The frame contains only the frame, nothing else.
         3. All of the actual rendering is done on the master window.
-        4. Borders are a part of the frame and drawn on top of the content.
 
         These allow:
 
         1. Intuitive scaling (1)
         2. Easy drawing of content frames (2)
         3. Efficiency (1, 3)
-        4. Border to be drawn on the frame (4)
 
         The space allocation to child frames:
 
@@ -119,9 +120,13 @@ protected:
     */
 
     // the actual canvas
-    sf::RenderTexture *canvas;
-    
-    // canvas default dimensions.
+    sf::RenderTexture canvas;
+
+    // if the frame has no content, then set this flag
+    bool transparent = 0;
+
+    // canvas dimensions.
+    float targetWidth = 0, targetHeight = 0;
     float canvasWidth = 0, canvasHeight = 0;
 
     // window dimensions & window positions
@@ -134,18 +139,15 @@ protected:
     std::vector<float> widthFill, heightFill;
     std::vector<std::vector<Frame*> > grid;
 
+    // TODO implement off-grid frames
+
     // grid content layout management
-    std::vector<float> widthMax, heightMax;
+    std::vector<float> widthMax = {0}, heightMax = {0};
     
     // frame content displacement: if the children of the frame require
     // more space than it has to offer, then this is the canvas' position
     // on the contents.
     float canvasX = 0, canvasY = 0;
-
-    // border thickness
-    float borderLeft = 0, borderRight = 0, borderDown = 0, borderUp = 0;
-    int32_t border(float left, float right, float up, float down);
-    int32_t border(float thickness);
 
     // Protected variables below this line should only be accessed by the parent frame.
 
@@ -156,9 +158,6 @@ protected:
     float frameFillWidth = 1, frameFillHeight = 1;
     float alignPadLeft = 0, alignPadRight = 0, alignPadDown = 0, alignPadUp = 0;
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
-    int32_t align(float left, float right, float up, float down);
-    int32_t align_fill(float left, float right, float up, float down);
-    int32_t frame_fill(float width, float height);
 
 public:
 
@@ -174,6 +173,10 @@ public:
     virtual int32_t event_update(sf::Event);
     virtual int32_t coreapp_update();
 
+    // determine mouse position
+    std::array<float, 2> global_mouse();
+    std::array<float, 2> local_mouse();
+
     // find the frame where the cursor is.
     Frame *find_focus();
     
@@ -186,20 +189,25 @@ public:
     int32_t set_window_position(float windowX_, float windowY_);
     int32_t set_global_position(float globalX_, float globalY_);
 
-    // set canvas target dimensions.
-    int32_t set_canvas_size(float canvasWidth_, float canvasHeight_);
-    
+    // set canvas size and position.
+    int32_t set_canvas_size(float targetWidth_, float targetHeight_);
+    int32_t set_canvas_position(float canvasX_, float canvasY_);
+    int32_t move_canvas(float deltaX, float deltaY);
+
+    // set target canvas size
+    int32_t set_target_size(float targetWidth_, float targetHeight_);
+
     // padding & border included
-    float canvas_width();
-    float canvas_height();
+    float target_width();
+    float target_height();
     
     // setup a nullptr grid of size {rows_, columns_}
     int32_t setup_grid(int32_t rows_, int32_t columns_);
 
-    // update window sizes in the grid. Call this with
-    // direction = 1 on mainframe when initializing a window.
-    // Directions in the frame tree: 0=stop, 1=down, 2=up, 3=both
-    int32_t update_grid(int32_t direction = 0);
+    // update window and canvas sizes in the grid.
+    // Needs to be called if window, target or canvas position
+    // or size is changed.
+    int32_t update_grid();
 
     // configure extra space allocation among rows & columns.
     // each row gets value[row]/values_sum extra space allocated to it.
@@ -210,6 +218,11 @@ public:
     int32_t fill_height(int32_t row, float value);
     int32_t fill_width(int32_t column, float value);
 
+    // alignment and bordering
+    int32_t set_span(int32_t rowSpan_, int32_t columnSpan_);
+    int32_t align(float left, float right, float up, float down);
+    int32_t align_fill(float left, float right, float up, float down);
+    int32_t frame_fill(float width, float height);
 };
 
 }

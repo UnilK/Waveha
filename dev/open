@@ -1,5 +1,6 @@
 #!/bin/bash
 
+openterminal="gnome-terminal"
 openmath="gnome-terminal --tab -t math -- vim -S dev/.vimrc -p include/math/*.hpp src/math/*.cpp"
 openwave="gnome-terminal --tab -t wave -- vim -S dev/.vimrc -p src/wave/*.cpp"
 openui="gnome-terminal --tab -t ui -- vim -S dev/.vimrc -p src/ui/*.cpp"
@@ -27,6 +28,9 @@ do
             ;;
         app)
             $openapp
+            ;;
+        make)
+            $openterminal
             ;;
     esac
     shift 1

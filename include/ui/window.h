@@ -47,7 +47,8 @@ class Window{
 
         Window();
         Window(Core *core_, std::map<std::string, std::string> values = {});
-
+        ~Window();
+        
         // delete the window and set the destroyed flag.
         int32_t destroy();
         bool destroyed = 0;
@@ -63,9 +64,9 @@ class Window{
         int32_t listen_events();
 
         // overloadable responses to events.
-        virtual int32_t on_close(sf::Event event);
-        virtual int32_t on_resize(sf::Event event);
-        virtual int32_t on_mouse_move(sf::Event event);
+        virtual int32_t on_close();
+        virtual int32_t on_resize();
+        virtual int32_t on_mouse_move();
         
         // Redraw & render.
         int32_t refresh();

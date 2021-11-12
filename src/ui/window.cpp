@@ -1,6 +1,5 @@
 #include "ui/window.h"
 
-#include <iostream>
 #include <sstream>
 #include <math.h>
 
@@ -15,18 +14,40 @@ Window::Window(Core *core_, std::map<std::string, std::string> values){
     core->add_window(this);
 }
 
+Window::~Window(){ delete window; }
+
 int32_t Window::destroy(){
     if(destroyed) return 1;
-    delete window;
     destroyed = 1;
     return 0;
 }
 
 int32_t Window::setup(std::map<std::string, std::string> values){
     if(destroyed) return 1;
-    if(values["title"] != "") title = values["title"];
-    if(values["width"] != "") std::stringstream(values["width"]) >> width;
-    if(values["height"] != "") std::stringstream(values["height"]) >> height;
+    
+    std::map<std::string, int> index = {
+        {"title", 1},
+        {"width", 2},
+        {"height", 3}
+    };
+
+    for(auto [k, v] : values){
+        std::stringstream values(v);
+        switch(index[k]){
+            case 0:
+                break;
+            case 1:
+                values >> title;
+                break;
+            case 2:
+                values >> width;
+                break;
+            case 3:
+                values >> height;
+                break;
+        }
+    }
+
     return 0;
 }
 
@@ -51,20 +72,21 @@ int32_t Window::listen_events(){
         switch(event.type){
             case sf::Event::Closed:
                 window->close();
-                on_close(event);
+                on_close();
                 return destroy();
             case sf::Event::Resized:
                 width = event.size.width;
                 height = event.size.height;
 				window->setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
                 mainframe->set_window_size(width, height);
-                mainframe->update_grid(3);
-                on_resize(event);
+                mainframe->set_canvas_size(width, height);
+                mainframe->update_grid();
+                on_resize();
                 break;
             case sf::Event::MouseMoved:
                 mouseX = event.mouseMove.x;
                 mouseY = event.mouseMove.y;
-                on_mouse_move(event);
+                on_mouse_move();
                 break;
             default:
                 mainframe->event_update(event);
@@ -83,9 +105,9 @@ int32_t Window::refresh(){
     mainframe->refresh();
     
     for(TextureFrame &tex : textures){
-        sf::Sprite sprite(*tex.tex);
-        float texHeight = tex.tex->getSize().y;
-        sprite.setPosition(tex.x, height-tex.y-texHeight);
+        sf::IntRect area(tex.localX, tex.localY, tex.width, tex.height);
+        sf::Sprite sprite(*tex.tex, area);
+        sprite.setPosition(tex.globalX, tex.globalY);
         window->draw(sprite);
     }
 
@@ -96,10 +118,10 @@ int32_t Window::refresh(){
     return 0;
 }
 
-int32_t Window::on_close(sf::Event event){ return 0; }
+int32_t Window::on_close(){ return 0; }
 
-int32_t Window::on_resize(sf::Event event){ return 0;  }
+int32_t Window::on_resize(){ return 0;  }
 
-int32_t Window::on_mouse_move(sf::Event event){ return 0; }
+int32_t Window::on_mouse_move(){ return 0; }
 
 }

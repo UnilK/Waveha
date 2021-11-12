@@ -1,6 +1,5 @@
 #include <ui/style.h>
 
-#include <iostream>
 #include <sstream>
 #include <iomanip>
 
