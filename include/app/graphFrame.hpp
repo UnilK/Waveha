@@ -2,7 +2,7 @@
 
 #include "ui/frame.h"
 
-class GraphFrame : ui::Frame{
+class GraphFrame : ui::ContentFrame{
 
 protected:
 

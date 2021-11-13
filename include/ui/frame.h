@@ -138,12 +138,13 @@ protected:
     float alignPadLeft = 0, alignPadRight = 0, alignPadDown = 0, alignPadUp = 0;
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
 
+    bool read_value(std::string key, std::stringstream &value,
+            std::map<std::string, std::string> &values);
+
 public:
 
     Frame(Window *master_, std::map<std::string, std::string> values = {});
     Frame(Frame *parent_, std::map<std::string, std::string> values = {});
-
-    // use key-value pairs as : {{"variable name", "value"}, {"k2", "v2"}}
     int32_t setup(std::map<std::string, std::string> values);
 
     // is the window size 0?

@@ -83,11 +83,11 @@ depend: $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 build/wave/pitchHandler.o: include/wave/pitchHandler.h include/math/FFT.h
 build/wave/waveTransform.o: include/wave/waveTransform.h include/wave/vocal.h
 build/wave/waveTransform.o: include/wave/vocalTransform.h include/math/FFT.h
-build/wave/waveTransform.o: include/math/FT.h include/math/sincFIR.h
-build/wave/waveTransform.o: include/math/FIR.h
+build/wave/waveTransform.o: include/math/FT.h include/math/constants.hpp
+build/wave/waveTransform.o: include/math/sincFIR.h include/math/FIR.h
 build/wave/vocalTransform.o: include/wave/vocalTransform.h include/wave/vocal.h
 build/wave/audioClassifier.o: include/wave/audioClassifier.h
-build/wave/vocal.o: include/wave/vocal.h
+build/wave/vocal.o: include/wave/vocal.h include/math/constants.hpp
 build/math/FFT.o: include/math/FFT.h include/math/constants.hpp
 build/math/FIR.o: include/math/FIR.h
 build/math/sincFIR.o: include/math/sincFIR.h include/math/FIR.h

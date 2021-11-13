@@ -20,46 +20,40 @@ Frame::Frame(Frame *parent_, std::map<std::string, std::string> values){
     setup(values);
 }
 
+bool Frame::read_value(
+        std::string key,
+        std::stringstream &value,
+        std::map<std::string, std::string> &values){
+    if(values[key].empty()) return 0;
+    value = std::stringstream(values[key]);
+    return 1;
+}
+
 int32_t Frame::setup(std::map<std::string, std::string> values){
     
-    std::map<std::string, int> index = {
-        {"look", 1},
-        {"width", 2},
-        {"height", 3},
-        {"columnSpan", 4},
-        {"rowSpan", 5},
-        {"pad", 6},
-        {"fill", 7}
-    };
+    std::stringstream value;
 
-    for(auto [k, v] : values){
-        std::stringstream values(v);
-        switch(index[k]){
-            case 0:
-                break;
-            case 1:
-                values >> look;
-                break;
-            case 2:
-                values >> targetWidth;
-                break;
-            case 3:
-                values >> targetHeight;
-                break;
-            case 4:
-                values >> columnSpan;
-                break;
-            case 5:
-                values >> rowSpan;
-                break;
-            case 6:
-                values >> alignPadLeft >> alignPadRight >> alignPadUp >> alignPadDown;
-                break;
-            case 7:
-                values >> alignFillLeft >> frameFillWidth >> alignFillRight
-                    >> alignFillUp >> frameFillHeight >> alignFillDown;
-                break;
-        }
+    if(read_value("look", value, values))
+        value >> look;
+    
+    if(read_value("width", value, values))
+        value >> targetWidth;
+    
+    if(read_value("height", value, values))
+        value >> targetHeight;
+    
+    if(read_value("columnSpan", value, values))
+        value >> columnSpan;
+    
+    if(read_value("rowSpan", value, values))
+        value >> rowSpan;
+    
+    if(read_value("pad", value, values))
+        value >> alignPadLeft >> alignPadRight >> alignPadUp >> alignPadDown;
+    
+    if(read_value("fill", value, values)){
+        value >> alignFillLeft >> frameFillWidth >> alignFillRight
+            >> alignFillUp >> frameFillHeight >> alignFillDown;
     }
 
     return 0;
