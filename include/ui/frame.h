@@ -39,6 +39,7 @@ protected:
     Frame *parent = nullptr;
     Window *master = nullptr;
 
+    std::string id = "";
     std::string look = "";
 
     /*
@@ -141,17 +142,20 @@ protected:
     bool read_value(std::string key, std::stringstream &value,
             std::map<std::string, std::string> &values);
 
+private:
+
+    int32_t setup(std::map<std::string, std::string> &values);
+
 public:
 
     Frame(Window *master_, std::map<std::string, std::string> values = {});
     Frame(Frame *parent_, std::map<std::string, std::string> values = {});
-    int32_t setup(std::map<std::string, std::string> values);
 
     // is the window size 0?
     bool degenerate();
 
     // updates. Overload these if needed
-    virtual int32_t event_update(sf::Event);
+    virtual int32_t event_update(sf::Event event);
     virtual int32_t coreapp_update();
 
     // draw contents and display them on the window
@@ -163,6 +167,7 @@ public:
 
     // find the frame where the cursor is.
     Frame *find_focus();
+    bool focusable = 1;
     
     // Redraw & render.
     int32_t refresh();

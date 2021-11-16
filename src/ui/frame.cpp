@@ -1,5 +1,6 @@
 #include "ui/frame.h"
 
+#include <iostream>
 #include <sstream>
 #include <algorithm>
 #include <math.h>
@@ -8,7 +9,7 @@ namespace ui{
 
 Frame::Frame(Window *master_, std::map<std::string, std::string> values){ 
     master = master_;
-    core = master->core;
+    core = master->get_core();
     parent = nullptr;
     setup(values);
 }
@@ -29,12 +30,15 @@ bool Frame::read_value(
     return 1;
 }
 
-int32_t Frame::setup(std::map<std::string, std::string> values){
+int32_t Frame::setup(std::map<std::string, std::string> &values){
     
     std::stringstream value;
 
     if(read_value("look", value, values))
         value >> look;
+    
+    if(read_value("id", value, values))
+        value >> id;
     
     if(read_value("width", value, values))
         value >> targetWidth;
@@ -88,7 +92,7 @@ Frame *Frame::find_focus(){
             float up = child->globalY;
             float down = up + child->windowHeight;
             
-            if(left <= x && x <= right && down <= y && y <= up){
+            if(left <= x && x <= right && down >= y && y >= up){
                 return grid[i][j]->find_focus(); 
             }
         }

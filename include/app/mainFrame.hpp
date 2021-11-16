@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "ui/frame.h"
+#include "ui/button.h"
 
 class MainFrame;
 class MainWindow;
@@ -13,8 +14,36 @@ public:
     ToolBar(Frame *parent_, std::map<std::string, std::string> values = {}) :
         ui::SolidFrame(parent_, values)
     {    
-        setup({{"look", "ToolBar"}});
+        look = "ToolBar";
     }
+
+};
+
+class Switch : public ui::Button {
+
+protected:
+
+    bool color = 0;
+
+public:
+
+    Switch(ui::Frame *parent_, std::map<std::string, std::string> values = {}) :
+        ui::Button(parent_, Switch::swap, this, values)
+    {
+        look = "redSwitch";
+    }
+    
+    static int32_t swap(void *frame){
+
+        auto &f = *(Switch*)frame;
+
+        f.color ^= 1;
+        if(f.color) f.look = "blueSwitch";
+        else f.look = "redSwitch";
+        f.refreshFlag = 1;
+        return 0;
+    }
+
 
 };
 
@@ -26,15 +55,13 @@ public:
         ui::SolidFrame(parent_, values)
     {
 
-        setup({{"look", "MainView"}});
-        
+        look = "MainView";
 
         setup_grid(5, 5);
 
         for(int i=0; i<5; i++){
             for(int j=0; j<5; j++){
-                grid[i][j] = new ui::SolidFrame(this, {
-                        {"look", "MainFrame"},
+                grid[i][j] = new Switch(this, {
                         {"width", "200"},
                         {"height", "200"},
                         {"pad", "10 10 10 10"}});
@@ -52,7 +79,7 @@ public:
     SideBar(Frame *parent_, std::map<std::string, std::string> values = {}) :
         ui::SolidFrame(parent_, values)
     {
-        setup({{"look", "SideBar"}});
+        look = "SideBar";
     }
 
 };
@@ -78,7 +105,7 @@ public:
         sideBar(this, {{"width", "200"}})
     {
 
-        setup({{"look", "MainFrame"}});
+        look = "MainFrame";
         setup_grid(2, 2);
 
         fill_width({1, 0});

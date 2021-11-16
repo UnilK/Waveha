@@ -60,12 +60,27 @@ int32_t Window::listen_events(){
                 
                 mouseX = event.mouseMove.x;
                 mouseY = event.mouseMove.y;
+                soft_focus = mainframe->find_focus();
                 on_mouse_move();
                 
                 break;
             default:
+
+                if(event.type == sf::Event::MouseButtonPressed){
+                    clicked = soft_focus;
+                    if(soft_focus != nullptr) soft_focus->event_update(event);
+                }
+                else if(event.type == sf::Event::MouseButtonReleased){
+                    if(soft_focus == clicked && clicked != nullptr && clicked->focusable)
+                        hard_focus = clicked;
+                    if(soft_focus != clicked)
+                        clicked->event_update(event);
+                    if(soft_focus != nullptr)
+                        soft_focus->event_update(event);
+                }
+                else if(hard_focus != nullptr)
+                    hard_focus->event_update(event);
                 
-                mainframe->event_update(event);
                 break;
         }
     }
@@ -73,36 +88,6 @@ int32_t Window::listen_events(){
 
     return 0;
 }
-
-/*
-void Window::draw(
-        const sf::Drawable &drawable,
-        const sf::RenderStates &states){
-    window.draw(drawable, states);
-}
-
-void Window::draw(
-        const sf::Vertex *vertices,
-        std::size_t vertexCount,
-        sf::PrimitiveType type,
-        const sf::RenderStates &states){
-    window.draw(vertices, vertexCount, type, states);
-}
-
-void Window::draw(
-        const sf::VertexBuffer &vertexBuffer,
-        const sf::RenderStates &states){
-    window.draw(vertexBuffer, states);
-}
-
-void Window::draw(
-        const sf::VertexBuffer &vertexBuffer,
-        std::size_t firstVertex,
-        std::size_t vertexCount,
-        const sf::RenderStates &states){
-    window.draw(vertexBuffer, firstVertex, vertexCount, states);
-}
-*/
 
 int32_t Window::refresh(){
     
@@ -114,6 +99,14 @@ int32_t Window::refresh(){
 
     return 0;
 }
+
+Frame *Window::get_soft_focus(){ return soft_focus; }
+
+Frame *Window::get_hard_focus(){ return hard_focus; }
+
+Frame *Window::get_clicked(){ return clicked; }
+
+Core *Window::get_core(){ return core; };
 
 int32_t Window::on_close(){ return 0; }
 

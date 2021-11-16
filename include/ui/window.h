@@ -29,7 +29,9 @@ class Window : public sf::RenderWindow {
 
         float height = 100, width = 100;
 
-        friend class Frame;
+        Frame *soft_focus = nullptr;
+        Frame *hard_focus = nullptr;
+        Frame *clicked = nullptr;
 
     public:
        
@@ -49,13 +51,18 @@ class Window : public sf::RenderWindow {
         int32_t coreapp_update();
         int32_t listen_events();
 
+        // Redraw & render.
+        int32_t refresh();
+
+        Frame *get_soft_focus();
+        Frame *get_hard_focus();
+        Frame *get_clicked();
+        Core *get_core();
+
         // overloadable responses to events.
         virtual int32_t on_close();
         virtual int32_t on_resize();
         virtual int32_t on_mouse_move();
-
-        // Redraw & render.
-        int32_t refresh();
 
     };
 
