@@ -37,6 +37,7 @@ LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lpthread
 # link the executable
 $(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MAINAPP).o
 	$(CXX) $(BUILDDIR)/$(MAINAPP).o $(OBJECTS) $(LLIB) $(LIB) -o $(EXEC)
+	@mkdir -p audio
 
 # compile the source files
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp

@@ -30,7 +30,7 @@ int32_t Button::setup(std::map<std::string, std::string> &values){
 int32_t Button::draw(){
 
     initialize();
-
+    
     Look l = core->style.get(look);
 
     if(pressed) canvas.clear(l.color("pressed_background"));
@@ -43,13 +43,13 @@ int32_t Button::draw(){
 
     left.setPosition(0, 0);
     right.setPosition(canvasWidth - borderRight, 0);
-    up.setPosition(0, 0);
-    down.setPosition(0, canvasHeight - borderDown);
+    up.setPosition(0, canvasHeight - borderUp);
+    down.setPosition(0, 0);
 
-    left.setFillColor(l.color("borderColor"));
-    right.setFillColor(l.color("borderColor"));
-    up.setFillColor(l.color("borderColor"));
-    down.setFillColor(l.color("borderColor"));
+    left.setFillColor(l.color("border"));
+    right.setFillColor(l.color("border"));
+    up.setFillColor(l.color("border"));
+    down.setFillColor(l.color("border"));
 
     canvas.draw(left);
     canvas.draw(right);

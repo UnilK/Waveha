@@ -23,11 +23,13 @@ ui::Style defaultStyle(
 {"blueSwitch", ui::Look({
         {"background", "0000ffff"},
         {"pressed_background", "0000ddff"},
+        {"border", "777777ff"},
         {"", ""}})},
 
 {"redSwitch", ui::Look({
         {"background", "ff0000ff"},
         {"pressed_background", "dd0000ff"},
+        {"border", "444444ff"},
         {"", ""}})},
 });
 

@@ -64,7 +64,8 @@ public:
                 grid[i][j] = new Switch(this, {
                         {"width", "200"},
                         {"height", "200"},
-                        {"pad", "10 10 10 10"}});
+                        {"border", "10 20 10 20"},
+                        {"pad", "10 10 10 40"}});
             }
         }
 
@@ -91,14 +92,15 @@ public:
     MainView mainView;
     ToolBar toolBar; 
     SideBar sideBar;
-
+    
     MainFrame(ui::Window *master_, std::map<std::string, std::string> values = {}) :
         
         ui::SolidFrame(master_, values),
         
         mainView(this, {
-                {"pad", "10 10  10 10"},
-                {"fill", "0.1 1 0.1  0.1 1 0.1"}}),
+                {"width", "1000"},
+                {"height", "700"},
+                {"fill", "0.0 1 0.0  0.0 1 0.0"}}),
         
         toolBar(this, {{"height", "40"}}),
         
@@ -109,7 +111,7 @@ public:
         setup_grid(2, 2);
 
         fill_width({1, 0});
-        fill_height({0, 1});
+        fill_height({0, 1, 0});
 
         grid[0][0] = &toolBar;
         toolBar.set_span(1, 2);

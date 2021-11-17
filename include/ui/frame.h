@@ -105,9 +105,16 @@ protected:
 
     */
 
-    // canvas dimensions.
+    // canvas target dimensions.
     float targetWidth = 0, targetHeight = 0;
+    
+    // canvas dimensions
     float canvasWidth = 0, canvasHeight = 0;
+    
+    // frame content displacement: if the children of the frame require
+    // more space than it has to offer, then this is the canvas' position
+    // on the contents.
+    float canvasX = 0, canvasY = 0;
 
     // window dimensions & window positions
     float windowWidth = 0, windowHeight = 0;
@@ -124,11 +131,6 @@ protected:
     // grid content layout management
     std::vector<float> widthMax = {0}, heightMax = {0};
     
-    // frame content displacement: if the children of the frame require
-    // more space than it has to offer, then this is the canvas' position
-    // on the contents.
-    float canvasX = 0, canvasY = 0;
-
     // Protected variables below this line should only be accessed by the parent frame.
 
     // The frame's size on it's parent's grid.
@@ -238,6 +240,7 @@ class ContentFrame : public Frame {
 protected:
 
     // frame with an independent canvas to draw on
+    // the coordinate system y-axis is inverted because openGL.
     sf::RenderTexture canvas;
 
 public:

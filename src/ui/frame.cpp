@@ -382,8 +382,8 @@ SolidFrame::SolidFrame(Frame *parent_, std::map<std::string, std::string> values
 
 int32_t SolidFrame::draw(){
     
-    background.setSize(sf::Vector2f(windowWidth, windowHeight));
-    background.setPosition(sf::Vector2f(globalX, globalY));
+    background.setSize({windowWidth, windowHeight});
+    background.setPosition(globalX, globalY);
     background.setFillColor(core->style.get(look).color("background"));
     master->draw(background);
     
