@@ -42,5 +42,12 @@ ui::Style defaultStyle(
         {"text_size", "20"},
         {"text_color", "ffeeeeff"},
         {"", ""}})},
+
+{"textbox", ui::Look({
+        {"font", "ubuntu_mono"},
+        {"text_size", "20"},
+        {"text_color", "ffeeeeff"},
+        {"", ""}})},
+
 });
 

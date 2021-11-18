@@ -11,7 +11,6 @@ Button::Button(Frame *parent_, int32_t(*function_)(void *),
     function(function_),
     target(target_)
 {
-    focusable = 0;
     setup(values);
 }
 

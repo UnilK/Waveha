@@ -3,6 +3,7 @@
 #include <iostream>
 #include "ui/frame.h"
 #include "ui/button.h"
+#include "ui/text.h"
 
 class MainFrame;
 class MainWindow;
@@ -11,10 +12,21 @@ class ToolBar : public ui::SolidFrame{
 
 public:
 
+    ui::Text textbox;
+
     ToolBar(Frame *parent_, std::map<std::string, std::string> values = {}) :
-        ui::SolidFrame(parent_, values)
+        ui::SolidFrame(parent_, values),
+        textbox(this, {
+                {"text", "wololo"},
+                {"look", "textbox"},
+                {"width", "100"},
+                {"height", "30"}})
     {    
         look = "ToolBar";
+
+        setup_grid(1, 1);
+        
+        grid[0][0] = &textbox;
     }
 
 };

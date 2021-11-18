@@ -19,6 +19,7 @@ Window::Window(Core *core_, float width_, float height_, std::string title_) :
 int32_t Window::destroy(){
     if(destroyed) return 1;
     destroyed = 1;
+    for(Window *child : children) child->destroy;
     return 0;
 }
 
@@ -113,5 +114,17 @@ int32_t Window::on_close(){ return 0; }
 int32_t Window::on_resize(){ return 0;  }
 
 int32_t Window::on_mouse_move(){ return 0; }
+
+int32_t Window::attach_child(Window *child){
+    if(children.count(child)) return 1;
+    children.insert(child);
+    return 0;
+}
+
+int32_t Window::detach_child(Window *child){
+    if(!children.count(child)) return 1;
+    children.erase(child);
+    return 0;
+}
 
 }

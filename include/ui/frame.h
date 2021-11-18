@@ -1,7 +1,6 @@
 #pragma once
 
 namespace ui{
-class TextureFrame;
 class Frame;
 }
 
@@ -171,7 +170,7 @@ public:
 
     // find the frame where the cursor is.
     Frame *find_focus();
-    bool focusable = 1;
+    bool focusable = 0;
     
     // Redraw & render.
     int32_t refresh();
