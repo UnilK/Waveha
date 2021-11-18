@@ -6,9 +6,7 @@ map <C-h> G/include<CR> :noh<CR> w w gf
 
 set path=.,include
 
-nmap www :wa<CR>
 nmap qqq :qa<CR>
-nmap wqq :wqa<CR>
 
 execute "set <C-S-M-q>=\eq"
 execute "set <C-S-M-e>=\ee"

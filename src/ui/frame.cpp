@@ -1,5 +1,7 @@
 #include "ui/frame.h"
 
+#include <SFML/Graphics/Sprite.hpp>
+
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -62,7 +64,7 @@ int32_t Frame::setup(std::map<std::string, std::string> &values){
 
     return 0;
 }
-        
+
 int32_t Frame::event_update(sf::Event){ return 0; }
 
 int32_t Frame::coreapp_update(){ return 0; }
@@ -384,7 +386,7 @@ int32_t SolidFrame::draw(){
     
     background.setSize({windowWidth, windowHeight});
     background.setPosition(globalX, globalY);
-    background.setFillColor(core->style.get(look).color("background"));
+    background.setFillColor(core->style.get_look(look).color("background"));
     master->draw(background);
     
     return 0;
@@ -409,7 +411,7 @@ int32_t ContentFrame::initialize(){
 
 int32_t ContentFrame::display(){
 
-    sf::IntRect area(windowX, windowY, windowWidth, windowHeight);
+    sf::IntRect area(windowX, canvasHeight - windowY, windowWidth, -windowHeight);
     sf::Sprite sprite(canvas.getTexture(), area);
     sprite.setPosition(globalX, globalY);
     master->draw(sprite);

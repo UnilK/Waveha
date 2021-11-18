@@ -62,10 +62,11 @@ public:
         for(int i=0; i<5; i++){
             for(int j=0; j<5; j++){
                 grid[i][j] = new Switch(this, {
-                        {"width", "200"},
-                        {"height", "200"},
-                        {"border", "10 20 10 20"},
-                        {"pad", "10 10 10 40"}});
+                        {"width", "160"},
+                        {"height", "60"},
+                        {"text", "Bress me :DDD"},
+                        {"border", "10 10 10 10"},
+                        {"pad", "10 10 10 10"}});
             }
         }
 
@@ -98,8 +99,6 @@ public:
         ui::SolidFrame(master_, values),
         
         mainView(this, {
-                {"width", "1000"},
-                {"height", "700"},
                 {"fill", "0.0 1 0.0  0.0 1 0.0"}}),
         
         toolBar(this, {{"height", "40"}}),

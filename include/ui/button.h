@@ -2,13 +2,15 @@
 
 #include "ui/frame.h"
 
+#include <SFML/Graphics/Text.hpp>
+
 namespace ui{
 
 class Button : public ui::ContentFrame {
     
 protected:
 
-    std::string text;
+    std::string text = "";
     float borderLeft = 0, borderRight = 0, borderUp = 0, borderDown = 0;
     
     int32_t (*function)(void*);

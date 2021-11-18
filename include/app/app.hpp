@@ -17,10 +17,9 @@ public:
     MainWindow window;
 
     App() :
-        Core(1, 1),
+        Core(defaultStyle, 1, 1),
         window(this)
     {
-        style = defaultStyle;
     }
 
     int32_t execute_command(std::string command){

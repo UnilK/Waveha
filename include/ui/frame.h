@@ -18,6 +18,7 @@ class Frame;
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/Font.hpp>
 
 namespace ui{
 
@@ -141,6 +142,7 @@ protected:
     float alignPadLeft = 0, alignPadRight = 0, alignPadDown = 0, alignPadUp = 0;
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
 
+    // parser for poor man's **kwargs
     bool read_value(std::string key, std::stringstream &value,
             std::map<std::string, std::string> &values);
 
@@ -239,8 +241,6 @@ class ContentFrame : public Frame {
  
 protected:
 
-    // frame with an independent canvas to draw on
-    // the coordinate system y-axis is inverted because openGL.
     sf::RenderTexture canvas;
 
 public:

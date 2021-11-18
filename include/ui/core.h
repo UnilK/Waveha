@@ -35,9 +35,9 @@ protected:
 
 public:
 
-    Style style;
+    Style &style;
 
-    Core(bool hasTerminal_, bool hasWindow_);
+    Core(Style &style_, bool hasTerminal_, bool hasWindow_);
 
     int32_t start();
     int32_t stop();

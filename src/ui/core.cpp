@@ -18,9 +18,11 @@ void listen_terminal(Core *core){
     }
 }
 
-Core::Core(bool hasTerminal_, bool hasWindow_){
-    hasTerminal = hasTerminal_;
-    hasWindow = hasWindow_;
+Core::Core(Style &style_, bool hasTerminal_, bool hasWindow_) :
+    hasTerminal(hasTerminal_),
+    hasWindow(hasWindow_),
+    style(style_)
+{
     if(hasTerminal){
         terminal = new std::thread(listen_terminal, this);
         terminal->detach();

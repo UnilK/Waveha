@@ -2,26 +2,32 @@
 
 #include <string>
 #include <map>
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Font.hpp>
 
 namespace ui{
+
+class Style;
 
 class Look{
     
     // class for managing the look of frames.        
 
-    protected:
+protected:
 
-        std::map<std::string, std::string> values;
+    std::map<std::string, std::string> values;
+
+public:
+
+    Style *master = nullptr;
     
-    public:
+    Look();
+    Look(std::map<std::string, std::string> values_);
 
-        Look();
-        Look(std::map<std::string, std::string> values_);
-
-        void set(std::string key, std::string value);
-        std::string get(std::string key);
-        sf::Color color(std::string key);
+    std::string chars(std::string key);
+    sf::Color color(std::string key);
+    sf::Font &font(std::string key);
+    long double num(std::string key);
 
 };
 
@@ -29,17 +35,24 @@ class Style{
 
     // class for managing looks.
 
-    protected:
-        
-        std::map<std::string, Look> looks;
+protected:
 
-    public:
+    std::map<std::string, sf::Font> fonts;
+    std::map<std::string, Look> looks;
 
-        Style();
-        Style(std::map<std::string, Look> looks_);
+public:
 
-        void set(std::string key, Look &value);
-        Look get(std::string key);
+    Style();
+    Style(
+            std::map<std::string, std::string> fonts_,
+            std::map<std::string, Look> looks_);
+
+    
+    void set_look(std::string key, Look value);
+    void set_font(std::string key, std::string value);
+
+    Look get_look(std::string key);
+    sf::Font &get_font(std::string key);
 
 };
 
