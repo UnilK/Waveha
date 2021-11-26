@@ -4,33 +4,43 @@
 #include <math.h>
 
 namespace math{
-    
-const int32_t RESOLUTION = 1<<17;
-std::complex<float> exp[RESOLUTION] = {0};
-std::complex<float> get_exp(double num);
+
+using std::vector;
+using std::complex;
+
+const int32_t N = 1<<17;
+
+// precalc of e^2*pi*i/N
+complex<float> exp[N];
 
 struct initialize{
-    initialize(){    
-        for(int32_t i=0; i<RESOLUTION; i++){
-            exp[i] = std::polar(1.0f, 2.0f*PIF*i/RESOLUTION);
+    initialize(){
+        for(int32_t i=0; i<N; i++){
+            exp[i] = std::polar(1.0f, 2.0f*PIF*i/N);
         }
     }
 } init;
 
-std::complex<float> get_exp(double num){
-    return exp[(int32_t)std::floor((num-std::floor(num))*RESOLUTION)];
+
+
+complex<float> get_exp(double num){
+    return exp[(int32_t)std::floor((num-std::floor(num))*N)];
 }
 
-std::complex<float> roll(std::vector<float> &waves, int32_t size, float frequency){
 
-    std::complex<float> sinusoid = {0, 0};
-    frequency /= size;
+complex<float> extract_frequency(float *waves, int32_t size, double frequency){
+    
+    complex<float> sinusoid = {0, 0};
 
     for(int32_t i=0; i<size; i++){
-        sinusoid += waves[i]*get_exp((double)i*frequency);
+        sinusoid += waves[i]*get_exp(frequency*i);
     }
 
     return std::conj(sinusoid);
+}
+
+complex<float> extract_frequency(vector<float> &waves, double frequency){
+    return extract_frequency(waves.data(), waves.size(), frequency);
 }
 
 }

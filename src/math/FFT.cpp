@@ -4,96 +4,60 @@
 #include <algorithm>
 
 namespace math{
-    
+
+using std::vector;
+using std::complex;
+
 // precalc table size = 1<<B (2 to the power of B)
-int32_t B = 0;
+int32_t B;
 
 // precalculation tables
-std::vector<std::vector<std::complex<float> > > w;
-std::vector<int32_t > invbit;
+vector<vector<complex<float> > > w;
+vector<int32_t > invbit;
 
-void resize_precalc_tables(int32_t B_){
-
-    B = std::min(30, std::max(B, B_));
-
-    while((int32_t)w.size() <= B){
-                
-        /*
-           precalculate w[b][x] = e^(i*PI*x/(2^b))
-
-           and the invbit array:
-           examples in base 2 of the invbit array:
-
-           invbit[1000111] = 1110001
-           invbit[0] = 0
-           invbit[10110111] = 11101101
-
-           it reverses the bit order.
-        */
-
-        int32_t z = 1<<w.size(), b = w.size();
+struct init {
+    init(int32_t B_){
         
-        w.resize(w.size()+1);
-        w[b].resize(z);
+        B = B_;
+        w.resize(B);
+        invbit.resize(1<<B, 0);
 
-        for(int32_t i=0; i<z; i++) w[b][i] = std::polar(1.0f, PIF*i/z);
+        w[B-1].resize(1<<(B-1));
+        for(int32_t i=0; i<(1<<(B-1)); i++) w[B-1][i] = std::polar(1.0f, PIF*i/(1<<(B-1)));
+        if(B>1) invbit[1] = 1;
 
-        invbit.resize(z, 0);
-        for(int32_t i=0; i<z/2; i++){
-            invbit[i] <<= 1;
-            invbit[i+z/2] = invbit[i]+1;
+        for(int32_t b=B-2; b>=0; b--){
+            int32_t n = 1<<b, nn = 1<<(B-b-1);
+            w[b].resize(n);
+            for(int32_t i=0; i<nn; i++){
+                invbit[i] <<= 1;
+                invbit[i+nn] = invbit[i]|1;
+            }
+            for(int32_t i=0; i<n; i++) w[b][i] = w[b+1][2*i];
         }
     }
-}
+} initialize(18);
 
-bool in_place_fft(std::complex<float> *v, const int32_t n, bool inv){
+
+void in_place_fft(complex<float> *v, int32_t n, bool inv){
     
-    /*
-       let's examine how the recursive FFT changes
-       the ordering of the input array:
-       
-       [000, 001, 010, 011, 100, 101, 110, 111]
-       [000, 010, 100, 110], [001, 011, 101, 111]
-       [000, 100], [010, 110], [001, 101], [011, 111]
-       [000], [100], [010], [110], [001], [101], [011], [111]
-
-       [000, 100, 010, 110, 001, 101, 011, 111]
-      
-       The index of element x in the resulting array
-       is it's index in the inupt array, but with the binary
-       representation flipped. This makes sense, since
-       on each layer we sort the array by the least
-       significant bit.
-
-       Just reorder the array, then run the basic
-       FFT algorithm on a bottom-to-top loop such that the results
-       are calculated in the indices used by the next layer.
-
-       O(1) extra memory used with O(N*log(N)) preclac,
-       O(N*log(N)) time with a good constant compared to
-       the recursive implementation.
-    */
-
     int32_t bits = 0;
     while(1<<bits < n) bits++;
-    const int32_t b = bits;
 
     // only powers of 2 are supported
-    if(1<<b != n) return 0;
+    if(1<<bits != n) return;
     
-    resize_precalc_tables(b);
-
-    int32_t shift = B-b;
+    int32_t shift = B-bits;
 
     for(int32_t i=0; i<n; i++){
         if(i < invbit[i]>>shift) std::swap(v[i], v[invbit[i]>>shift]);
     }
 
-    for(int32_t r=0; r<b; r++){
-        const int32_t rd = 1<<r;
+    for(int32_t r=0; r<bits; r++){
+        int32_t rd = 1<<r;
         for(int32_t i=0; i<n; i+=2*rd){
             for(int32_t j=i; j<i+rd; j++){
-                std::complex<float> tmp = w[r][j-i]*v[j+rd];
+                complex<float> tmp = w[r][j-i]*v[j+rd];
                 v[j+rd] = v[j]-tmp;
                 v[j] = v[j]+tmp;
             }
@@ -104,30 +68,101 @@ bool in_place_fft(std::complex<float> *v, const int32_t n, bool inv){
         std::reverse(v+1, v+n);
         for(int32_t i=0; i<n; i++) v[i] /= n;
     }
-
-    return 1;
 }
 
-std::vector<std::complex<float> > fft(float *v, const int32_t n){
-    std::vector<std::complex<float> > cv(n);
-    for(int32_t i=0; i<n; i++) cv[i] = v[i];
-    in_place_fft(cv.data(), n);
-    return cv;
+void in_place_fft(vector<complex<float> > &v, bool inv){
+    in_place_fft(v.data(), v.size(), inv);
 }
 
-
-
-bool in_place_fft(std::vector<std::complex<float> > &v, bool inv){
-    return in_place_fft(v.data(), v.size(), inv);
+vector<complex<float> > fft(float *v, int32_t n){
+    vector<complex<float> > f(n);
+    for(int32_t i=0; i<n; i++) f[i] = v[i];
+    in_place_fft(f, n);
+    return f;
 }
 
-std::vector<std::complex<float> > fft(std::vector<std::complex<float> > v, bool inv){
+vector<complex<float> > fft(vector<float> &v){
+    return fft(v.data(), v.size());
+}
+
+vector<float> inverse_fft(complex<float> *v, int32_t n){
+    vector<float> r(n);
+    vector<complex<float> > f(n);
+    for(int32_t i=0; i<n; i++) f[i] = v[i];
+    in_place_fft(f, 1);
+    for(int32_t i=0; i<n; i++) r[i] = f[i].real();
+    return r;
+}
+
+vector<float> inverse_fft(vector<complex<float> > &v){
+    return inverse_fft(v.data(), v.size());
+}
+
+vector<complex<float> > fft(vector<complex<float> > v, bool inv){
     in_place_fft(v.data(), v.size(), inv);
     return v;
 }
 
-std::vector<std::complex<float> > fft(std::vector<float> &v){
-    return fft(v.data(), v.size());
+vector<complex<float> > fft(complex<float> *v, int32_t n, bool inv){
+    vector<complex<float> > f(n);
+    for(int32_t i=0; i<n; i++) f[i] = v[i];
+    in_place_fft(f, inv);
+    return f;
+}
+
+vector<float> convolution(vector<float> &a, vector<float> &b){
+    
+    int32_t za = a.size(), zb = b.size();
+    int32_t mx = std::max(za, zb);
+    int32_t n = za + zb - 1;
+
+    int32_t cz = 1;
+    while(cz < n) cz *= 2;
+
+    vector<complex<float> > c(cz, {0, 0});
+    
+    for(int32_t i=0; i<mx; i++){
+        if(i < za) c[i] = {a[i], 0};
+        if(i < zb) c[i] = {c[i].real(), b[i]};
+    }
+
+    in_place_fft(c);
+
+    for(int32_t i=0; 2*i<=cz; i++){
+        int32_t j = (cz-i)%cz;
+        c[i] = -(c[i]-conj(c[j]))*(c[i]+conj(c[j]))*complex<float>(0, 0.25f);
+        c[j] = conj(c[i]);
+    }
+
+    in_place_fft(c, 1);
+
+    vector<float> r(n, 0);
+    for(int32_t i=0; i<n; i++) r[i] = c[i].real();
+    
+    return r;
+}
+
+vector<complex<float> > convolution(vector<complex<float> > a, vector<complex<float> > b){
+
+    int32_t n = a.size() + b.size() - 1;
+
+    int32_t z = 1;
+    while(z < n) z *= 2;
+
+    a.resize(z, {0, 0});
+    b.resize(z, {0, 0});
+
+    in_place_fft(a);
+    in_place_fft(b);
+
+    for(int32_t i=0; i<z; i++) a[i] *= b[i];
+
+    in_place_fft(a, 1);
+
+    a.resize(n);
+
+    return a;
 }
 
 }
+
