@@ -34,18 +34,16 @@ int32_t Button::draw(){
 
     initialize();
    
-    Look l = core->style.get_look(look);
-
-    if(pressed) canvas.clear(l.color("pressed_background"));
-    else canvas.clear(l.color("background"));
+    if(pressed) canvas.clear(color("pressed_background"));
+    else canvas.clear(color("background"));
 
     sf::RectangleShape left({borderLeft, canvasHeight});
     sf::RectangleShape right({borderRight, canvasHeight});
     sf::RectangleShape up({canvasWidth, borderUp});
     sf::RectangleShape down({canvasWidth, borderDown});
 
-    sf::Text textBox(text, l.font("font"), l.num("text_size"));
-    textBox.setFillColor(l.color("text_color"));
+    sf::Text textBox(text, font("font"), num("text_size"));
+    textBox.setFillColor(color("text_color"));
     
     sf::FloatRect rect = textBox.getGlobalBounds();
     
@@ -59,10 +57,10 @@ int32_t Button::draw(){
     up.setPosition(0, 0);
     down.setPosition(0, canvasHeight - borderDown);
 
-    left.setFillColor(l.color("border"));
-    right.setFillColor(l.color("border"));
-    up.setFillColor(l.color("border"));
-    down.setFillColor(l.color("border"));
+    left.setFillColor(color("border"));
+    right.setFillColor(color("border"));
+    up.setFillColor(color("border"));
+    down.setFillColor(color("border"));
 
     canvas.draw(left);
     canvas.draw(right);

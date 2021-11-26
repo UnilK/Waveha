@@ -1,9 +1,4 @@
-#include "math/FT.h"
-#include "math/FFT.h"
-#include "wave/waveTransform.h"
-#include "app/app.hpp"
-
-#include <filesystem>
+#include "app/app.h"
 
 using namespace std;
 

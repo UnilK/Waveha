@@ -145,6 +145,12 @@ protected:
     bool read_value(std::string key, std::stringstream &value,
             std::map<std::string, std::string> &values);
 
+    // access styles
+    std::string chars(std::string key);
+    sf::Color color(std::string key);
+    sf::Font &font(std::string key);
+    long double num(std::string key);
+
 private:
 
     int32_t setup(std::map<std::string, std::string> &values);
@@ -159,7 +165,7 @@ public:
 
     // updates. Overload these if needed
     virtual int32_t event_update(sf::Event event);
-    virtual int32_t coreapp_update();
+    virtual int32_t tick_update();
 
     // draw contents and display them on the window
     virtual int32_t draw();

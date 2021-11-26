@@ -1,9 +1,8 @@
 #pragma once
 
-namespace ui{
-class Window;
-}
+namespace ui{ class Window; }
 
+#include "ui/clock.h"
 #include "ui/core.h"
 #include "ui/frame.h"
 
@@ -39,7 +38,10 @@ public:
     // mouse position
     float mouseX = 0, mouseY = 0;
 
-    Window(Core *core_, float width_, float height_, std::string title_);
+    Clock clock;
+
+    Window(Core *core_, float width_, float height_,
+            std::string title_, long double refreshRate = 60);
     
     // delete the window and set the destroyed flag.
     int32_t destroy();
@@ -49,8 +51,8 @@ public:
     bool displayFlag = 0;
 
     // updates.
-    int32_t coreapp_update();
-    int32_t listen_events();
+    int32_t tick_update();
+    int32_t event_update();
 
     // Redraw & render.
     int32_t refresh();

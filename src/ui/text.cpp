@@ -30,12 +30,10 @@ int32_t Text::draw(){
 
     initialize();
    
-    Look l = core->style.get_look(look);
+    canvas.clear(color("background"));
 
-    canvas.clear(l.color("background"));
-
-    sf::Text textBox(text, l.font("font"), l.num("text_size"));
-    textBox.setFillColor(l.color("text_color"));
+    sf::Text textBox(text, font("font"), num("text_size"));
+    textBox.setFillColor(color("text_color"));
     
     sf::FloatRect rect = textBox.getGlobalBounds();
     

@@ -18,10 +18,11 @@ void listen_terminal(Core *core){
     }
 }
 
-Core::Core(Style &style_, bool hasTerminal_, bool hasWindow_) :
+Core::Core(bool hasTerminal_, bool hasWindow_, std::string styleFile, long double tickRate) :
     hasTerminal(hasTerminal_),
     hasWindow(hasWindow_),
-    style(style_)
+    style(styleFile),
+    clock(1.0l/tickRate)
 {
     if(hasTerminal){
         terminal = new std::thread(listen_terminal, this);
@@ -44,13 +45,14 @@ int32_t Core::start(){
 
         if(hasWindow){
             for(Window *window : windows){
-                window->listen_events();
-                window->coreapp_update();
-                window->refresh();
+                window->event_update();
+                window->tick_update();
+                if(window->clock.try_tick()) window->refresh();
             }
             clean_windows();
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+        clock.join_tick();
     }
 
     return 0;

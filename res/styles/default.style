@@ -1,0 +1,13 @@
+
+font
+    ubuntu_mono res/fonts/UMR.ttf
+;
+
+look
+
+MainFrame
+    background 2e0a24
+;
+
+;
+

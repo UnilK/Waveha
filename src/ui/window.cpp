@@ -6,8 +6,10 @@
 
 namespace ui{
 
-Window::Window(Core *core_, float width_, float height_, std::string title_) :
-    sf::RenderWindow(sf::VideoMode(width_, height_), title_)
+Window::Window(Core *core_, float width_, float height_,
+        std::string title_, long double refreshRate) :
+    sf::RenderWindow(sf::VideoMode(width_, height_), title_),
+    clock(1.0l/refreshRate)
 {
     core = core_;
     width = width_;
@@ -19,17 +21,17 @@ Window::Window(Core *core_, float width_, float height_, std::string title_) :
 int32_t Window::destroy(){
     if(destroyed) return 1;
     destroyed = 1;
-    for(Window *child : children) child->destroy;
+    for(Window *child : children) child->destroy();
     return 0;
 }
 
-int32_t Window::coreapp_update(){
+int32_t Window::tick_update(){
     if(destroyed) return 0;
-    mainframe->coreapp_update();
+    mainframe->tick_update();
     return 0;
 }
 
-int32_t Window::listen_events(){
+int32_t Window::event_update(){
     
     if(destroyed) return 0;
 

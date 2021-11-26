@@ -89,23 +89,32 @@ build/wave/waveTransform.o: include/math/sincFIR.h include/math/FIR.h
 build/wave/vocalTransform.o: include/wave/vocalTransform.h include/wave/vocal.h
 build/wave/audioClassifier.o: include/wave/audioClassifier.h
 build/wave/vocal.o: include/wave/vocal.h include/math/constants.hpp
+build/app/mainFrame.o: include/app/mainFrame.h include/ui/frame.h
+build/app/mainFrame.o: include/ui/core.h include/ui/window.h include/ui/clock.h
+build/app/mainFrame.o: include/ui/style.h
+build/app/app.o: include/app/app.h include/ui/core.h include/ui/window.h
+build/app/app.o: include/ui/clock.h include/ui/frame.h include/ui/style.h
+build/app/app.o: include/app/mainFrame.h
 build/math/FFT.o: include/math/FFT.h include/math/constants.hpp
 build/math/FIR.o: include/math/FIR.h
 build/math/sincFIR.o: include/math/sincFIR.h include/math/FIR.h
 build/math/sincFIR.o: include/math/constants.hpp
 build/math/FT.o: include/math/FT.h include/math/constants.hpp
+build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/core.h
+build/ui/text.o: include/ui/window.h include/ui/clock.h include/ui/style.h
 build/ui/style.o: include/ui/style.h
-build/ui/window.o: include/ui/window.h include/ui/core.h include/ui/style.h
-build/ui/window.o: include/ui/frame.h
+build/ui/button.o: include/ui/button.h include/ui/frame.h include/ui/core.h
+build/ui/button.o: include/ui/window.h include/ui/clock.h include/ui/style.h
+build/ui/window.o: include/ui/window.h include/ui/clock.h include/ui/core.h
+build/ui/window.o: include/ui/style.h include/ui/frame.h
+build/ui/clock.o: include/ui/clock.h
 build/ui/frame.o: include/ui/frame.h include/ui/core.h include/ui/window.h
-build/ui/frame.o: include/ui/style.h
-build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/frame.h
-build/ui/core.o: include/ui/style.h
-build/main.o: include/math/FT.h include/math/FFT.h include/wave/waveTransform.h
-build/main.o: include/wave/vocal.h include/wave/vocalTransform.h
-build/main.o: include/app/app.hpp include/ui/core.h include/ui/window.h
-build/main.o: include/ui/frame.h include/ui/style.h include/app/style.hpp
-build/main.o: include/app/mainFrame.hpp
+build/ui/frame.o: include/ui/clock.h include/ui/style.h
+build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/clock.h
+build/ui/core.o: include/ui/frame.h include/ui/style.h
+build/main.o: include/app/app.h include/ui/core.h include/ui/window.h
+build/main.o: include/ui/clock.h include/ui/frame.h include/ui/style.h
+build/main.o: include/app/mainFrame.h
 build/test.o: lib/Wavestream/include/wavestream.h include/math/FFT.h
 build/test.o: include/math/sincFIR.h include/math/FIR.h
 build/test.o: include/wave/waveTransform.h include/wave/vocal.h

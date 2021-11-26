@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include <algorithm>
 #include <math.h>
 
@@ -65,9 +66,46 @@ int32_t Frame::setup(std::map<std::string, std::string> &values){
     return 0;
 }
 
+std::string Frame::chars(std::string key){
+    return core->style[look][key];
+}
+
+sf::Color Frame::color(std::string key){
+
+    std::string color = core->style[look][key];
+    
+    if(color.size() == 6) color += "ff";
+    while(color.size() < 8) color.push_back('0');
+    
+    uint32_t rgba;
+    std::stringstream(color) >> std::hex >> rgba >> std::dec;
+
+    return sf::Color(rgba>>24&0xff, rgba>>16&0xff, rgba>>8&0xff, rgba&0xff);
+}
+
+sf::Font &Frame::font(std::string key){
+    return core->style.font(key);
+}
+
+long double Frame::num(std::string key){
+    long double x;
+    std::stringstream(core->style[look][key]) >> x;
+    return x;
+}
+
 int32_t Frame::event_update(sf::Event){ return 0; }
 
-int32_t Frame::coreapp_update(){ return 0; }
+int32_t Frame::tick_update(){
+    
+    for(int32_t i=0; i<rows; i++){
+        for(int32_t j=0; j<columns; j++){
+            if(grid[i][j] == nullptr) continue;
+            grid[i][j]->tick_update();
+        }
+    }
+
+    return 0;
+}
 
 std::array<float, 2> Frame::global_mouse(){
     return {master->mouseX, master->mouseY};
@@ -75,8 +113,8 @@ std::array<float, 2> Frame::global_mouse(){
 
 std::array<float, 2> Frame::local_mouse(){
     return {
-        master->mouseX - globalX + windowX,
-        master->mouseY - globalY + windowY};
+        master->mouseX - globalX + windowX + canvasX,
+        master->mouseY - globalY + windowY + canvasY};
 }
 
 Frame *Frame::find_focus(){
@@ -386,7 +424,7 @@ int32_t SolidFrame::draw(){
     
     background.setSize({windowWidth, windowHeight});
     background.setPosition(globalX, globalY);
-    background.setFillColor(core->style.get_look(look).color("background"));
+    background.setFillColor(color("background"));
     master->draw(background);
     
     return 0;

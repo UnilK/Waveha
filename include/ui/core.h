@@ -6,6 +6,7 @@ class Core;
 
 #include "ui/window.h"
 #include "ui/style.h"
+#include "ui/clock.h"
 
 #include <set>
 #include <vector>
@@ -35,9 +36,10 @@ protected:
 
 public:
 
-    Style &style;
+    Style style;
+    Clock clock;
 
-    Core(Style &style_, bool hasTerminal_, bool hasWindow_);
+    Core(bool hasTerminal_, bool hasWindow_, std::string styleFile, long double tickRate = 1000);
 
     int32_t start();
     int32_t stop();
