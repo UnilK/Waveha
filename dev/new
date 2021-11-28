@@ -1,0 +1,4 @@
+#!/bin/bash
+
+touch include/$1.h src/$1.cpp
+
