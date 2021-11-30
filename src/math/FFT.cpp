@@ -23,7 +23,7 @@ struct init {
         invbit.resize(1<<B, 0);
 
         w[B-1].resize(1<<(B-1));
-        for(int32_t i=0; i<(1<<(B-1)); i++) w[B-1][i] = std::polar(1.0f, PIF*i/(1<<(B-1)));
+        for(int32_t i=0; i<(1<<(B-1)); i++) w[B-1][i] = std::polar(1.0f, -PIF*i/(1<<(B-1)));
         if(B>1) invbit[1] = 1;
 
         for(int32_t b=B-2; b>=0; b--){
@@ -110,11 +110,12 @@ vector<complex<float> > fft(complex<float> *v, int32_t n, bool inv){
     return f;
 }
 
-vector<float> convolution(vector<float> &a, vector<float> &b){
+vector<float> convolution(vector<float> &a, vector<float> &b, int32_t size){
     
     int32_t za = a.size(), zb = b.size();
     int32_t mx = std::max(za, zb);
-    int32_t n = za + zb - 1;
+    int32_t n = size;
+    if(!n) n = za + zb - 1;
 
     int32_t cz = 1;
     while(cz < n) cz *= 2;
@@ -142,9 +143,13 @@ vector<float> convolution(vector<float> &a, vector<float> &b){
     return r;
 }
 
-vector<complex<float> > convolution(vector<complex<float> > a, vector<complex<float> > b){
+vector<complex<float> > convolution(
+        vector<complex<float> > a,
+        vector<complex<float> > b,
+        int32_t size){
 
-    int32_t n = a.size() + b.size() - 1;
+    int32_t n = size;
+    if(!n) n = a.size() + b.size() - 1;
 
     int32_t z = 1;
     while(z < n) z *= 2;
@@ -162,6 +167,46 @@ vector<complex<float> > convolution(vector<complex<float> > a, vector<complex<fl
     a.resize(n);
 
     return a;
+}
+
+vector<complex<float> > bluestein(vector<complex<float> > v, bool inv){
+    
+    int32_t z = v.size(), n = 1;
+    while(n < 2*z-1) n *= 2;
+
+    v.resize(n, {0, 0});
+    vector<complex<float> > w(n, {0, 0});
+
+    for(int32_t i=0; i<z; i++){
+        w[i] = w[(n-i)%n] = std::polar(1.0f, PIF*i*i/z);
+        v[i] *= conj(w[i]);
+    }
+
+    vector<complex<float> > c = convolution(v, w, n);
+ 
+    for(int32_t i=0; i<z; i++) c[i] *= conj(w[i]);
+
+    c.resize(z);
+
+    if(inv){
+        for(auto &i : c) i /= z;
+        std::reverse(c.begin()+1, c.end());
+    }
+
+    return c;
+}
+
+vector<complex<float> > bluestein(vector<float> &v, bool inv){
+    vector<complex<float> > w(v.size());
+    for(uint32_t i=0; i<v.size(); i++) w[i] = v[i];
+    return bluestein(w, inv);
+}
+
+vector<float> inverse_bluestein(vector<complex<float> > &v){
+    auto w = bluestein(v, 1);
+    vector<float> r(w.size());
+    for(uint32_t i=0; i<v.size(); i++) r[i] = w[i].real();
+    return r;
 }
 
 }

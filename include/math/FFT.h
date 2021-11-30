@@ -24,8 +24,16 @@ vector<float> inverse_fft(vector<complex<float> > &v);
 vector<complex<float> > fft(vector<complex<float> > v, bool inv = 0);
 vector<complex<float> > fft(complex<float> *v, int32_t n, bool inv = 0);
 
-vector<float> convolution(vector<float> &a, vector<float> &b);
-vector<complex<float> > convolution(vector<complex<float> > a, vector<complex<float> > b);
+vector<float> convolution(vector<float> &a, vector<float> &b, int32_t size = 0);
+vector<complex<float> > convolution(
+        vector<complex<float> > a,
+        vector<complex<float> > b,
+        int32_t size = 0);
+
+// this are here for fun
+vector<complex<float> > bluestein(vector<complex<float> > v, bool inv = 0); 
+vector<complex<float> > bluestein(vector<float> &v, bool inv = 0);
+vector<float> inverse_bluestein(vector<complex<float> > &v); 
 
 }
 

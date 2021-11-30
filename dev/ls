@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ls include/$1
+ls src/$1
+
