@@ -7,11 +7,11 @@
 namespace wave{
 
 sf::Int16 float_to_int(float num){
-    return std::min((1<<16)-1, std::max(-(1<<16), (int32_t)std::round(num*(1<<16))));
+    return (sf::Int16)std::round(std::min((float)(1<<15)-1, std::max(-(float)(1<<15), num*(1<<15))));
 }
 
 float int_to_float(sf::Int16 num){
-    return (float)num*(1<<16);
+    return (float)num/(1<<15);
 }
 
 std::vector<sf::Int16> float_to_int(std::vector<float> &data){

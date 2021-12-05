@@ -4,7 +4,7 @@ map ml :silent !./waveha<CR><C-l>
 
 map <C-h> G/include<CR> :noh<CR> w w gf
 
-set path=.,include
+set path=.,include,lib/*/include
 
 nmap qqq :qa<CR>
 

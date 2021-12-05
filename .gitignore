@@ -1,6 +1,7 @@
 bin
 build
 tags
+audio
 *.swp
 *.wav
 *.bak

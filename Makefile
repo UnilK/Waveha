@@ -81,6 +81,10 @@ depend: $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it. 
 
+build/wave/audioFile.o: include/wave/audioFile.h
+build/wave/audioFile.o: lib/Wstream/include/wstream/wstream.h
+build/wave/audioFile.o: include/wave/typeConverter.h
+build/wave/typeConverter.o: include/wave/typeConverter.h
 build/app/mainFrame.o: include/app/mainFrame.h include/ui/frame.h
 build/app/mainFrame.o: include/ui/core.h include/ui/window.h include/ui/clock.h
 build/app/mainFrame.o: include/ui/style.h
@@ -103,6 +107,6 @@ build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/clock.h
 build/ui/core.o: include/ui/frame.h include/ui/style.h
 build/main.o: include/app/app.h include/ui/core.h include/ui/window.h
 build/main.o: include/ui/clock.h include/ui/frame.h include/ui/style.h
-build/main.o: include/app/mainFrame.h
-build/test.o: lib/Wstream/include/wavestream.h include/math/FFT.h
-build/test.o: include/math/FT.h
+build/main.o: include/app/mainFrame.h include/wave/audioFile.h
+build/main.o: lib/Wstream/include/wstream/wstream.h
+build/test.o: include/math/FFT.h include/math/FT.h
