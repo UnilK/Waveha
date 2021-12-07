@@ -11,7 +11,7 @@ MainFrame::MainFrame(ui::Window *master_, std::map<std::string, std::string> val
 
 
 MainWindow::MainWindow(ui::Core *core_) : 
-    ui::Window(core_, 1200, 800, "Waveha", 60),
+    ui::Window(core_, 1200, 800, "Waveha", 120),
     mainFrame(this)
 {
     mainframe = &mainFrame;

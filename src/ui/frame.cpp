@@ -95,17 +95,31 @@ long double Frame::num(std::string key){
 
 int32_t Frame::event_update(sf::Event){ return 0; }
 
-int32_t Frame::tick_update(){
-    
+int32_t Frame::core_tick(){
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
             if(grid[i][j] == nullptr) continue;
-            grid[i][j]->tick_update();
+            grid[i][j]->core_tick();
         }
     }
-
+    on_core_tick();
     return 0;
 }
+
+int32_t Frame::window_tick(){
+    for(int32_t i=0; i<rows; i++){
+        for(int32_t j=0; j<columns; j++){
+            if(grid[i][j] == nullptr) continue;
+            grid[i][j]->window_tick();
+        }
+    }
+    on_window_tick();
+    return 0;
+}
+
+int32_t Frame::on_core_tick(){ return 0; }
+
+int32_t Frame::on_window_tick(){ return 0; }
 
 std::array<float, 2> Frame::global_mouse(){
     return {master->mouseX, master->mouseY};

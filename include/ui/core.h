@@ -7,6 +7,7 @@ class Core;
 #include "ui/window.h"
 #include "ui/style.h"
 #include "ui/clock.h"
+#include "ui/command.h"
 
 #include <set>
 #include <vector>
@@ -15,31 +16,19 @@ class Core;
 
 namespace ui{
 
-class Core{
+class Core : public Commandable {
     
     /*
        Manages the main frame window(s), main loop and terminal.
        Template class for applications.
     */
 
-protected:
-
-    std::set<Window*> windows;
-
-    std::thread *terminal;
-    std::mutex command_lock;
-    std::vector<std::string> commands;
-
-    bool hasTerminal;
-    bool hasWindow;
-    bool running = 0;
-
 public:
 
     Style style;
     Clock clock;
 
-    Core(bool hasTerminal_, bool hasWindow_, std::string styleFile, long double tickRate = 1000);
+    Core(std::string styleFile, long double tickRate = 1000);
 
     int32_t start();
     int32_t stop();
@@ -47,8 +36,19 @@ public:
     int32_t add_window(Window *window);
     int32_t clean_windows();
 
-    int32_t add_command(std::string command);
-    virtual int32_t execute_command(std::string command) = 0;
+    int32_t command_from_terminal(std::string command);
+
+protected:
+
+    std::set<Window*> windows;
+
+    std::thread *terminal;
+    std::mutex terminalCommandLock;
+
+    std::vector<std::string> terminalCommands;
+
+    bool running = 0;
+
 };
 
 }

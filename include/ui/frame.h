@@ -6,6 +6,7 @@ class Frame;
 
 #include "ui/core.h"
 #include "ui/window.h"
+#include "ui/command.h"
 
 #include <cstdint>
 #include <string>
@@ -21,7 +22,7 @@ class Frame;
 
 namespace ui{
 
-class Frame{
+class Frame : public Commandable {
 
     /*
        Class for managing input focus and ui layout.
@@ -31,129 +32,65 @@ class Frame{
        Frames are structured in a tree-like fashion,
        with the core and window (master frame) linked to every frame.
 
+       Top design principles:
+
+       1. Top-to-Down authoritarian space allocation. When a parent frame
+          order's it's child frames to use some amount of space, they
+          must use it. Child frames also don't have any say in how much
+          space they get.
+       2. Alignment of any kind should be separate from frame
+          contents. The frame contains only the frame, nothing else.
+       3. All of the actual rendering is done on the master window.
+
+       These allow:
+
+       1. Intuitive scaling (1)
+       2. Easy drawing of content frames (2)
+       3. Efficiency (1, 3)
+
+       The space allocation to child frames:
+
+       1. Find the size of the window
+       2. Find the size of the canvas, max(canvas size, window size)
+       3. Determine it's position on the main frame
+       4. Determine the window's position on the canvas
+       5. Pass on recursively to chlid frames.
+
+       ######################################
+       #                                    #
+       #   Content (space required by       #
+       #            the child frames)       #
+       #   ############################     #
+       #   #   Canvas                 #     #
+       #   #                          #     #
+       #   #     ######################     #
+       #   #     #                    #     #
+       #   #     #  Window            #     #
+       #   #     #   (this would be   #     #
+       #   #     #    a top-left      #     #
+       #   #     #    corner on the   #     #
+       #   #     #    parent frame)   #     #
+       #   ############################     #
+       #                                    #
+       ######################################
+
+       In content frames [Content] = [Canvas]
+       
+       If the Frame needs to stretch to fit
+       the window, then [Window] = [Canvas]
+       
+       If nothing needs to be squished or out of sight, then
+       [Window] = [Canvas] = [Content]
+
+
+       Dimension directions on the grid are:
+       
+         0 1 2 +
+       0 # # #
+       1 # # #
+       2 # # #
+       +
     */
-
-protected:
-
-    Core *core = nullptr;
-    Frame *parent = nullptr;
-    Window *master = nullptr;
-
-    std::string id = "";
-    std::string look = "";
-
-    /*
-
-        Top design principles:
-
-        1. Top-to-Down authoritarian space allocation. When a parent frame
-           order's it's child frames to use some amount of space, they
-           must use it. Child frames also don't have any say in how much
-           space they get.
-        2. Alignment of any kind should be separate from frame
-           contents. The frame contains only the frame, nothing else.
-        3. All of the actual rendering is done on the master window.
-
-        These allow:
-
-        1. Intuitive scaling (1)
-        2. Easy drawing of content frames (2)
-        3. Efficiency (1, 3)
-
-        The space allocation to child frames:
-
-        1. Find the size of the window
-        2. Find the size of the canvas, max(canvas size, window size)
-        3. Determine it's position on the main frame
-        4. Determine the window's position on the canvas
-        5. Pass on recursively to chlid frames.
-
-        ######################################
-        #                                    #
-        #   Content (space required by       #
-        #            the child frames)       #
-        #   ############################     #
-        #   #   Canvas                 #     #
-        #   #                          #     #
-        #   #     ######################     #
-        #   #     #                    #     #
-        #   #     #  Window            #     #
-        #   #     #   (this would be   #     #
-        #   #     #    a top-left      #     #
-        #   #     #    corner on the   #     #
-        #   #     #    parent frame)   #     #
-        #   ############################     #
-        #                                    #
-        ######################################
-
-        In content frames [Content] = [Canvas]
-        
-        If the Frame needs to stretch to fit
-        the window, then [Window] = [Canvas]
-        
-        If nothing needs to be squished or out of sight, then
-        [Window] = [Canvas] = [Content]
-
-
-        Dimension directions on the grid are:
-        
-          0 1 2 +
-        0 # # #
-        1 # # #
-        2 # # #
-        +
-
-    */
-
-    // canvas target dimensions.
-    float targetWidth = 0, targetHeight = 0;
-    
-    // canvas dimensions
-    float canvasWidth = 0, canvasHeight = 0;
-    
-    // frame content displacement: if the children of the frame require
-    // more space than it has to offer, then this is the canvas' position
-    // on the contents.
-    float canvasX = 0, canvasY = 0;
-
-    // window dimensions & window positions
-    float windowWidth = 0, windowHeight = 0;
-    float windowX = 0, windowY = 0;
-    float globalX = 0, globalY = 0;
-
-    // grid layout management
-    int32_t columns = 0, rows = 0;
-    std::vector<float> widthFill, heightFill;
-    std::vector<std::vector<Frame*> > grid;
-
-    // TODO implement off-grid frames
-
-    // grid content layout management
-    std::vector<float> widthMax = {0}, heightMax = {0};
-    
-    // Protected variables below this line should only be accessed by the parent frame.
-
-    // The frame's size on it's parent's grid.
-    int32_t rowSpan = 1, columnSpan = 1; 
-    
-    // Alignment and bordering.
-    float frameFillWidth = 1, frameFillHeight = 1;
-    float alignPadLeft = 0, alignPadRight = 0, alignPadDown = 0, alignPadUp = 0;
-    float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
-
-    // parser for poor man's **kwargs
-    bool read_value(std::string key, std::stringstream &value,
-            std::map<std::string, std::string> &values);
-
-    // access styles
-    std::string chars(std::string key);
-    sf::Color color(std::string key);
-    sf::Font &font(std::string key);
-    long double num(std::string key);
-
-private:
-
-    int32_t setup(std::map<std::string, std::string> &values);
 
 public:
 
@@ -165,7 +102,14 @@ public:
 
     // updates. Overload these if needed
     virtual int32_t event_update(sf::Event event);
-    virtual int32_t tick_update();
+    
+    // ticks
+    int32_t core_tick();
+    int32_t window_tick();
+
+    // extra actions related to ticks. 
+    virtual int32_t on_core_tick();
+    virtual int32_t on_window_tick();
 
     // draw contents and display them on the window
     virtual int32_t draw();
@@ -221,33 +165,89 @@ public:
     int32_t align(float left, float right, float up, float down);
     int32_t align_fill(float left, float right, float up, float down);
     int32_t frame_fill(float width, float height);
+
+protected:
+
+    Core *core = nullptr;
+    Frame *parent = nullptr;
+    Window *master = nullptr;
+
+    std::string look = "";
+
+    // canvas target dimensions.
+    float targetWidth = 0, targetHeight = 0;
+    
+    // canvas dimensions
+    float canvasWidth = 0, canvasHeight = 0;
+    
+    // frame content displacement: if the children of the frame require
+    // more space than it has to offer, then this is the canvas' position
+    // on the contents.
+    float canvasX = 0, canvasY = 0;
+
+    // window dimensions & window positions
+    float windowWidth = 0, windowHeight = 0;
+    float windowX = 0, windowY = 0;
+    float globalX = 0, globalY = 0;
+
+    // grid layout management
+    int32_t columns = 0, rows = 0;
+    std::vector<float> widthFill, heightFill;
+    std::vector<std::vector<Frame*> > grid;
+
+    // TODO implement off-grid frames
+
+    // grid content layout management
+    std::vector<float> widthMax = {0}, heightMax = {0};
+    
+    // Protected variables below this line should only be accessed by the parent frame.
+
+    // The frame's size on it's parent's grid.
+    int32_t rowSpan = 1, columnSpan = 1; 
+    
+    // Alignment and bordering.
+    float frameFillWidth = 1, frameFillHeight = 1;
+    float alignPadLeft = 0, alignPadRight = 0, alignPadDown = 0, alignPadUp = 0;
+    float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
+
+    // parser for poor man's **kwargs
+    bool read_value(std::string key, std::stringstream &value,
+            std::map<std::string, std::string> &values);
+
+    // access styles
+    std::string chars(std::string key);
+    sf::Color color(std::string key);
+    sf::Font &font(std::string key);
+    long double num(std::string key);
+
+private:
+
+    int32_t setup(std::map<std::string, std::string> &values);
+
 };
 
 
 
 class SolidFrame : public Frame {
  
-protected:
-
-    // frame with a background color
-    sf::RectangleShape background;
-
 public:
 
     SolidFrame(Window *master_, std::map<std::string, std::string> values = {});
     SolidFrame(Frame *parent_, std::map<std::string, std::string> values = {});
 
-    int32_t draw();
+    virtual int32_t draw();
+
+protected:
+
+    // frame with a background color
+    sf::RectangleShape background;
+
 };
 
 
 
 class ContentFrame : public Frame {
  
-protected:
-
-    sf::RenderTexture canvas;
-
 public:
 
     ContentFrame(Window *master_, std::map<std::string, std::string> values = {});
@@ -255,6 +255,11 @@ public:
 
     int32_t initialize();
     int32_t display();
+
+protected:
+
+    sf::RenderTexture canvas;
+
 };
 
 }

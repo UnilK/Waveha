@@ -11,15 +11,25 @@ class App;
 
 class App : public ui::Core {
 
-protected:
-
-    MainWindow window;
-
 public:
 
     App();
 
-    int32_t execute_command(std::string command);
+    int32_t execute_command(ui::Command &cmd);
+
+    int32_t update_children();
+
+protected:
+
+    MainWindow window;
+
+    class FileCommands : public ui::Commandable {
+    public:
+        FileCommands();
+        int32_t execute_command(ui::Command &cmd);
+    };
+
+    FileCommands fileCommands;
 
 };
 

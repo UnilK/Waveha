@@ -5,6 +5,7 @@ namespace ui{ class Window; }
 #include "ui/clock.h"
 #include "ui/core.h"
 #include "ui/frame.h"
+#include "ui/command.h"
 
 #include <cstdint>
 #include <string>
@@ -15,7 +16,7 @@ namespace ui{ class Window; }
 
 namespace ui{
 
-class Window : public sf::RenderWindow {
+class Window : public sf::RenderWindow, public Commandable {
  
     // Class built around sf::RenderWindow.
 
@@ -50,9 +51,16 @@ public:
     // set this flag if content in window changes
     bool displayFlag = 0;
 
-    // updates.
-    int32_t tick_update();
+    // event updates.
     int32_t event_update();
+    
+    // ticks
+    int32_t core_tick();
+    int32_t window_tick();
+
+    // extra actions related to ticks. 
+    virtual int32_t on_core_tick();
+    virtual int32_t on_window_tick();
 
     // Redraw & render.
     int32_t refresh();

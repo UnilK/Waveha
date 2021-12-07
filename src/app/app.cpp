@@ -3,12 +3,30 @@
 #include <iostream>
 
 App::App() :
-    Core(1, 1, "res/styles/default.style", 1000),
+    Core("res/styles/default.style", 1000),
     window(this)
-{}
+{
+    update_children();
+    update_address(id);
 
-int32_t App::execute_command(std::string command){
-    std::cout << command << '\n';
+    commandHelp = "Root directory.";
+    commandDocs = {{"yeetus", "geetus"}};
+
+}
+
+int32_t App::execute_command(ui::Command &cmd){
+    
+    if(execute_standard(cmd)){
+        return 0;
+    } else {
+        std::cout << "##" << cmd.command << '\n';
+    }
+
+    return 1;
+}
+
+int32_t App::update_children(){
+    commandChildren = {&fileCommands};
     return 0;
 }
 

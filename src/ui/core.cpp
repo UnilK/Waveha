@@ -12,22 +12,18 @@ void listen_terminal(Core *core){
         std::getline(std::cin, input);
         command += input;
         if(command.back() != '\\'){
-            core->add_command(command);
+            core->command_from_terminal(command);
             command.clear();
         } else command.pop_back();
     }
 }
 
-Core::Core(bool hasTerminal_, bool hasWindow_, std::string styleFile, long double tickRate) :
-    hasTerminal(hasTerminal_),
-    hasWindow(hasWindow_),
+Core::Core(std::string styleFile, long double tickRate) :
     style(styleFile),
     clock(1.0l/tickRate)
 {
-    if(hasTerminal){
-        terminal = new std::thread(listen_terminal, this);
-        terminal->detach();
-    }
+    terminal = new std::thread(listen_terminal, this);
+    terminal->detach();
 }
 
 int32_t Core::start(){
@@ -36,21 +32,24 @@ int32_t Core::start(){
 
     while(running){
 
-        if(hasTerminal){
-            command_lock.lock();
-            for(std::string &command : commands) execute_command(command);
-            commands.clear();
-            command_lock.unlock();
+        terminalCommandLock.lock();
+
+        for(auto cmd : terminalCommands){
+            cmd = commandFocus + " " + cmd;
+            std::stringstream cmds(cmd);
+            Command command = create_command(cmds);
+            deliver_address(command);
         }
 
-        if(hasWindow){
-            for(Window *window : windows){
-                window->event_update();
-                window->tick_update();
-                if(window->clock.try_tick()) window->refresh();
-            }
-            clean_windows();
+        terminalCommands.clear();
+        
+        terminalCommandLock.unlock();
+
+        for(Window *window : windows){
+            window->event_update();
+            window->core_tick();
         }
+        clean_windows();
 
         clock.join_tick();
     }
@@ -78,10 +77,10 @@ int32_t Core::clean_windows(){
     return 0;
 }
 
-int32_t Core::add_command(std::string command){
-    command_lock.lock();
-    commands.push_back(command);
-    command_lock.unlock();
+int32_t Core::command_from_terminal(std::string command){
+    terminalCommandLock.lock();
+    terminalCommands.push_back(command);
+    terminalCommandLock.unlock();
     return 0;
 }
 

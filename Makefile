@@ -87,26 +87,29 @@ build/wave/audioFile.o: include/wave/typeConverter.h
 build/wave/typeConverter.o: include/wave/typeConverter.h
 build/app/mainFrame.o: include/app/mainFrame.h include/ui/frame.h
 build/app/mainFrame.o: include/ui/core.h include/ui/window.h include/ui/clock.h
-build/app/mainFrame.o: include/ui/style.h
+build/app/mainFrame.o: include/ui/command.h include/ui/style.h
 build/app/app.o: include/app/app.h include/ui/core.h include/ui/window.h
-build/app/app.o: include/ui/clock.h include/ui/frame.h include/ui/style.h
-build/app/app.o: include/app/mainFrame.h
+build/app/app.o: include/ui/clock.h include/ui/frame.h include/ui/command.h
+build/app/app.o: include/ui/style.h include/app/mainFrame.h
 build/math/FFT.o: include/math/FFT.h include/math/constants.hpp
 build/math/FT.o: include/math/FT.h include/math/constants.hpp
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/core.h
-build/ui/text.o: include/ui/window.h include/ui/clock.h include/ui/style.h
+build/ui/text.o: include/ui/window.h include/ui/clock.h include/ui/command.h
+build/ui/text.o: include/ui/style.h
 build/ui/style.o: include/ui/style.h
 build/ui/button.o: include/ui/button.h include/ui/frame.h include/ui/core.h
-build/ui/button.o: include/ui/window.h include/ui/clock.h include/ui/style.h
+build/ui/button.o: include/ui/window.h include/ui/clock.h include/ui/command.h
+build/ui/button.o: include/ui/style.h
+build/ui/command.o: include/ui/command.h
 build/ui/window.o: include/ui/window.h include/ui/clock.h include/ui/core.h
-build/ui/window.o: include/ui/style.h include/ui/frame.h
+build/ui/window.o: include/ui/style.h include/ui/command.h include/ui/frame.h
 build/ui/clock.o: include/ui/clock.h
 build/ui/frame.o: include/ui/frame.h include/ui/core.h include/ui/window.h
-build/ui/frame.o: include/ui/clock.h include/ui/style.h
+build/ui/frame.o: include/ui/clock.h include/ui/command.h include/ui/style.h
 build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/clock.h
-build/ui/core.o: include/ui/frame.h include/ui/style.h
+build/ui/core.o: include/ui/frame.h include/ui/command.h include/ui/style.h
 build/main.o: include/app/app.h include/ui/core.h include/ui/window.h
-build/main.o: include/ui/clock.h include/ui/frame.h include/ui/style.h
-build/main.o: include/app/mainFrame.h include/wave/audioFile.h
-build/main.o: lib/Wstream/include/wstream/wstream.h
+build/main.o: include/ui/clock.h include/ui/frame.h include/ui/command.h
+build/main.o: include/ui/style.h include/app/mainFrame.h
+build/main.o: include/wave/audioFile.h lib/Wstream/include/wstream/wstream.h
 build/test.o: include/math/FFT.h include/math/FT.h

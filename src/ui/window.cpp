@@ -25,11 +25,23 @@ int32_t Window::destroy(){
     return 0;
 }
 
-int32_t Window::tick_update(){
-    if(destroyed) return 0;
-    mainframe->tick_update();
+int32_t Window::core_tick(){
+    on_core_tick();
+    if(clock.try_tick()) window_tick();
+    mainframe->core_tick();
     return 0;
 }
+
+int32_t Window::window_tick(){
+    on_window_tick();
+    mainframe->window_tick();
+    refresh();
+    return 0;
+}
+
+int32_t Window::on_core_tick(){ return 0; }
+
+int32_t Window::on_window_tick(){ return 0; }
 
 int32_t Window::event_update(){
     
@@ -87,7 +99,6 @@ int32_t Window::event_update(){
                 break;
         }
     }
-
 
     return 0;
 }
