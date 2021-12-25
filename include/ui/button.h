@@ -8,6 +8,24 @@ namespace ui{
 
 class Button : public ui::ContentFrame {
     
+    /*
+       style parameters:
+       background (color)
+       pressedBackground (color)
+       border (color)
+       textSize (num)
+       textColor (color)
+       font (font)
+    */
+
+public:
+
+    Button(Frame *parent_, int32_t (*function_)(void*), void *target_,
+            std::map<std::string, std::string> values = {});
+
+    int32_t draw();
+    int32_t event_update(sf::Event);
+
 protected:
 
     std::string text = "";
@@ -20,14 +38,6 @@ protected:
 private:
 
     int32_t setup(std::map<std::string, std::string> &values);
-
-public:
-
-    Button(Frame *parent_, int32_t (*function_)(void*), void *target_,
-            std::map<std::string, std::string> values = {});
-
-    int32_t draw();
-    int32_t event_update(sf::Event);
 
 };
 

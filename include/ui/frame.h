@@ -114,9 +114,13 @@ public:
     // draw contents and display them on the window
     virtual int32_t draw();
 
+    // actions run when window is resized/moved
+    virtual int32_t on_reconfig();
+
     // determine mouse position
     std::array<float, 2> global_mouse();
     std::array<float, 2> local_mouse();
+    bool contains_mouse();
 
     // find the frame where the cursor is.
     Frame *find_focus();
@@ -124,7 +128,6 @@ public:
     
     // Redraw & render.
     int32_t refresh();
-    bool refreshFlag = 1;
 
     // set the window size & positions
     int32_t set_window_size(float windowWidth_, float windowHeight_);
@@ -220,6 +223,15 @@ protected:
     sf::Font &font(std::string key);
     long double num(std::string key);
 
+    // flags
+    bool refreshFlag = 1;
+    bool windowMoved = 0;
+    bool windowResized = 0;
+    bool canvasMoved = 0;
+    bool canvasResized = 0;
+    
+    bool reconfig_check();
+
 private:
 
     int32_t setup(std::map<std::string, std::string> &values);
@@ -230,6 +242,11 @@ private:
 
 class SolidFrame : public Frame {
  
+    /*
+       style parameters:
+       background (color)
+    */
+
 public:
 
     SolidFrame(Window *master_, std::map<std::string, std::string> values = {});
@@ -253,7 +270,7 @@ public:
     ContentFrame(Window *master_, std::map<std::string, std::string> values = {});
     ContentFrame(Frame *parent_, std::map<std::string, std::string> values = {});
 
-    int32_t initialize();
+    virtual int32_t on_reconfig();
     int32_t display();
 
 protected:

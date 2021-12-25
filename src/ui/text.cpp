@@ -27,13 +27,11 @@ Text::Text(Frame *parent_, std::map<std::string, std::string> values) :
 }
 
 int32_t Text::draw(){
-
-    initialize();
    
     canvas.clear(color("background"));
 
-    sf::Text textBox(text, font("font"), num("text_size"));
-    textBox.setFillColor(color("text_color"));
+    sf::Text textBox(text, font("font"), num("textSize"));
+    textBox.setFillColor(color("textColor"));
     
     sf::FloatRect rect = textBox.getGlobalBounds();
     

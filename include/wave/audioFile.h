@@ -1,48 +1,68 @@
 #pragma once
 
+#include "wave/readableAudio.h"
+
 #include "wstream/wstream.h"
-
-#include <SFML/Audio/SoundStream.hpp>
-
-#include <string>
-#include <mutex>
 
 namespace wave {
 
-class AudioFile : public sf::SoundStream {
+class AudioFile : public ReadableAudio {
+
+    // class for reading audio straight from a file
 
 public:
 
+    AudioFile();
     AudioFile(std::string fileName);
 
-    bool bad();
-
-    bool onGetData(Chunk &data);
+    bool open(std::string fileName);
 
     void onSeek(sf::Time timeOffset);
+    void seek_sample(uint32_t sample);
 
-    void setChannel(int32_t);
-
-    // check out the file contents without changing the file reading position
-    // If there are multiple channels, then "amount" samples are read from
-    // the currently selected channel.
-    std::vector<float> peekData(uint32_t amount);
-    std::vector<float> lookData(uint32_t position, uint32_t amount);
+    void refill();
 
 protected:
 
     std::string name;
     iwstream file;
 
-    std::mutex readLock;
+};
 
-    bool badBit = 0;
-    uint16_t channels = 1, channel = 0;
-    uint32_t frameRate = 1;
+struct FixedAudioBuffer {
+
+    // simple struct for handling audio data
+
+    FixedAudioBuffer();
+    FixedAudioBuffer(const std::vector<float> &audio_,
+            uint32_t channels_ = 1, uint32_t frameRate_ = 44100);
+    FixedAudioBuffer(std::string fileName);
+
+    std::vector<float> audio;
+    uint32_t channels = 1, frameRate = 44100;
     
-    std::vector<sf::Int16> converted;  
+};
+
+class LoadedAudioFile : public ReadableAudio {
     
-    void parse_channel(std::vector<float> &data);
+    // class for reading audio from a cached buffer
+
+public:
+
+    LoadedAudioFile();
+    LoadedAudioFile(FixedAudioBuffer *buff_);
+
+    bool open(FixedAudioBuffer *buff_);
+
+    void onSeek(sf::Time timeOffset);
+    void seek_sample(uint32_t sample);
+
+    void refill();
+
+protected:
+
+    FixedAudioBuffer *buff = nullptr;
+    uint32_t position = 0;
 
 };
 

@@ -1,12 +1,30 @@
 
 font
-    ubuntu_mono res/fonts/UMR.ttf
+    default res/fonts/UMR.ttf
 ;
 
 look
 
+VimDefaultColors
+    terminal 2e0a24
+    green 87ffaf
+    yellow fce94f
+    purple ad7fa8
+    blue sed7ff
+    lightgray d7d7d7
+;
+
 MainFrame
     background 2e0a24
+;
+
+Graph
+    background 2e0a24
+    vertexColor fce94f
+    axisColor d7d7d7
+    indicatorSize 20
+    indicatorColor 87ffaf
+    font default
 ;
 
 ;

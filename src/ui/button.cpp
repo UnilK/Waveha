@@ -32,9 +32,7 @@ int32_t Button::setup(std::map<std::string, std::string> &values){
 
 int32_t Button::draw(){
 
-    initialize();
-   
-    if(pressed) canvas.clear(color("pressed_background"));
+    if(pressed) canvas.clear(color("pressedBackground"));
     else canvas.clear(color("background"));
 
     sf::RectangleShape left({borderLeft, canvasHeight});
@@ -42,8 +40,8 @@ int32_t Button::draw(){
     sf::RectangleShape up({canvasWidth, borderUp});
     sf::RectangleShape down({canvasWidth, borderDown});
 
-    sf::Text textBox(text, font("font"), num("text_size"));
-    textBox.setFillColor(color("text_color"));
+    sf::Text textBox(text, font("font"), num("textSize"));
+    textBox.setFillColor(color("textColor"));
     
     sf::FloatRect rect = textBox.getGlobalBounds();
     

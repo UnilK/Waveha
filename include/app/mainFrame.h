@@ -12,7 +12,7 @@ public:
 
 class MainWindow : public ui::Window{
 
-    MainFrame mainFrame;
+    MainFrame main;
 
 public:
     

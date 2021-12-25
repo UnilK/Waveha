@@ -81,16 +81,30 @@ depend: $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it. 
 
+build/wave/freeAudio.o: include/wave/freeAudio.h include/wave/readableAudio.h
+build/wave/freeAudio.o: include/wave/audioBuffer.h
+build/wave/audioBuffer.o: include/wave/audioBuffer.h
+build/wave/audioBuffer.o: include/wave/typeConverter.h
 build/wave/audioFile.o: include/wave/audioFile.h
 build/wave/audioFile.o: lib/Wstream/include/wstream/wstream.h
 build/wave/audioFile.o: include/wave/typeConverter.h
+build/wave/recordableAudio.o: include/wave/recordableAudio.h
+build/wave/recordableAudio.o: include/wave/audioBuffer.h
+build/wave/recordableAudio.o: include/wave/typeConverter.h
 build/wave/typeConverter.o: include/wave/typeConverter.h
+build/wave/readableAudio.o: include/wave/readableAudio.h
+build/wave/readableAudio.o: include/wave/audioBuffer.h
+build/wave/readableAudio.o: include/wave/typeConverter.h
 build/app/mainFrame.o: include/app/mainFrame.h include/ui/frame.h
 build/app/mainFrame.o: include/ui/core.h include/ui/window.h include/ui/clock.h
 build/app/mainFrame.o: include/ui/command.h include/ui/style.h
 build/app/app.o: include/app/app.h include/ui/core.h include/ui/window.h
 build/app/app.o: include/ui/clock.h include/ui/frame.h include/ui/command.h
 build/app/app.o: include/ui/style.h include/app/mainFrame.h
+build/app/commands.o: include/app/app.h include/ui/core.h include/ui/window.h
+build/app/commands.o: include/ui/clock.h include/ui/frame.h
+build/app/commands.o: include/ui/command.h include/ui/style.h
+build/app/commands.o: include/app/mainFrame.h
 build/math/FFT.o: include/math/FFT.h include/math/constants.hpp
 build/math/FT.o: include/math/FT.h include/math/constants.hpp
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/core.h
@@ -106,6 +120,9 @@ build/ui/window.o: include/ui/style.h include/ui/command.h include/ui/frame.h
 build/ui/clock.o: include/ui/clock.h
 build/ui/frame.o: include/ui/frame.h include/ui/core.h include/ui/window.h
 build/ui/frame.o: include/ui/clock.h include/ui/command.h include/ui/style.h
+build/ui/graph.o: include/ui/graph.h include/ui/frame.h include/ui/core.h
+build/ui/graph.o: include/ui/window.h include/ui/clock.h include/ui/command.h
+build/ui/graph.o: include/ui/style.h
 build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/clock.h
 build/ui/core.o: include/ui/frame.h include/ui/command.h include/ui/style.h
 build/main.o: include/app/app.h include/ui/core.h include/ui/window.h

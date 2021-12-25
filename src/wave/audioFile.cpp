@@ -7,69 +7,118 @@
 
 namespace wave{
 
+AudioFile::AudioFile(){}
+
 AudioFile::AudioFile(std::string fileName){
+    open(fileName);
+}
+
+bool AudioFile::open(std::string fileName){
+    goodBit = 1;
     name = fileName;
-    if(!file.open(name)) badBit = 1;
+    if(!file.open(name)) goodBit = 0;
     else {
         frameRate = file.get_frame_rate();
         channels = file.get_channel_amount();
-        initialize(1, frameRate);
+        initialize(channels, frameRate);
     }
-}
-
-bool AudioFile::bad(){ return badBit; }
-
-bool AudioFile::onGetData(Chunk &data){
-    
-    if(badBit) return 0; 
-
-    readLock.lock();
-    std::vector<float> floatData;
-    uint32_t readAmount = file.read_move(floatData, frameRate*channels);
-    readLock.unlock();
-
-    parse_channel(floatData);
-
-    converted = float_to_int(floatData);
-
-    data.samples = converted.data();
-    data.sampleCount = frameRate;
-
-    return readAmount == frameRate*channels;
+    return goodBit;
 }
 
 void AudioFile::onSeek(sf::Time timeOffset){
-    readLock.lock();
-    file.seek((uint32_t)(channels * (double)timeOffset.asSeconds() * frameRate));
-    readLock.unlock();
+    seek_sample((uint32_t)(channels * (double)timeOffset.asSeconds() * frameRate));
 }
 
-void AudioFile::setChannel(int32_t channel_){
-    channel = std::min(channels-1, channel_);
+void AudioFile::seek_sample(uint32_t sample){
+    file.seek(sample);
+    reset();
+    refill();
 }
 
-std::vector<float> AudioFile::peekData(uint32_t amount){
-    return lookData(file.tell(), amount);
-}
+void AudioFile::refill(){
 
-std::vector<float> AudioFile::lookData(uint32_t begin, uint32_t amount){
-    readLock.lock();
-    std::vector<float> data = file.read_silent(begin, amount*channels);
-    readLock.unlock();
-    
-    parse_channel(data);
-    return data;
-}
+    if(!goodBit) return;
 
-void AudioFile::parse_channel(std::vector<float> &data){
-    if(channels < 2) return;
-    uint32_t total = 0;
-    for(uint32_t i=channel; i<data.size(); i += channels){
-        data[i/channels] = data[i];
-        total++;
+    uint32_t target = get_hunger();
+    std::vector<float> samples;
+    uint32_t actual = file.read_move(samples, target);
+   
+    if(target != actual){
+        goodSamples = actual;
+        shouldStop = 1;
     }
-    data.resize(total);
+
+    add_data(samples);
 }
+
+
+
+FixedAudioBuffer::FixedAudioBuffer(){}
+
+FixedAudioBuffer::FixedAudioBuffer(const std::vector<float> &audio_,
+        uint32_t channels_, uint32_t frameRate_){
+
+    audio = audio_;
+    channels = channels_;
+    frameRate = frameRate_;
 
 }
 
+FixedAudioBuffer::FixedAudioBuffer(std::string fileName){
+    
+    iwstream file;
+
+    if(file.open(fileName)){
+        frameRate = file.get_frame_rate();
+        channels = file.get_channel_amount();
+        audio = file.read_file();
+    }
+}
+
+
+
+LoadedAudioFile::LoadedAudioFile(){}
+
+LoadedAudioFile::LoadedAudioFile(FixedAudioBuffer *buff_){
+    open(buff_);
+}
+
+bool LoadedAudioFile::open(FixedAudioBuffer *buff_){
+    goodBit = 1;
+    buff = buff_;
+    initialize(buff->channels, buff->frameRate);
+    return goodBit;
+}
+
+void LoadedAudioFile::onSeek(sf::Time timeOffset){
+    seek_sample((uint32_t)(channels * (double)timeOffset.asSeconds() * frameRate));
+}
+
+void LoadedAudioFile::seek_sample(uint32_t sample){
+    position = sample;
+    reset();
+    refill();
+}
+
+void LoadedAudioFile::refill(){
+
+    if(!goodBit) return;
+
+    uint32_t target = get_hunger();
+    std::vector<float> samples(target, 0.0f);
+    
+    uint32_t actual = 0;
+    if(buff->audio.size() >= position)
+        actual = std::min((uint32_t)buff->audio.size() - position, target);
+
+    for(uint32_t i = 0; i < actual; i++) samples[i] = buff->audio[position++];
+
+    if(target != actual){
+        goodSamples = actual;
+        shouldStop = 1;
+    }
+
+    add_data(samples);
+}
+
+}

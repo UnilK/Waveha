@@ -84,7 +84,7 @@ sf::Color Frame::color(std::string key){
 }
 
 sf::Font &Frame::font(std::string key){
-    return core->style.font(key);
+    return core->style.font(core->style[look][key]);
 }
 
 long double Frame::num(std::string key){
@@ -121,6 +121,8 @@ int32_t Frame::on_core_tick(){ return 0; }
 
 int32_t Frame::on_window_tick(){ return 0; }
 
+int32_t Frame::on_reconfig(){ return 0; }
+
 std::array<float, 2> Frame::global_mouse(){
     return {master->mouseX, master->mouseY};
 }
@@ -131,24 +133,26 @@ std::array<float, 2> Frame::local_mouse(){
         master->mouseY - globalY + windowY + canvasY};
 }
 
-Frame *Frame::find_focus(){
-
+bool Frame::contains_mouse(){
+    
     auto [x, y] = global_mouse();
+    
+    float left = globalX;
+    float right = left + windowWidth;
+    float up = globalY;
+    float down = up + windowHeight;
+    
+    if(left <= x && x <= right && down >= y && y >= up) return 1;
+    return 0;
+}
+
+Frame *Frame::find_focus(){
 
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
             if(grid[i][j] == nullptr) continue;
-            
             Frame *child = grid[i][j];
-            
-            float left = child->globalX;
-            float right = left + child->windowWidth;
-            float up = child->globalY;
-            float down = up + child->windowHeight;
-            
-            if(left <= x && x <= right && down >= y && y >= up){
-                return grid[i][j]->find_focus(); 
-            }
+            if(child->contains_mouse()) return child->find_focus();
         }
     }
 
@@ -166,6 +170,10 @@ int32_t Frame::draw(){
 int32_t Frame::refresh(){
 
     if(degenerate()) return 0;
+
+    if(reconfig_check()){
+        on_reconfig();
+    }
 
     if(refreshFlag){
         draw();
@@ -325,20 +333,38 @@ int32_t Frame::update_grid(){
 }
 
 int32_t Frame::set_window_size(float windowWidth_, float windowHeight_){
+
+    float previousWidth = windowWidth;
+    float previousHeight = windowHeight;
+
     windowWidth = std::max(0.0f, windowWidth_);
     windowHeight = std::max(0.0f, windowHeight_);
+    
+    if(windowWidth != previousWidth || windowHeight != previousHeight)
+        windowResized = 1;
+
     return 0;
 }
 
 int32_t Frame::set_window_position(float windowX_, float windowY_){
+    
+    float previousX = windowX;
+    float previousY = windowY;
+    
     windowX = windowX_;
     windowY = windowY_;
+    
+    if(windowX != previousX || windowY != previousY)
+        windowMoved = 1;
+    
     return 0;
 }
 
 int32_t Frame::set_global_position(float globalX_, float globalY_){
+    
     globalX = globalX_;
     globalY = globalY_;
+    
     return 0;
 }
 
@@ -349,21 +375,35 @@ int32_t Frame::set_target_size(float targetWidth_, float targetHeight_){
 }
 
 int32_t Frame::set_canvas_size(float canvasWidth_, float canvasHeight_){
+    
+    float previousWidth = canvasWidth;
+    float previousHeight = canvasHeight;
+
     canvasWidth = std::max(0.0f, canvasWidth_);
     canvasHeight = std::max(0.0f, canvasHeight_);
+    
+    if(canvasWidth != previousWidth || canvasHeight != previousHeight)
+        canvasResized = 1;
+    
     return 0;
 }
 
 int32_t Frame::set_canvas_position(float canvasX_, float canvasY_){
+    
+    float previousX = canvasX;
+    float previousY = canvasY;
+    
     canvasX = canvasX_;
     canvasY = canvasY_;
+    
+    if(canvasX != previousX || canvasY != previousY)
+        canvasMoved = 1;
+    
     return 0;
 }
 
 int32_t Frame::move_canvas(float deltaX, float deltaY){
-    canvasX += deltaX;
-    canvasY += deltaY;
-    return 0;
+    return set_canvas_position(canvasX + deltaX, canvasY + deltaY);
 }
 
 float Frame::target_width(){
@@ -425,7 +465,9 @@ int32_t Frame::set_span(int32_t rowSpan_, int32_t columnSpan_){
     return 0;
 };
 
-
+bool Frame::reconfig_check(){
+    return windowMoved || windowResized || canvasMoved || canvasResized;
+}
 
 SolidFrame::SolidFrame(Window *master_, std::map<std::string, std::string> values) :
     Frame(master_, values) {}
@@ -453,7 +495,7 @@ ContentFrame::ContentFrame(Frame *parent_, std::map<std::string, std::string> va
     Frame(parent_, values) {}
 
 
-int32_t ContentFrame::initialize(){
+int32_t ContentFrame::on_reconfig(){
 
     if(canvasWidth < 0.5f || canvasHeight < 0.5f) canvas.create(1, 1);
     else canvas.create(canvasWidth, canvasHeight);

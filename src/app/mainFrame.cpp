@@ -12,9 +12,9 @@ MainFrame::MainFrame(ui::Window *master_, std::map<std::string, std::string> val
 
 MainWindow::MainWindow(ui::Core *core_) : 
     ui::Window(core_, 1200, 800, "Waveha", 120),
-    mainFrame(this)
+    main(this)
 {
-    mainframe = &mainFrame;
+    mainframe = &main;
 }
 
 int32_t MainWindow::on_close(){
