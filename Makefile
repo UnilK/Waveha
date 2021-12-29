@@ -81,11 +81,10 @@ depend: $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it. 
 
-build/wave/freeAudio.o: include/wave/freeAudio.h include/wave/readableAudio.h
-build/wave/freeAudio.o: include/wave/audioBuffer.h
 build/wave/audioBuffer.o: include/wave/audioBuffer.h
 build/wave/audioBuffer.o: include/wave/typeConverter.h
-build/wave/audioFile.o: include/wave/audioFile.h
+build/wave/audioFile.o: include/wave/audioFile.h include/wave/readableAudio.h
+build/wave/audioFile.o: include/wave/audioBuffer.h
 build/wave/audioFile.o: lib/Wstream/include/wstream/wstream.h
 build/wave/audioFile.o: include/wave/typeConverter.h
 build/wave/recordableAudio.o: include/wave/recordableAudio.h
@@ -98,13 +97,30 @@ build/wave/readableAudio.o: include/wave/typeConverter.h
 build/app/mainFrame.o: include/app/mainFrame.h include/ui/frame.h
 build/app/mainFrame.o: include/ui/core.h include/ui/window.h include/ui/clock.h
 build/app/mainFrame.o: include/ui/command.h include/ui/style.h
+build/app/mainFrame.o: include/app/tab.h include/app/resizableFrame.h
+build/app/mainFrame.o: include/app/box.h
 build/app/app.o: include/app/app.h include/ui/core.h include/ui/window.h
 build/app/app.o: include/ui/clock.h include/ui/frame.h include/ui/command.h
-build/app/app.o: include/ui/style.h include/app/mainFrame.h
+build/app/app.o: include/ui/style.h include/app/mainFrame.h include/app/tab.h
+build/app/app.o: include/app/resizableFrame.h include/app/box.h
+build/app/analyzer.o: include/app/analyzer.h
+build/app/tab.o: include/app/tab.h include/app/resizableFrame.h
+build/app/tab.o: include/ui/frame.h include/ui/core.h include/ui/window.h
+build/app/tab.o: include/ui/clock.h include/ui/command.h include/ui/style.h
+build/app/tab.o: include/app/box.h
 build/app/commands.o: include/app/app.h include/ui/core.h include/ui/window.h
 build/app/commands.o: include/ui/clock.h include/ui/frame.h
 build/app/commands.o: include/ui/command.h include/ui/style.h
-build/app/commands.o: include/app/mainFrame.h
+build/app/commands.o: include/app/mainFrame.h include/app/tab.h
+build/app/commands.o: include/app/resizableFrame.h include/app/box.h
+build/app/box.o: include/app/box.h include/app/resizableFrame.h
+build/app/box.o: include/ui/frame.h include/ui/core.h include/ui/window.h
+build/app/box.o: include/ui/clock.h include/ui/command.h include/ui/style.h
+build/app/box.o: include/app/tab.h
+build/app/resizableFrame.o: include/app/resizableFrame.h include/ui/frame.h
+build/app/resizableFrame.o: include/ui/core.h include/ui/window.h
+build/app/resizableFrame.o: include/ui/clock.h include/ui/command.h
+build/app/resizableFrame.o: include/ui/style.h
 build/math/FFT.o: include/math/FFT.h include/math/constants.hpp
 build/math/FT.o: include/math/FT.h include/math/constants.hpp
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/core.h
@@ -127,6 +143,6 @@ build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/clock.h
 build/ui/core.o: include/ui/frame.h include/ui/command.h include/ui/style.h
 build/main.o: include/app/app.h include/ui/core.h include/ui/window.h
 build/main.o: include/ui/clock.h include/ui/frame.h include/ui/command.h
-build/main.o: include/ui/style.h include/app/mainFrame.h
-build/main.o: include/wave/audioFile.h lib/Wstream/include/wstream/wstream.h
+build/main.o: include/ui/style.h include/app/mainFrame.h include/app/tab.h
+build/main.o: include/app/resizableFrame.h include/app/box.h
 build/test.o: include/math/FFT.h include/math/FT.h

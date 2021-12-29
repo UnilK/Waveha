@@ -96,13 +96,27 @@ public:
 
     Frame(Window *master_, std::map<std::string, std::string> values = {});
     Frame(Frame *parent_, std::map<std::string, std::string> values = {});
+    virtual ~Frame();
 
     // is the window size 0?
     bool degenerate();
 
-    // updates. Overload these if needed
-    virtual int32_t event_update(sf::Event event);
+    // events.
+    // priority 0 is for the inner most focused frame. the second
+    // inner most frame will get priority 1 and so on...
+    // hard focus event gets priority -1.
+    std::vector<Frame*> find_focus();
+    void find_focus_inner(std::vector<Frame*> &focus);
+
+    // on_event returns capture value.
+    // -1 frame didn't use event
+    // 0 frame used event but didn't capture it
+    // 1 frame used event and captured it.
+    virtual int32_t on_event(sf::Event event, int32_t priority = 0);
     
+    // can this frame assume hard focus?
+    bool focusable = 1;
+
     // ticks
     int32_t core_tick();
     int32_t window_tick();
@@ -121,10 +135,6 @@ public:
     std::array<float, 2> global_mouse();
     std::array<float, 2> local_mouse();
     bool contains_mouse();
-
-    // find the frame where the cursor is.
-    Frame *find_focus();
-    bool focusable = 0;
     
     // Redraw & render.
     int32_t refresh();
@@ -141,6 +151,7 @@ public:
 
     // set target canvas size
     int32_t set_target_size(float targetWidth_, float targetHeight_);
+    std::array<float, 2> get_target_canvas_size();
 
     // padding & border included
     float target_width();
@@ -149,10 +160,18 @@ public:
     // setup a nullptr grid of size {rows_, columns_}
     int32_t setup_grid(int32_t rows_, int32_t columns_);
 
+    // resize grid
+    int32_t resize_grid(int32_t rows_, int32_t columns_);
+
     // update window and canvas sizes in the grid.
     // Needs to be called if window, target or canvas position
     // or size is changed.
     int32_t update_grid();
+
+    // place frames to the grid.
+    int32_t place_frame(int32_t row, int32_t column, Frame *frame);
+    int32_t remove_frame(int32_t row, int32_t column);
+    int32_t remove_frame(Frame *frame);
 
     // configure extra space allocation among rows & columns.
     // each row gets value[row]/values_sum extra space allocated to it.
@@ -169,13 +188,14 @@ public:
     int32_t align_fill(float left, float right, float up, float down);
     int32_t frame_fill(float width, float height);
 
-protected:
+    // get parent some steps up
+    Frame *get_parent(int32_t steps = 1);
 
-    Core *core = nullptr;
-    Frame *parent = nullptr;
-    Window *master = nullptr;
+    // grid
+    std::vector<std::vector<Frame*> > grid;
 
-    std::string look = "";
+    // giving each of these variables getters would be stupid.
+    // use only for access.
 
     // canvas target dimensions.
     float targetWidth = 0, targetHeight = 0;
@@ -193,10 +213,17 @@ protected:
     float windowX = 0, windowY = 0;
     float globalX = 0, globalY = 0;
 
+protected:
+
+    Core *core = nullptr;
+    Frame *parent = nullptr;
+    Window *master = nullptr;
+
+    std::string look = "";
+
     // grid layout management
     int32_t columns = 0, rows = 0;
     std::vector<float> widthFill, heightFill;
-    std::vector<std::vector<Frame*> > grid;
 
     // TODO implement off-grid frames
 
@@ -252,7 +279,7 @@ public:
     SolidFrame(Window *master_, std::map<std::string, std::string> values = {});
     SolidFrame(Frame *parent_, std::map<std::string, std::string> values = {});
 
-    virtual int32_t draw();
+    int32_t draw();
 
 protected:
 

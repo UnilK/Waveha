@@ -27,7 +27,7 @@ public:
     // 1 -> read half from buffer
     // 2 -> read fixed amount from buffer
     // TODO : turn this into an enum
-    uint32_t readMode = 0;
+    uint32_t readMode = 1;
     
     // how many samples are to be played per call if mode = 2?
     uint32_t dataBlock = 1<<10;

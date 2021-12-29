@@ -24,15 +24,21 @@ public:
             std::map<std::string, std::string> values = {});
 
     int32_t draw();
-    int32_t event_update(sf::Event);
+    int32_t on_event(sf::Event event, int32_t priority);
+
+    void set_text(std::string text_);
 
 protected:
 
     std::string text = "";
     float borderLeft = 0, borderRight = 0, borderUp = 0, borderDown = 0;
     
+    
+    uint32_t style = sf::Text::Style::Regular;
+    float fontHeight;
+
     int32_t (*function)(void*);
-    void *target = nullptr;
+    void *target;
     bool pressed = 0;
 
 private:

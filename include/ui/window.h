@@ -11,6 +11,7 @@ namespace ui{ class Window; }
 #include <string>
 #include <set>
 #include <map>
+#include <vector>
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
@@ -19,20 +20,6 @@ namespace ui{
 class Window : public sf::RenderWindow, public Commandable {
  
     // Class built around sf::RenderWindow.
-
-protected:
-
-    Core *core;
-    Frame *mainframe;
-    std::set<Window*> children;
-
-    std::string title;
-
-    float height = 100, width = 100;
-
-    Frame *soft_focus = nullptr;
-    Frame *hard_focus = nullptr;
-    Frame *clicked = nullptr;
 
 public:
    
@@ -69,15 +56,27 @@ public:
     int32_t attach_child(Window *child);
     int32_t detach_child(Window *child);
 
+    std::vector<Frame*> focus;
     Frame *get_soft_focus();
     Frame *get_hard_focus();
-    Frame *get_clicked();
     Core *get_core();
 
-    // overloadable responses to events.
+    // overloadable responses to special events.
     virtual int32_t on_close();
     virtual int32_t on_resize();
-    virtual int32_t on_mouse_move();
+
+protected:
+
+    Core *core;
+    Frame *mainframe;
+    std::set<Window*> children;
+
+    std::string title;
+
+    float height = 100, width = 100;
+
+    Frame *softFocus = nullptr;
+    Frame *hardFocus = nullptr;
 
 };
 

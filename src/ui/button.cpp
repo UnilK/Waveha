@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <math.h>
 
 namespace ui{
     
@@ -12,6 +13,17 @@ Button::Button(Frame *parent_, int32_t(*function_)(void *),
     target(target_)
 {
     setup(values);
+    
+    sf::Text textBox(
+            "012345678j9abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
+            "QRSTUVWXYZ!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~",
+            font("font"), num("textSize"));
+    textBox.setFillColor(color("textColor"));
+    textBox.setStyle(style);
+    sf::FloatRect rect = textBox.getGlobalBounds();
+    fontHeight = rect.height + rect.top;
+
+    canvas.setSmooth(0);
 }
 
 int32_t Button::setup(std::map<std::string, std::string> &values){
@@ -27,6 +39,15 @@ int32_t Button::setup(std::map<std::string, std::string> &values){
     if(read_value("border", value, values))
         value >> borderLeft >> borderRight >> borderUp >> borderDown;
     
+    if(read_value("style", value, values)){
+        
+        std::string s;
+        value >> s;
+        
+        if(s == "bold"){
+            style = sf::Text::Style::Bold;
+        }
+    }
     return 0;
 }
 
@@ -45,8 +66,8 @@ int32_t Button::draw(){
     
     sf::FloatRect rect = textBox.getGlobalBounds();
     
-    float textX = (canvasWidth - borderRight + borderLeft) / 2 - rect.width / 2;
-    float textY = (canvasHeight - borderDown + borderUp) / 2 - rect.height;
+    float textX = std::round((canvasWidth - borderRight + borderLeft) / 2 - rect.width / 2);
+    float textY = std::round((canvasHeight - borderDown + borderUp - fontHeight - 1));
 
     textBox.setPosition(textX, textY);
 
@@ -71,8 +92,10 @@ int32_t Button::draw(){
     return 0;
 }
 
-int32_t Button::event_update(sf::Event event){
+int32_t Button::on_event(sf::Event event, int32_t priority){
    
+    if(priority > 0) return -1;
+
     if(event.type == sf::Event::MouseButtonPressed){
         pressed = 1;
         refreshFlag = 1;
@@ -80,11 +103,18 @@ int32_t Button::event_update(sf::Event event){
     else if(event.type == sf::Event::MouseButtonReleased){
         pressed = 0;
         refreshFlag = 1;
-        if(master->get_clicked() == this && master->get_soft_focus() == this)
+        if(master->get_soft_focus() == this)
             function(target);
     }
 
     return 0;
+}
+
+void Button::set_text(std::string text_){
+    
+    text = text_;
+    refreshFlag = 1;
+
 }
 
 }

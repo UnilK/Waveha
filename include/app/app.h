@@ -8,6 +8,37 @@ class App;
 #include "app/mainFrame.h"
 
 #include <iostream>
+#include <vector>
+
+class FileCommands : public ui::Commandable {
+
+public:
+    FileCommands();
+    int32_t execute_command(ui::Command &cmd);
+
+};
+
+
+
+class BoxCommands : public ui::Commandable {
+
+public:
+    BoxCommands();
+    int32_t execute_command(ui::Command &cmd);
+
+};
+
+
+
+class TabCommands : public ui::Commandable {
+
+public:
+    TabCommands();
+    int32_t execute_command(ui::Command &cmd);
+
+};
+
+
 
 class App : public ui::Core {
 
@@ -19,17 +50,15 @@ public:
 
     int32_t update_children();
 
-protected:
+    friend class FileCommands;
 
     MainWindow window;
 
-    class FileCommands : public ui::Commandable {
-    public:
-        FileCommands();
-        int32_t execute_command(ui::Command &cmd);
-    };
-
     FileCommands fileCommands;
+    BoxCommands boxCommands;
+    TabCommands tabCommands;
+
+    std::vector<std::string> session;
 
 };
 

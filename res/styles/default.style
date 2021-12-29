@@ -8,10 +8,15 @@ look
 VimDefaultColors
     terminal 2e0a24
     green 87ffaf
+    darkgreen 4e9a06
     yellow fce94f
     purple ad7fa8
     blue sed7ff
+    darkblue 3465a4
     lightgray d7d7d7
+    gray 6c6c6c
+    darkgray 3e3e3e
+    orange df4a16
 ;
 
 MainFrame
@@ -27,5 +32,72 @@ Graph
     font default
 ;
 
+
+
+Tab
+    resizerLook TabResizer
+    borderLook TabBorder
+;
+
+TabResizer
+    dotColor 6c6c6c
+    background d7d7d7
+;
+
+TabBorder
+    background 6c6c6c
+;
+
+TabBackground
+    background 2e0a24
+;
+
+TabTitle
+    background 2e0a24
+    textSize 18
+    textColor d7d7d7
+    font default
+;
+
+
+
+Box
+    resizerLook BoxResizer
+    borderLook BoxBorder
+;
+
+BoxResizer
+    dotColor d7d7d7
+    background 6c6c6c
+;
+
+BoxBorder
+    background d7d7d7
+;
+
+
+
+TabBar
+    background 6c6c6c
+;
+
+ButtonBox
+    background 6c6c6c
+;
+
+BoxTitle
+    background 2e0a24
+    textSize 18
+    textColor d7d7d7
+    font default
+;
+
+BoxButton
+    background 6c6c6c
+    pressedBackground 5c5c5c
+    border d7d7d7
+    textSize 20
+    textColor d7d7d7
+    font default
 ;
 

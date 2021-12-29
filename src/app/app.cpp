@@ -10,12 +10,12 @@ App::App() :
     update_address(id);
 
     commandHelp = "Root directory.";
-    commandDocs = {{"yeetus", "geetus"}};
+    commandDocs = {{"none", "none"}};
 
 }
 
 int32_t App::update_children(){
-    commandChildren = {&fileCommands};
+    commandChildren = {&fileCommands, &boxCommands, &tabCommands};
     return 0;
 }
 
