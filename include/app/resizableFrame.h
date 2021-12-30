@@ -17,6 +17,8 @@ public:
     int32_t draw();
     int32_t on_event(sf::Event event, int32_t priority);
 
+    void set_scrollable(bool scrollable_, ui::Frame *scrolled_ = nullptr);
+
 protected:
 
     int32_t directionX = 0, directionY = 0;
@@ -24,6 +26,9 @@ protected:
 
     float dragX = 0, dragY = 0;
     float dragWidth = 0, dragHeight = 0;
+
+    bool scrollable = 0;
+    ui::Frame *scrolled = nullptr;
 
     bool pressed = 0;
 

@@ -21,8 +21,6 @@ public:
 
     static int32_t switch_up(void *box);
     static int32_t switch_down(void *box);
-    static int32_t push_up(void *box);
-    static int32_t push_down(void *box);
     static int32_t detach_box(void *box);
 
     std::string get_title();
@@ -33,7 +31,7 @@ protected:
     ui::Frame inner, buttonFrame;
     
     ui::Text titleText;
-    ui::Button upSwitch, downSwitch, upPush, downPush, xButton;
+    ui::Button upSwitch, downSwitch, xButton;
 
     Tab *tab = nullptr;
     int32_t index();

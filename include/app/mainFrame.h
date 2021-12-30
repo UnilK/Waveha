@@ -8,7 +8,11 @@ class TabBar : public ui::SolidFrame {
 
 public:
 
-    TabBar(ui::Frame *parent_, std::map<std::string, std::string> values = {});
+    TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, std::map<std::string, std::string> values = {});
+
+    int32_t on_event(sf::Event event, int32_t priority = 0);
+
+    ui::Frame *tabFrame;
 
 };
 
@@ -33,8 +37,8 @@ public:
     std::vector<Tab*> tabs;
     std::vector<Box*> boxes;
 
-    TabBar tabBar;
     ui::SolidFrame tabFrame;
+    TabBar tabBar;
 
 };
 

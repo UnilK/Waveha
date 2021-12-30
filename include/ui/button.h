@@ -15,6 +15,7 @@ class Button : public ui::ContentFrame {
        border (color)
        textSize (num)
        textColor (color)
+       textStyle (textStyle)
        font (font)
     */
 
@@ -33,9 +34,7 @@ protected:
     std::string text = "";
     float borderLeft = 0, borderRight = 0, borderUp = 0, borderDown = 0;
     
-    
-    uint32_t style = sf::Text::Style::Regular;
-    float fontHeight;
+    sf::Text textBox;
 
     int32_t (*function)(void*);
     void *target;

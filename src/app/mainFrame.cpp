@@ -3,18 +3,35 @@
 #include <iostream>
 
 
-TabBar::TabBar(ui::Frame *parent_, std::map<std::string, std::string> values) :
-    ui::SolidFrame(parent_, values)
+TabBar::TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, std::map<std::string, std::string> values) :
+    ui::SolidFrame(parent_, values),
+    tabFrame(tabFrame_)
 {
     look = "TabBar";
 }
 
+int32_t TabBar::on_event(sf::Event event, int32_t priority){
+    
+    if(priority > 0) return -1;
+
+    if(event.type == sf::Event::MouseWheelScrolled){
+        
+        float deltaX = 50 * event.mouseWheelScroll.delta;
+
+        tabFrame->move_canvas(deltaX, 0);
+        tabFrame->update_grid();
+
+        return 1;
+    }
+
+    return -1;
+}
 
 
 MainFrame::MainFrame(ui::Window *master_, std::map<std::string, std::string> values) :
     ui::Frame(master_, values),
-    tabBar(this, {{"height", "25"}}),
-    tabFrame(this, {{"look", "MainFrame"}})
+    tabFrame(this, {{"look", "MainFrame"}}),
+    tabBar(this, &tabFrame, {{"height", "15"}})
 {
     look = "MainFrame";
 

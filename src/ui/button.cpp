@@ -14,14 +14,11 @@ Button::Button(Frame *parent_, int32_t(*function_)(void *),
 {
     setup(values);
     
-    sf::Text textBox(
-            "012345678j9abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
-            "QRSTUVWXYZ!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~",
-            font("font"), num("textSize"));
+    textBox.setString(text);
+    textBox.setStyle(textStyle("textStyle"));
+    textBox.setFont(font("font"));
+    textBox.setCharacterSize(num("textSize"));
     textBox.setFillColor(color("textColor"));
-    textBox.setStyle(style);
-    sf::FloatRect rect = textBox.getGlobalBounds();
-    fontHeight = rect.height + rect.top;
 
     canvas.setSmooth(0);
 }
@@ -39,15 +36,6 @@ int32_t Button::setup(std::map<std::string, std::string> &values){
     if(read_value("border", value, values))
         value >> borderLeft >> borderRight >> borderUp >> borderDown;
     
-    if(read_value("style", value, values)){
-        
-        std::string s;
-        value >> s;
-        
-        if(s == "bold"){
-            style = sf::Text::Style::Bold;
-        }
-    }
     return 0;
 }
 
@@ -61,13 +49,11 @@ int32_t Button::draw(){
     sf::RectangleShape up({canvasWidth, borderUp});
     sf::RectangleShape down({canvasWidth, borderDown});
 
-    sf::Text textBox(text, font("font"), num("textSize"));
-    textBox.setFillColor(color("textColor"));
-    
-    sf::FloatRect rect = textBox.getGlobalBounds();
+    sf::FloatRect rect = textBox.getLocalBounds();
     
     float textX = std::round((canvasWidth - borderRight + borderLeft) / 2 - rect.width / 2);
-    float textY = std::round((canvasHeight - borderDown + borderUp - fontHeight - 1));
+    float textY = std::round((canvasHeight - borderDown + borderUp) / 2
+            - textBox.getCharacterSize() * 1.35f / 2);
 
     textBox.setPosition(textX, textY);
 
@@ -113,6 +99,7 @@ int32_t Button::on_event(sf::Event event, int32_t priority){
 void Button::set_text(std::string text_){
     
     text = text_;
+    textBox.setString(text);
     refreshFlag = 1;
 
 }

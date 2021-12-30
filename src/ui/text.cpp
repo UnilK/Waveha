@@ -16,15 +16,6 @@ int32_t Text::setup(std::map<std::string, std::string> &values){
         while(std::getline(value, word)) text += word+"\n";
         if(!text.empty()) text.pop_back();
     }
-    if(read_value("style", value, values)){
-        
-        std::string s;
-        value >> s;
-        
-        if(s == "bold"){
-            style = sf::Text::Style::Bold;
-        }
-    }
     
     return 0;
 }
@@ -34,31 +25,23 @@ Text::Text(Frame *parent_, std::map<std::string, std::string> values) :
 {
     setup(values);
 
-    sf::Text textBox(
-            "012345678j9abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP"
-            "QRSTUVWXYZ!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~",
-            font("font"), num("textSize"));
+    textBox.setString(text);
+    textBox.setFont(font("font"));
+    textBox.setStyle(textStyle("textStyle"));
+    textBox.setCharacterSize(num("textSize"));
     textBox.setFillColor(color("textColor"));
-    textBox.setStyle(style);
-    sf::FloatRect rect = textBox.getGlobalBounds();
-    fontHeight = rect.height + rect.top;
 
     canvas.setSmooth(0);
-
 }
 
 int32_t Text::draw(){
    
     canvas.clear(color("background"));
-
-    sf::Text textBox(text, font("font"), num("textSize"));
-    textBox.setFillColor(color("textColor"));
-    textBox.setStyle(style);
     
     sf::FloatRect rect = textBox.getLocalBounds();
-  
+
     float textX = std::round(canvasWidth / 2 - rect.width / 2);
-    float textY = std::round(canvasHeight - fontHeight - 1);
+    float textY = std::round(canvasHeight / 2 - textBox.getCharacterSize() * 1.35f / 2);
 
     textBox.setPosition(textX, textY);
 
@@ -72,6 +55,7 @@ int32_t Text::draw(){
 void Text::set_text(std::string text_){
     
     text = text_;
+    textBox.setString(text);
     refreshFlag = 1;
 
 }

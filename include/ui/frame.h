@@ -248,6 +248,7 @@ protected:
     std::string chars(std::string key);
     sf::Color color(std::string key);
     sf::Font &font(std::string key);
+    uint32_t textStyle(std::string key);
     long double num(std::string key);
 
     // flags

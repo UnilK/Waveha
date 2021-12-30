@@ -8,7 +8,7 @@ Box::Box(ui::Frame *parent_, std::string title_, std::map<std::string, std::stri
             {"height", "200"},
             {"border", "0 0 2 15"},
             {"resize", "0 0 0 1"},
-            {"pad", "1 1 1 1"}}),
+            {"pad", "0 0 1 1"}}),
     inner(this),
     buttonFrame(this, {{"look", "ButtonBox"}, {"height", "24"}}),
     titleText(this, 
@@ -24,18 +24,6 @@ Box::Box(ui::Frame *parent_, std::string title_, std::map<std::string, std::stri
             {"pad", "1 1 1 1"}}),
     downSwitch(this, switch_down, this,
             {{"text", "down"},
-            {"height", "20"},
-            {"width", "50"},
-            {"look", "BoxButton"},
-            {"pad", "1 1 1 1"}}),
-    upPush(this, push_up, this,
-            {{"text", "UP"},
-            {"height", "20"},
-            {"width", "50"},
-            {"look", "BoxButton"},
-            {"pad", "1 1 1 1"}}),
-    downPush(this, push_down, this,
-            {{"text", "DOWN"},
             {"height", "20"},
             {"width", "50"},
             {"look", "BoxButton"},
@@ -65,14 +53,13 @@ Box::Box(ui::Frame *parent_, std::string title_, std::map<std::string, std::stri
 
     buttonFrame.grid[0][0] = &upSwitch;
     buttonFrame.grid[0][1] = &downSwitch;
-    buttonFrame.grid[0][2] = &upPush;
-    buttonFrame.grid[0][3] = &downPush;
     buttonFrame.grid[0][5] = &titleText;
     buttonFrame.grid[0][9] = &xButton;
 
 }
 
 bool Box::place_to_tab(Tab *newTab){
+    detach_from_tab();
     bool ok = newTab->add_box(this);
     if(!ok) return 0;
     tab = newTab;
@@ -107,18 +94,6 @@ int32_t Box::switch_down(void *box){
     return 0;
 }
 
-int32_t Box::push_up(void *box){
-    Box &x = *(Box*)box;
-    x.tab->push_box(x.index(), -1);
-    return 0;
-}
-
-int32_t Box::push_down(void *box){
-    Box &x = *(Box*)box;
-    x.tab->push_box(x.index(), 1);
-    return 0;
-}
-
 int32_t Box::detach_box(void *box){
     Box &x = *(Box*)box;
     x.detach_from_tab();
@@ -141,6 +116,6 @@ NoContentBox::NoContentBox(ui::Frame *parent_,
             {"width", "80"},
             {"text", title_}})
 {
-    inner.grid[0][1] = &text;
+    inner.grid[1][0] = &text;
 }
 

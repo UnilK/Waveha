@@ -83,6 +83,14 @@ int32_t Window::event_update(){
             default:
 
                 if(event.type == sf::Event::MouseButtonPressed){
+                    focus = mainframe->find_focus();
+                    softFocus = focus.back();
+                    hardFocus = softFocus;
+                }
+                
+                if(event.type == sf::Event::MouseWheelScrolled){
+                    focus = mainframe->find_focus();
+                    softFocus = focus.back();
                     hardFocus = softFocus;
                 }
         

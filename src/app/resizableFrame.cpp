@@ -21,6 +21,8 @@ ResizerFrame::ResizerFrame(ui::Frame *parent_, std::map<std::string, std::string
 
 int32_t ResizerFrame::draw(){
 
+    // std::cout << parent->targetWidth << ' ' << parent->targetHeight << ' ' << parent << " #\n";
+
     sf::CircleShape dot(dotSize);
     dot.setPosition(canvasWidth/2 - dotSize, canvasHeight/ 2 - dotSize);
     dot.setFillColor(color("dotColor"));
@@ -71,11 +73,33 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
             
             get_parent(2)->update_grid();
 
+            return 1;
+        }
+    } else if(event.type == sf::Event::MouseWheelScrolled){
+        
+        if(scrollable){
+            
+            float deltaX = 0, deltaY = 0;
+            
+            if(directionX != 0) deltaY = - 50 * event.mouseWheelScroll.delta;
+            if(directionY != 0) deltaX = 50 * event.mouseWheelScroll.delta;
+
+            scrolled->move_canvas(deltaX, deltaY);
+            scrolled->update_grid();
+
+            return 1;
         }
     }
 
-    return 0;
+    return -1;
 }
+
+void ResizerFrame::set_scrollable(bool scrollable_, ui::Frame *scrolled_){
+    scrollable = scrollable_;
+    scrolled = scrolled_;
+}
+
+
 
 ResizableFrame::ResizableFrame(ui::Frame *parent_, std::map<std::string, std::string> values) :
     ui::Frame(parent_, values)

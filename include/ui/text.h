@@ -13,6 +13,7 @@ class Text : public ContentFrame {
        background (color)
        textSize (num)
        textColor (color)
+       textStyle (textStyle)
        font (font)
     */
 
@@ -27,12 +28,11 @@ public:
 protected:
 
     std::string text = "";
-    uint32_t style = sf::Text::Style::Regular;
+    sf::Text textBox;
 
 private:
 
     int32_t setup(std::map<std::string, std::string> &values);
-    float fontHeight;
 
 };
 

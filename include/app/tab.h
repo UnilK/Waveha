@@ -13,10 +13,10 @@ public:
     Tab(ui::Frame *parent_, std::string title_, std::map<std::string, std::string> values = {});
 
     bool swap_box(int32_t index, int32_t direction);
-    bool push_box(int32_t index, int32_t direction);
 
     void detach_box(int32_t index);
     bool add_box(Box *box);
+    void clean_layout();
 
     int32_t box_index(Box *box);
 

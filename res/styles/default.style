@@ -23,6 +23,11 @@ MainFrame
     background 2e0a24
 ;
 
+TabBar
+    background 3e3e3e
+;
+
+
 Graph
     background 2e0a24
     vertexColor fce94f
@@ -41,7 +46,7 @@ Tab
 
 TabResizer
     dotColor 6c6c6c
-    background d7d7d7
+    background 3e3e3e
 ;
 
 TabBorder
@@ -73,12 +78,6 @@ BoxResizer
 
 BoxBorder
     background d7d7d7
-;
-
-
-
-TabBar
-    background 6c6c6c
 ;
 
 ButtonBox

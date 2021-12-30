@@ -60,7 +60,7 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
         std::string name;
         cin >> name;
 
-        auto pointer = new NoContentBox(&app.window.main, name);
+        NoContentBox *pointer = new NoContentBox(&app.window.main, name);
 
         app.window.main.add_box(pointer);
 
@@ -121,7 +121,7 @@ int32_t TabCommands::execute_command(ui::Command &cmd){
         std::string name;
         cin >> name;
 
-        auto pointer = new Tab(&app.window.main, name);
+        Tab *pointer = new Tab(&app.window.main, name);
 
         app.window.main.add_tab(pointer);
 

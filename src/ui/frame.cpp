@@ -1,6 +1,7 @@
 #include "ui/frame.h"
 
 #include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Text.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -93,6 +94,24 @@ long double Frame::num(std::string key){
     long double x;
     std::stringstream(core->style[look][key]) >> x;
     return x;
+}
+
+uint32_t Frame::textStyle(std::string key){
+    
+    std::string styles = core->style[look][key], style;
+
+    std::stringstream cin(styles) ;
+
+    uint32_t result = 0;
+
+    while(cin >> style){
+        if(style == "bold") result |= sf::Text::Style::Bold;
+        else if(style == "italic") result |= sf::Text::Style::Italic;
+        else if(style == "underlined") result |= sf::Text::Style::Underlined;
+        else if(style == "strikethrough") result |= sf::Text::Style::StrikeThrough;
+    }
+
+    return result;
 }
 
 std::vector<Frame*> Frame::find_focus(){
@@ -268,6 +287,8 @@ int32_t Frame::update_grid(){
         }
     }
     
+    if(rows) heightMax[rows] = std::max(heightMax[rows], heightMax[rows-1]);
+    
     for(int32_t j=0; j<columns; j++){
         if(j) widthMax[j] = std::max(widthMax[j], widthMax[j-1]);
         for(int32_t i=0; i<rows; i++){
@@ -277,14 +298,16 @@ int32_t Frame::update_grid(){
             }
         }
     }
+    
+    if(columns) widthMax[columns] = std::max(widthMax[columns], widthMax[columns-1]);
 
     // calculate extra space that needs to be used.
     float widthExtra = std::max(0.0f, canvasWidth-widthMax[columns]);
     float heightExtra = std::max(0.0f, canvasHeight-heightMax[rows]);
 
     // move canvas displacement if necessary
-    canvasX = std::min(canvasX, widthExtra);
-    canvasY = std::min(canvasY, heightExtra);
+    canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX));
+    canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY));
 
     float heightTotal = 0, widthTotal = 0;
     for(float i : heightFill) heightTotal += i;
@@ -346,9 +369,9 @@ int32_t Frame::update_grid(){
             float childWindowY = std::round(
                     std::max(childCanvasY, canvasY + windowY));
             
-            float childGlobalX = globalX + childWindowX - canvasX;
+            float childGlobalX = globalX + childWindowX - canvasX - windowX;
 
-            float childGlobalY = globalY + childWindowY - canvasY;
+            float childGlobalY = globalY + childWindowY - canvasY - windowY;
 
             float childWindowWidth = std::round(
                     std::min(childCanvasX + childCanvasWidth, canvasX + windowX + windowWidth)
@@ -476,10 +499,10 @@ int32_t Frame::set_canvas_position(float canvasX_, float canvasY_){
     
     float previousX = canvasX;
     float previousY = canvasY;
-    
-    canvasX = canvasX_;
-    canvasY = canvasY_;
-    
+  
+    canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX_));
+    canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY_));
+
     if(canvasX != previousX || canvasY != previousY)
         canvasMoved = 1;
     
