@@ -1,4 +1,4 @@
-#include "ui/graph.h"
+#include "app/graph.h"
 
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Text.hpp>
@@ -7,9 +7,7 @@
 #include <string>
 #include <limits>
 
-namespace ui{
-
-Graph::Graph(Frame *parent_, std::map<std::string, std::string> values) :
+Graph::Graph(Frame *parent_, kwargs values) :
     ContentFrame(parent_, values),
     vertices(sf::LineStrip, 0)
 {}
@@ -213,4 +211,3 @@ int32_t Graph::draw(){
     return 0;
 }
 
-}

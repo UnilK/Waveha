@@ -24,7 +24,14 @@ Style::Style(std::string styleFile){
             for(;i<n && lines[i][0] != ';'; i++){
                 if(!lines[i].empty()){
                     std::string key, value;
-                    std::stringstream(lines[i]) >> key >> value;
+                    std::stringstream in(lines[i]);
+                    in >> key;
+                    std::getline(in, value);
+
+                    uint32_t j = 0;
+                    while(j < value.size() && value[j] == ' ') j++;                    
+                    if(j != value.size()) value = value.substr(j, value.size()-j);
+
                     fonts[key].loadFromFile(value);
                 }
             }
@@ -37,7 +44,14 @@ Style::Style(std::string styleFile){
                     for(;i<n && lines[i][0] != ';'; i++){
                         if(!lines[i].empty()){
                             std::string key, value;
-                            std::stringstream(lines[i]) >> key >> value;
+                            std::stringstream in(lines[i]);
+                            in >> key;
+                            std::getline(in, value);
+
+                            uint32_t j = 0;
+                            while(j < value.size() && value[j] == ' ') j++;                    
+                            if(j != value.size()) value = value.substr(j, value.size()-j);
+
                             looks[look][key] = value;
                         }
                     }

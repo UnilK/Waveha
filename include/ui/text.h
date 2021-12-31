@@ -19,9 +19,10 @@ class Text : public ContentFrame {
 
 public:
 
-    Text(Frame *parent_, std::map<std::string, std::string> values = {});
+    Text(Frame *parent_, kwargs values = {});
 
     int32_t draw();
+    int32_t inner_reconfig();
 
     void set_text(std::string text_);
 
@@ -32,7 +33,7 @@ protected:
 
 private:
 
-    int32_t setup(std::map<std::string, std::string> &values);
+    int32_t setup(kwargs &values);
 
 };
 

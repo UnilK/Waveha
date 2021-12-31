@@ -3,12 +3,10 @@
 #include <iostream>
 
 
-TabBar::TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, std::map<std::string, std::string> values) :
+TabBar::TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, kwargs values) :
     ui::SolidFrame(parent_, values),
     tabFrame(tabFrame_)
-{
-    look = "TabBar";
-}
+{}
 
 int32_t TabBar::on_event(sf::Event event, int32_t priority){
     
@@ -28,10 +26,10 @@ int32_t TabBar::on_event(sf::Event event, int32_t priority){
 }
 
 
-MainFrame::MainFrame(ui::Window *master_, std::map<std::string, std::string> values) :
+MainFrame::MainFrame(ui::Window *master_, kwargs values) :
     ui::Frame(master_, values),
     tabFrame(this, {{"look", "MainFrame"}}),
-    tabBar(this, &tabFrame, {{"height", "15"}})
+    tabBar(this, &tabFrame, {{"look", "TabBar"}, {"height", "15"}})
 {
     look = "MainFrame";
 
@@ -39,8 +37,8 @@ MainFrame::MainFrame(ui::Window *master_, std::map<std::string, std::string> val
     fill_width(0, 1);
     fill_height(1, 1);
 
-    grid[0][0] = &tabBar;
-    grid[1][0] = &tabFrame;
+    put(0, 0, &tabBar);
+    put(1, 0, &tabFrame);
 
     tabBar.setup_grid(1, tabMax);
     tabBar.fill_width(0, 1);
@@ -57,8 +55,7 @@ bool MainFrame::add_tab(Tab *tab){
 
     tabs.push_back(tab);
     for(int32_t i=0; i<tabMax; i++){
-        if(tabFrame.grid[0][i] == nullptr){
-
+        if(tabFrame.get(0, i) == nullptr){
             tabFrame.place_frame(0, i, tab);
             break;
         }

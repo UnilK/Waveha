@@ -1,12 +1,10 @@
 #include "app/resizableFrame.h"
 
-#include <SFML/Graphics/CircleShape.hpp>
-
 #include <sstream>
 #include <string>
 #include <iostream>
 
-ResizerFrame::ResizerFrame(ui::Frame *parent_, std::map<std::string, std::string> values) : 
+ResizerFrame::ResizerFrame(ui::Frame *parent_, kwargs values) : 
     ui::ContentFrame(parent_, values)
 {
 
@@ -14,20 +12,36 @@ ResizerFrame::ResizerFrame(ui::Frame *parent_, std::map<std::string, std::string
 
     if(read_value("direction", value, values))
         value >> directionX >> directionY;
-    if(read_value("dotSize", value, values))
-        value >> dotSize;
+
+    background.setOutlineColor(color("borderColor"));
+    background.setOutlineThickness(-num("borderThickness"));
+    background.setFillColor(color("background"));
+    background.setPosition(0, 0);
+
+    dot.setRadius(num("dotSize"));
+    dot.setFillColor(color("dotBackground"));
+    dot.setOutlineThickness(-num("dotBorderThickness"));
+    dot.setOutlineColor(color("dotBorderColor"));
+
+    inner_reconfig();
+
+}
+
+int32_t ResizerFrame::inner_reconfig(){
     
+
+    dot.setPosition(canvasWidth/2 - dot.getRadius(), canvasHeight/ 2 - dot.getRadius());
+    
+    background.setSize({canvasWidth, canvasHeight}); 
+
+    return 0;
 }
 
 int32_t ResizerFrame::draw(){
 
-    // std::cout << parent->targetWidth << ' ' << parent->targetHeight << ' ' << parent << " #\n";
-
-    sf::CircleShape dot(dotSize);
-    dot.setPosition(canvasWidth/2 - dotSize, canvasHeight/ 2 - dotSize);
-    dot.setFillColor(color("dotColor"));
-
     canvas.clear(color("background"));
+
+    canvas.draw(background);
     canvas.draw(dot);
 
     return display();
@@ -61,10 +75,10 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
 
             ui::Frame *upper = get_parent(2);
             
-            float minWidth = parent->grid[1][0]->targetWidth + parent->grid[1][2]->targetWidth;
+            float minWidth = parent->get(1, 0)->targetWidth + parent->get(1, 2)->targetWidth;
             float maxWidth = upper->canvasWidth - (parent->globalX - upper->globalX);
             
-            float minHeight = parent->grid[0][1]->targetHeight + parent->grid[2][1]->targetHeight;
+            float minHeight = parent->get(0, 1)->targetHeight + parent->get(2, 1)->targetHeight;
             float maxHeight = upper->canvasHeight - (parent->globalY - upper->globalY);
 
             parent->set_target_size(
@@ -101,7 +115,7 @@ void ResizerFrame::set_scrollable(bool scrollable_, ui::Frame *scrolled_){
 
 
 
-ResizableFrame::ResizableFrame(ui::Frame *parent_, std::map<std::string, std::string> values) :
+ResizableFrame::ResizableFrame(ui::Frame *parent_, kwargs values) :
     ui::Frame(parent_, values)
 {
     std::stringstream value;
@@ -120,7 +134,6 @@ ResizableFrame::ResizableFrame(ui::Frame *parent_, std::map<std::string, std::st
         auto pointer = new ResizerFrame(this,
                 {{"width", std::to_string(borderLeft)},
                 {"look", chars("resizerLook")},
-                {"dotSize", "5"},
                 {"direction", "-1 0"}});
         resizers.push_back(pointer);
         grid[1][0] = pointer;
@@ -135,7 +148,6 @@ ResizableFrame::ResizableFrame(ui::Frame *parent_, std::map<std::string, std::st
         auto pointer = new ResizerFrame(this,
                 {{"width", std::to_string(borderRight)},
                 {"look", chars("resizerLook")},
-                {"dotSize", "5"},
                 {"direction", "1 0"}});
         resizers.push_back(pointer);
         grid[1][2] = pointer;
@@ -150,13 +162,12 @@ ResizableFrame::ResizableFrame(ui::Frame *parent_, std::map<std::string, std::st
         auto pointer = new ResizerFrame(this,
                 {{"height", std::to_string(borderUp)},
                 {"look", chars("resizerLook")},
-                {"dotSize", "5"},
                 {"direction", "0 -1"}});
         resizers.push_back(pointer);
         grid[0][1] = pointer;
     } else {
         auto pointer = new ui::SolidFrame(this,
-                {{"width", std::to_string(borderUp)},
+                {{"height", std::to_string(borderUp)},
                 {"look", chars("borderLook")}});
         borders.push_back(pointer);
         grid[0][1] = pointer;
@@ -165,13 +176,12 @@ ResizableFrame::ResizableFrame(ui::Frame *parent_, std::map<std::string, std::st
         auto pointer = new ResizerFrame(this,
                 {{"height", std::to_string(borderDown)},
                 {"look", chars("resizerLook")},
-                {"dotSize", "5"},
                 {"direction", "0 1"}});
         resizers.push_back(pointer);
         grid[2][1] = pointer;
     } else {
         auto pointer = new ui::SolidFrame(this,
-                {{"width", std::to_string(borderDown)},
+                {{"height", std::to_string(borderDown)},
                 {"look", chars("borderLook")}});
         borders.push_back(pointer);
         grid[2][1] = pointer;

@@ -6,7 +6,7 @@
 
 namespace ui{
 
-int32_t Text::setup(std::map<std::string, std::string> &values){
+int32_t Text::setup(kwargs &values){
     
     std::stringstream value;
     
@@ -20,7 +20,7 @@ int32_t Text::setup(std::map<std::string, std::string> &values){
     return 0;
 }
 
-Text::Text(Frame *parent_, std::map<std::string, std::string> values) :
+Text::Text(Frame *parent_, kwargs values) :
     ContentFrame(parent_, values)
 {
     setup(values);
@@ -31,19 +31,26 @@ Text::Text(Frame *parent_, std::map<std::string, std::string> values) :
     textBox.setCharacterSize(num("textSize"));
     textBox.setFillColor(color("textColor"));
 
+    inner_reconfig();
+
     canvas.setSmooth(0);
 }
 
-int32_t Text::draw(){
-   
-    canvas.clear(color("background"));
-    
+int32_t Text::inner_reconfig(){
+
     sf::FloatRect rect = textBox.getLocalBounds();
 
     float textX = std::round(canvasWidth / 2 - rect.width / 2);
     float textY = std::round(canvasHeight / 2 - textBox.getCharacterSize() * 1.35f / 2);
 
     textBox.setPosition(textX, textY);
+
+    return 0;
+}
+
+int32_t Text::draw(){
+   
+    canvas.clear(color("background"));
 
     canvas.draw(textBox);
 

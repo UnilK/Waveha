@@ -8,35 +8,52 @@
 #include <iomanip>
 #include <algorithm>
 #include <math.h>
+#include <assert.h>
 
 namespace ui{
 
-Frame::Frame(Window *master_, std::map<std::string, std::string> values){ 
+Frame::Frame(Window *master_, kwargs values){ 
     master = master_;
     core = master->get_core();
     parent = nullptr;
     setup(values);
 }
 
-Frame::Frame(Frame *parent_, std::map<std::string, std::string> values){
-    parent = parent_;
-    core = parent->core;
-    master = parent->master;
+Frame::Frame(Frame *parent_, kwargs values){
+    
+    if(parent_ != nullptr){
+        parent = parent_;
+        core = parent->core;
+        master = parent->master;
+    }
+
     setup(values);
 }
 
 Frame::~Frame(){}
 
+void Frame::set_parent(Frame *parent_){
+    
+    if(parent_ != nullptr){
+        parent = parent_;
+        core = parent->core;
+        master = parent->master;
+    } else {
+        parent = nullptr;
+    }
+
+}
+
 bool Frame::read_value(
         std::string key,
         std::stringstream &value,
-        std::map<std::string, std::string> &values){
+        kwargs &values){
     if(values[key].empty()) return 0;
     value = std::stringstream(values[key]);
     return 1;
 }
 
-int32_t Frame::setup(std::map<std::string, std::string> &values){
+int32_t Frame::setup(kwargs &values){
     
     std::stringstream value;
 
@@ -91,8 +108,8 @@ sf::Font &Frame::font(std::string key){
 }
 
 long double Frame::num(std::string key){
-    long double x;
-    std::stringstream(core->style[look][key]) >> x;
+    long double x = 0;
+    if(!core->style[look][key].empty()) std::stringstream(core->style[look][key]) >> x;
     return x;
 }
 
@@ -207,6 +224,7 @@ int32_t Frame::refresh(){
 
     if(reconfig_check()){
         on_reconfig();
+        unset_reconfig();
     }
 
     if(refreshFlag){
@@ -397,41 +415,82 @@ int32_t Frame::update_grid(){
 }
 
 int32_t Frame::place_frame(int32_t row, int32_t column, Frame *frame){
-    if(row < 0 || row >= (int32_t)grid.size()) return 1;
-    if(column < 0 || column >= (int32_t)grid[0].size()) return 1;
-    if(grid[row][column]){
-        frame->parent = this;
+    int32_t ret = put(row, column, frame);
+    update_grid();
+    return ret;
+}
+
+int32_t Frame::put(int32_t row, int32_t column, Frame *frame){
+    
+    assert(row >= 0 && row < (int32_t)grid.size());
+    assert(column >= 0 && column < (int32_t)grid[0].size());
+    
+    if(grid[row][column] == nullptr){
+        frame->set_parent(this);
         grid[row][column] = frame;
-        update_grid();
-        return 2;
+        return 1;
     } else {
-        frame->parent = this;
+        grid[row][column]->set_parent(nullptr);
+        frame->set_parent(this);
         grid[row][column] = frame;
-        update_grid();
         return 0;
     }
 }
 
+Frame *&Frame::get(int32_t row, int32_t column){
+
+    assert(row >= 0 && row < (int32_t)grid.size());
+    assert(column >= 0 && column < (int32_t)grid[0].size());
+
+    return grid[row][column];
+}
+
+Frame *&Frame::get(Frame *frame){
+    
+    int32_t row = 0, column = 0;
+
+    for(int32_t i=0; i<rows; i++){
+        for(int32_t j=0; j<columns; j++){
+            if(grid[i][j] == frame){
+                row = i;
+                column = j;
+                break;
+            }
+        }
+    }
+
+    assert(row >= 0 && row < (int32_t)grid.size());
+    assert(column >= 0 && column < (int32_t)grid[0].size());
+    assert(grid[row][column] == frame);
+
+    return grid[row][column];
+}
+
 int32_t Frame::remove_frame(int32_t row, int32_t column){
-    if(row < 0 || row >= (int32_t)grid.size()) return 1;
-    if(column < 0 || column >= (int32_t)grid[0].size()) return 1;
-    grid[row][column]->parent = nullptr;
+    
+    assert(row >= 0 && row < (int32_t)grid.size());
+    assert(column >= 0 && column < (int32_t)grid[0].size());
+
+    grid[row][column]->set_parent(nullptr);
     grid[row][column] = nullptr;
     update_grid();
+
     return 0;
 }
 
 int32_t Frame::remove_frame(Frame *frame){
+    
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
             if(grid[i][j] == frame){
-                frame->parent = nullptr;
+                frame->set_parent(nullptr);
                 grid[i][j] = nullptr;
                 update_grid();
                 return 0;
             }
         }
     }
+
     return 1;
 }
 
@@ -576,18 +635,41 @@ bool Frame::reconfig_check(){
     return windowMoved || windowResized || canvasMoved || canvasResized;
 }
 
-SolidFrame::SolidFrame(Window *master_, std::map<std::string, std::string> values) :
-    Frame(master_, values) {}
+void Frame::unset_reconfig(){
+    windowMoved = 0;
+    windowResized = 0;
+    canvasMoved = 0;
+    canvasResized = 0;
+}
 
-SolidFrame::SolidFrame(Frame *parent_, std::map<std::string, std::string> values) :
-    Frame(parent_, values) {}
+SolidFrame::SolidFrame(Window *master_, kwargs values) :
+    Frame(master_, values)
+{
+    background.setOutlineColor(color("borderColor"));
+    background.setOutlineThickness(-num("borderThickness"));
+    background.setFillColor(color("background"));
+    on_reconfig();
+}
 
+SolidFrame::SolidFrame(Frame *parent_, kwargs values) :
+    Frame(parent_, values)
+{
+    background.setOutlineColor(color("borderColor"));
+    background.setOutlineThickness(-num("borderThickness"));
+    background.setFillColor(color("background"));
+    on_reconfig();
+}
+
+int32_t SolidFrame::on_reconfig(){
+
+    background.setSize({windowWidth, windowHeight});
+
+    return 0;
+}
 
 int32_t SolidFrame::draw(){
     
-    background.setSize({windowWidth, windowHeight});
     background.setPosition(globalX, globalY);
-    background.setFillColor(color("background"));
     master->draw(background);
     
     return 0;
@@ -595,11 +677,17 @@ int32_t SolidFrame::draw(){
 
 
 
-ContentFrame::ContentFrame(Window *master_, std::map<std::string, std::string> values) :
-    Frame(master_, values) {}
+ContentFrame::ContentFrame(Window *master_, kwargs values) :
+    Frame(master_, values)
+{
+    on_reconfig();
+}
 
-ContentFrame::ContentFrame(Frame *parent_, std::map<std::string, std::string> values) :
-    Frame(parent_, values) {}
+ContentFrame::ContentFrame(Frame *parent_, kwargs values) :
+    Frame(parent_, values)
+{
+    on_reconfig();
+}
 
 
 int32_t ContentFrame::on_reconfig(){
@@ -607,8 +695,10 @@ int32_t ContentFrame::on_reconfig(){
     if(canvasWidth < 0.5f || canvasHeight < 0.5f) canvas.create(1, 1);
     else canvas.create(canvasWidth, canvasHeight);
 
-    return 0;
+    return inner_reconfig();
 }
+
+int32_t ContentFrame::inner_reconfig(){ return 0; }
 
 int32_t ContentFrame::display(){
 

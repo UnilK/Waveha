@@ -7,14 +7,12 @@
 #include <vector>
 #include <complex>
 
-namespace ui{
-
 struct Point {
     float x;
     std::complex<float> y;
 };
 
-class Graph : public ContentFrame {
+class Graph : public ui::ContentFrame {
 
     /*
        style parameters:
@@ -28,7 +26,7 @@ class Graph : public ContentFrame {
 
 public:
 
-    Graph(Frame *parent_, std::map<std::string, std::string> values);
+    Graph(ui::Frame *parent_, kwargs values = {});
 
     // set offset coordinates for origo (lower left corner).
     void set_origo(float x, float y);
@@ -96,4 +94,3 @@ protected:
 
 };
 
-}

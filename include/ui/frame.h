@@ -20,6 +20,8 @@ class Frame;
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Font.hpp>
 
+typedef std::map<std::string, std::string> kwargs;
+
 namespace ui{
 
 class Frame : public Commandable {
@@ -94,9 +96,11 @@ class Frame : public Commandable {
 
 public:
 
-    Frame(Window *master_, std::map<std::string, std::string> values = {});
-    Frame(Frame *parent_, std::map<std::string, std::string> values = {});
+    Frame(Window *master_, kwargs values = {});
+    Frame(Frame *parent_ = nullptr, kwargs values = {});
     virtual ~Frame();
+
+    void set_parent(Frame *parent_);
 
     // is the window size 0?
     bool degenerate();
@@ -172,6 +176,14 @@ public:
     int32_t place_frame(int32_t row, int32_t column, Frame *frame);
     int32_t remove_frame(int32_t row, int32_t column);
     int32_t remove_frame(Frame *frame);
+    
+    // method for placing frames to the grid without updating the grid.
+    // use this for initialization.
+    int32_t put(int32_t row, int32_t column, Frame *frame);
+    
+    // access the grid
+    Frame *&get(int32_t row, int32_t column);
+    Frame *&get(Frame *frame);
 
     // configure extra space allocation among rows & columns.
     // each row gets value[row]/values_sum extra space allocated to it.
@@ -190,9 +202,6 @@ public:
 
     // get parent some steps up
     Frame *get_parent(int32_t steps = 1);
-
-    // grid
-    std::vector<std::vector<Frame*> > grid;
 
     // giving each of these variables getters would be stupid.
     // use only for access.
@@ -224,13 +233,11 @@ protected:
     // grid layout management
     int32_t columns = 0, rows = 0;
     std::vector<float> widthFill, heightFill;
-
-    // TODO implement off-grid frames
+    std::vector<std::vector<Frame*> > grid;
 
     // grid content layout management
     std::vector<float> widthMax = {0}, heightMax = {0};
-    
-    // Protected variables below this line should only be accessed by the parent frame.
+
 
     // The frame's size on it's parent's grid.
     int32_t rowSpan = 1, columnSpan = 1; 
@@ -241,8 +248,7 @@ protected:
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
 
     // parser for poor man's **kwargs
-    bool read_value(std::string key, std::stringstream &value,
-            std::map<std::string, std::string> &values);
+    bool read_value(std::string key, std::stringstream &value, kwargs &values);
 
     // access styles
     std::string chars(std::string key);
@@ -259,10 +265,11 @@ protected:
     bool canvasResized = 0;
     
     bool reconfig_check();
+    void unset_reconfig();
 
 private:
 
-    int32_t setup(std::map<std::string, std::string> &values);
+    int32_t setup(kwargs &values);
 
 };
 
@@ -272,15 +279,18 @@ class SolidFrame : public Frame {
  
     /*
        style parameters:
+       borderColor (color)
+       borderThickness (num)
        background (color)
     */
 
 public:
 
-    SolidFrame(Window *master_, std::map<std::string, std::string> values = {});
-    SolidFrame(Frame *parent_, std::map<std::string, std::string> values = {});
+    SolidFrame(Window *master_, kwargs values = {});
+    SolidFrame(Frame *parent_, kwargs values = {});
 
     int32_t draw();
+    int32_t on_reconfig();
 
 protected:
 
@@ -295,11 +305,13 @@ class ContentFrame : public Frame {
  
 public:
 
-    ContentFrame(Window *master_, std::map<std::string, std::string> values = {});
-    ContentFrame(Frame *parent_, std::map<std::string, std::string> values = {});
+    ContentFrame(Window *master_, kwargs values = {});
+    ContentFrame(Frame *parent_, kwargs values = {});
 
-    virtual int32_t on_reconfig();
+    int32_t on_reconfig();
     int32_t display();
+
+    virtual int32_t inner_reconfig();
 
 protected:
 

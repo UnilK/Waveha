@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Box::Box(ui::Frame *parent_, std::string title_, std::map<std::string, std::string> values) :
+Box::Box(ui::Frame *parent_, std::string title_, kwargs values) :
     ResizableFrame(parent_,
             {{"look", "Box"},
             {"height", "200"},
@@ -14,34 +14,33 @@ Box::Box(ui::Frame *parent_, std::string title_, std::map<std::string, std::stri
     titleText(this, 
             {{"look", "BoxTitle"},
             {"height", "24"},
-            {"width", "0"},
             {"text", title_}}),
     upSwitch(this, switch_up, this,
             {{"text", "up"},
-            {"height", "20"},
+            {"height", "24"},
             {"width", "50"},
             {"look", "BoxButton"},
-            {"pad", "1 1 1 1"}}),
+            {"pad", "0 0 0 0"}}),
     downSwitch(this, switch_down, this,
             {{"text", "down"},
-            {"height", "20"},
+            {"height", "24"},
             {"width", "50"},
             {"look", "BoxButton"},
-            {"pad", "1 1 1 1"}}),
+            {"pad", "0 0 0 0"}}),
     xButton(this, detach_box, this,
-            {{"text", "X"},
-            {"height", "20"},
-            {"width", "20"},
+            {{"text", "detach"},
+            {"height", "24"},
+            {"width", "70"},
             {"look", "BoxButton"},
-            {"pad", "1 1 1 1"}})
+            {"pad", "0 0 0 0"}})
 {
-    
+   
     title = title_;
 
     set_inner(&inner);
 
     inner.setup_grid(2, 1);
-    inner.grid[0][0] = &buttonFrame;
+    inner.put(0, 0, &buttonFrame);
 
     inner.fill_width({1});
     inner.fill_height({0, 1});
@@ -51,10 +50,10 @@ Box::Box(ui::Frame *parent_, std::string title_, std::map<std::string, std::stri
     
     buttonFrame.fill_width(5, 1);
 
-    buttonFrame.grid[0][0] = &upSwitch;
-    buttonFrame.grid[0][1] = &downSwitch;
-    buttonFrame.grid[0][5] = &titleText;
-    buttonFrame.grid[0][9] = &xButton;
+    buttonFrame.put(0, 0, &upSwitch);
+    buttonFrame.put(0, 1, &downSwitch);
+    buttonFrame.put(0, 5, &titleText);
+    buttonFrame.put(0, 9, &xButton);
 
 }
 
@@ -107,8 +106,7 @@ int32_t Box::index(){
 
 
 
-NoContentBox::NoContentBox(ui::Frame *parent_,
-        std::string title_, std::map<std::string, std::string> values) :
+NoContentBox::NoContentBox(ui::Frame *parent_, std::string title_, kwargs values) :
     Box(parent_, title_, values),
     text(this, 
             {{"look", "BoxTitle"},
@@ -116,6 +114,6 @@ NoContentBox::NoContentBox(ui::Frame *parent_,
             {"width", "80"},
             {"text", title_}})
 {
-    inner.grid[1][0] = &text;
+    inner.put(1, 0, &text);
 }
 

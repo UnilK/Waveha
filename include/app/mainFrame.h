@@ -8,7 +8,7 @@ class TabBar : public ui::SolidFrame {
 
 public:
 
-    TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, std::map<std::string, std::string> values = {});
+    TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, kwargs values = {});
 
     int32_t on_event(sf::Event event, int32_t priority = 0);
 
@@ -22,7 +22,7 @@ class MainFrame : public ui::Frame {
 
 public:
 
-    MainFrame(ui::Window *master_, std::map<std::string, std::string> values = {});
+    MainFrame(ui::Window *master_, kwargs values = {});
 
     bool add_tab(Tab *tab);
     bool delete_tab(std::string name);

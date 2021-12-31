@@ -12,7 +12,7 @@ class Box : public ResizableFrame {
 
 public:
 
-    Box(ui::Frame *parent_, std::string title_, std::map<std::string, std::string> values = {});
+    Box(ui::Frame *parent_, std::string title_, kwargs values = {});
 
     bool place_to_tab(Tab *newTab);
     void detach_from_tab();
@@ -44,7 +44,7 @@ class NoContentBox : public Box {
 
 public:
 
-    NoContentBox(ui::Frame *parent_, std::string title_, std::map<std::string, std::string> values = {});
+    NoContentBox(ui::Frame *parent_, std::string title_, kwargs values = {});
 
     ui::Text text;
 

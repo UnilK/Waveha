@@ -3,11 +3,11 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
+#include <string>
 
 namespace ui{
     
-Button::Button(Frame *parent_, int32_t(*function_)(void *),
-            void *target_, std::map<std::string, std::string> values) :
+Button::Button(Frame *parent_, int32_t(*function_)(void *), void *target_, kwargs values) :
     ContentFrame(parent_, values),
     function(function_),
     target(target_)
@@ -19,11 +19,29 @@ Button::Button(Frame *parent_, int32_t(*function_)(void *),
     textBox.setFont(font("font"));
     textBox.setCharacterSize(num("textSize"));
     textBox.setFillColor(color("textColor"));
+    
+    left.setFillColor(color("borderColor"));
+    right.setFillColor(color("borderColor"));
+    up.setFillColor(color("borderColor"));
+    down.setFillColor(color("borderColor"));
+
+    std::stringstream probe(chars("borderThickness")), borders(chars("borderThickness"));
+    std::string thickness;
+    int32_t total = 0;
+
+    while(probe >> thickness) total++;
+
+    if(total == 1){
+        borders >> borderDown;
+        borderLeft = borderRight = borderUp = borderDown;
+    } else if(total == 4){
+        borders >> borderLeft >> borderRight >> borderUp >> borderDown;
+    }
 
     canvas.setSmooth(0);
 }
 
-int32_t Button::setup(std::map<std::string, std::string> &values){
+int32_t Button::setup(kwargs &values){
     
     std::stringstream value;
     
@@ -33,22 +51,17 @@ int32_t Button::setup(std::map<std::string, std::string> &values){
         while(std::getline(value, word)) text += word+"\n";
         if(!text.empty()) text.pop_back();
     }
-    if(read_value("border", value, values))
-        value >> borderLeft >> borderRight >> borderUp >> borderDown;
     
     return 0;
 }
 
-int32_t Button::draw(){
-
-    if(pressed) canvas.clear(color("pressedBackground"));
-    else canvas.clear(color("background"));
-
-    sf::RectangleShape left({borderLeft, canvasHeight});
-    sf::RectangleShape right({borderRight, canvasHeight});
-    sf::RectangleShape up({canvasWidth, borderUp});
-    sf::RectangleShape down({canvasWidth, borderDown});
-
+int32_t Button::inner_reconfig(){
+    
+    left.setSize({borderLeft, canvasHeight});
+    right.setSize({borderRight, canvasHeight});
+    up.setSize({canvasWidth, borderUp});
+    down.setSize({canvasWidth, borderDown});
+    
     sf::FloatRect rect = textBox.getLocalBounds();
     
     float textX = std::round((canvasWidth - borderRight + borderLeft) / 2 - rect.width / 2);
@@ -56,16 +69,20 @@ int32_t Button::draw(){
             - textBox.getCharacterSize() * 1.35f / 2);
 
     textBox.setPosition(textX, textY);
-
+    
     left.setPosition(0, 0);
     right.setPosition(canvasWidth - borderRight, 0);
     up.setPosition(0, 0);
     down.setPosition(0, canvasHeight - borderDown);
 
-    left.setFillColor(color("border"));
-    right.setFillColor(color("border"));
-    up.setFillColor(color("border"));
-    down.setFillColor(color("border"));
+
+    return 0;
+}
+
+int32_t Button::draw(){
+
+    if(pressed) canvas.clear(color("pressedBackground"));
+    else canvas.clear(color("background"));
 
     canvas.draw(left);
     canvas.draw(right);

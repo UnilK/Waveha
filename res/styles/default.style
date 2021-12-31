@@ -11,7 +11,7 @@ VimDefaultColors
     darkgreen 4e9a06
     yellow fce94f
     purple ad7fa8
-    blue sed7ff
+    blue 5ed7ff
     darkblue 3465a4
     lightgray d7d7d7
     gray 6c6c6c
@@ -24,7 +24,9 @@ MainFrame
 ;
 
 TabBar
-    background 3e3e3e
+    borderColor ad7fa8
+    borderThickness 1
+    background 2e0a24
 ;
 
 
@@ -45,12 +47,18 @@ Tab
 ;
 
 TabResizer
-    dotColor 6c6c6c
-    background 3e3e3e
+    borderColor 5ed7ff
+    borderThickness 1
+    background 2e0a24
+    dotSize 5
+    dotBorderThickness 1
+    dotBorderColor 5ed7ff
 ;
 
 TabBorder
-    background 6c6c6c
+    borderColor 5ed7ff
+    borderThickness 2
+    background 2e0a24
 ;
 
 TabBackground
@@ -60,7 +68,7 @@ TabBackground
 TabTitle
     background 2e0a24
     textSize 18
-    textColor d7d7d7
+    textColor 5ed7ff
     font default
 ;
 
@@ -72,31 +80,38 @@ Box
 ;
 
 BoxResizer
-    dotColor d7d7d7
-    background 6c6c6c
+    borderColor ad7fa8
+    borderThickness 1
+    background 2e0a24
+    dotSize 5
+    dotBorderThickness 1
+    dotBorderColor ad7fa8
 ;
 
 BoxBorder
-    background d7d7d7
+    borderColor ad7fa8
+    borderThickness 2
+    background 2e0a24
 ;
 
 ButtonBox
-    background 6c6c6c
+    background 2e0a24
 ;
 
 BoxTitle
     background 2e0a24
     textSize 18
-    textColor d7d7d7
+    textColor ad7fa8
     font default
 ;
 
 BoxButton
-    background 6c6c6c
-    pressedBackground 5c5c5c
-    border d7d7d7
-    textSize 20
-    textColor d7d7d7
+    background 2e0a24
+    pressedBackground 1e0514
+    borderColor ad7fa8
+    borderThickness 1 1 0 1
+    textSize 18
+    textColor ad7fa8
     font default
 ;
 

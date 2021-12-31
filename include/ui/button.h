@@ -12,7 +12,8 @@ class Button : public ui::ContentFrame {
        style parameters:
        background (color)
        pressedBackground (color)
-       border (color)
+       borderColor (color)
+       borderThicness (num) or (num, num, num, num)
        textSize (num)
        textColor (color)
        textStyle (textStyle)
@@ -21,10 +22,10 @@ class Button : public ui::ContentFrame {
 
 public:
 
-    Button(Frame *parent_, int32_t (*function_)(void*), void *target_,
-            std::map<std::string, std::string> values = {});
+    Button(Frame *parent_, int32_t (*function_)(void*), void *target_, kwargs values = {});
 
     int32_t draw();
+    int32_t inner_reconfig();
     int32_t on_event(sf::Event event, int32_t priority);
 
     void set_text(std::string text_);
@@ -41,8 +42,10 @@ protected:
     bool pressed = 0;
 
 private:
+    
+    sf::RectangleShape left, right, up, down;
 
-    int32_t setup(std::map<std::string, std::string> &values);
+    int32_t setup(kwargs &values);
 
 };
 
