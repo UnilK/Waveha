@@ -228,10 +228,7 @@ int32_t Frame::refresh(){
     }
 
     if(refreshFlag){
-        if(!degenerate()){
-            draw();
-            master->displayFlag = 1;
-        }
+        if(!degenerate()) draw();
         refreshFlag = 0;
     }
 
@@ -246,6 +243,11 @@ int32_t Frame::refresh(){
     }
 
     return 0;
+}
+
+void Frame::set_refresh(){
+    refreshFlag = 1;
+    if(master != nullptr) master->set_refresh();
 }
 
 int32_t Frame::setup_grid(int32_t rows_, int32_t columns_){
@@ -286,7 +288,7 @@ int32_t Frame::resize_grid(int32_t rows_, int32_t columns_){
 
 int32_t Frame::update_grid(){
 
-    refreshFlag = 1;
+    set_refresh();
    
     if(rows == 0 || columns == 0) return 0;
 
@@ -670,6 +672,7 @@ int32_t SolidFrame::on_reconfig(){
 int32_t SolidFrame::draw(){
     
     background.setPosition(globalX, globalY);
+    
     master->draw(background);
     
     return 0;

@@ -101,11 +101,11 @@ int32_t Button::on_event(sf::Event event, int32_t priority){
 
     if(event.type == sf::Event::MouseButtonPressed){
         pressed = 1;
-        refreshFlag = 1;
+        set_refresh();
     }
     else if(event.type == sf::Event::MouseButtonReleased){
         pressed = 0;
-        refreshFlag = 1;
+        set_refresh();
         if(master->get_soft_focus() == this)
             function(target);
     }
@@ -117,7 +117,7 @@ void Button::set_text(std::string text_){
     
     text = text_;
     textBox.setString(text);
-    refreshFlag = 1;
+    set_refresh();
 
 }
 

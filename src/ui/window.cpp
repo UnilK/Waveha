@@ -6,16 +6,19 @@
 
 namespace ui{
 
-Window::Window(Core *core_, float width_, float height_,
-        std::string title_, long double refreshRate) :
+Window::Window(Core *core_, float width_, float height_, std::string title_,
+         long double refreshRate) :
     sf::RenderWindow(sf::VideoMode(width_, height_), title_),
-    clock(1.0l/refreshRate)
+    clock(1 / refreshRate)
 {
     core = core_;
     width = width_;
     height = height_;
     title = title_;
     core->add_window(this);
+
+    setVerticalSyncEnabled(1);
+
 }
 
 int32_t Window::destroy(){
@@ -63,10 +66,14 @@ int32_t Window::event_update(){
                 height = event.size.height;
 				
                 setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
+
+                previousFrame.create(width, height);
                 
                 mainframe->set_window_size(width, height);
                 mainframe->set_canvas_size(width, height);
                 mainframe->update_grid();
+
+                resizeFlag = 1;
                 
                 on_resize();
                 
@@ -116,12 +123,27 @@ int32_t Window::event_update(){
 int32_t Window::refresh(){
     
     if(destroyed) return 0;
+    if(!refreshFlag) return 0;
+
+    clear();
+    
+    if(!resizeFlag) draw(previousFrameSprite);
+    resizeFlag = 0;
 
     mainframe->refresh();
-    if(displayFlag) display();
-    displayFlag = 0;
+  
+    display();
+   
+    previousFrame.update(*this);
+    previousFrameSprite.setTexture(previousFrame);
+
+    refreshFlag = 0;
 
     return 0;
+}
+
+void Window::set_refresh(){
+    refreshFlag = 1;
 }
 
 Frame *Window::get_soft_focus(){ return softFocus; }

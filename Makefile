@@ -38,6 +38,7 @@ LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lpthread
 $(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MAINAPP).o
 	$(CXX) $(BUILDDIR)/$(MAINAPP).o $(OBJECTS) $(LLIB) $(LIB) -o $(EXEC)
 	@mkdir -p audio
+	@mkdir -p sessions
 
 # compile the source files
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
@@ -95,54 +96,63 @@ build/wave/readableAudio.o: include/wave/readableAudio.h
 build/wave/readableAudio.o: include/wave/audioBuffer.h
 build/wave/readableAudio.o: include/wave/typeConverter.h
 build/app/mainFrame.o: include/app/mainFrame.h include/ui/frame.h
-build/app/mainFrame.o: include/ui/core.h include/ui/window.h include/ui/clock.h
-build/app/mainFrame.o: include/ui/command.h include/ui/style.h
-build/app/mainFrame.o: include/app/tab.h include/app/resizableFrame.h
-build/app/mainFrame.o: include/app/box.h
+build/app/mainFrame.o: include/ui/core.h include/ui/window.h
+build/app/mainFrame.o: include/ui/command.h include/ui/clock.h
+build/app/mainFrame.o: include/ui/style.h include/app/tab.h
+build/app/mainFrame.o: include/app/resizableFrame.h include/app/box.h
+build/app/mainFrame.o: include/ui/button.h include/ui/text.h
 build/app/app.o: include/app/app.h include/ui/core.h include/ui/window.h
-build/app/app.o: include/ui/clock.h include/ui/frame.h include/ui/command.h
+build/app/app.o: include/ui/frame.h include/ui/command.h include/ui/clock.h
 build/app/app.o: include/ui/style.h include/app/mainFrame.h include/app/tab.h
 build/app/app.o: include/app/resizableFrame.h include/app/box.h
-build/app/analyzer.o: include/app/analyzer.h
+build/app/app.o: include/ui/button.h include/ui/text.h
+build/app/analyzer.o: include/app/analyzer.h include/app/box.h
+build/app/analyzer.o: include/ui/button.h include/ui/frame.h include/ui/core.h
+build/app/analyzer.o: include/ui/window.h include/ui/command.h
+build/app/analyzer.o: include/ui/clock.h include/ui/style.h include/ui/text.h
+build/app/analyzer.o: include/app/resizableFrame.h include/app/tab.h
+build/app/analyzer.o: include/app/graph.h
 build/app/tab.o: include/app/tab.h include/app/resizableFrame.h
 build/app/tab.o: include/ui/frame.h include/ui/core.h include/ui/window.h
-build/app/tab.o: include/ui/clock.h include/ui/command.h include/ui/style.h
-build/app/tab.o: include/app/box.h
+build/app/tab.o: include/ui/command.h include/ui/clock.h include/ui/style.h
+build/app/tab.o: include/app/box.h include/ui/button.h include/ui/text.h
 build/app/commands.o: include/app/app.h include/ui/core.h include/ui/window.h
-build/app/commands.o: include/ui/clock.h include/ui/frame.h
-build/app/commands.o: include/ui/command.h include/ui/style.h
+build/app/commands.o: include/ui/frame.h include/ui/command.h
+build/app/commands.o: include/ui/clock.h include/ui/style.h
 build/app/commands.o: include/app/mainFrame.h include/app/tab.h
 build/app/commands.o: include/app/resizableFrame.h include/app/box.h
-build/app/box.o: include/app/box.h include/app/resizableFrame.h
-build/app/box.o: include/ui/frame.h include/ui/core.h include/ui/window.h
-build/app/box.o: include/ui/clock.h include/ui/command.h include/ui/style.h
-build/app/box.o: include/app/tab.h
+build/app/commands.o: include/ui/button.h include/ui/text.h
+build/app/graph.o: include/app/graph.h include/ui/frame.h include/ui/core.h
+build/app/graph.o: include/ui/window.h include/ui/command.h include/ui/clock.h
+build/app/graph.o: include/ui/style.h
+build/app/box.o: include/app/box.h include/ui/button.h include/ui/frame.h
+build/app/box.o: include/ui/core.h include/ui/window.h include/ui/command.h
+build/app/box.o: include/ui/clock.h include/ui/style.h include/ui/text.h
+build/app/box.o: include/app/resizableFrame.h include/app/tab.h
 build/app/resizableFrame.o: include/app/resizableFrame.h include/ui/frame.h
 build/app/resizableFrame.o: include/ui/core.h include/ui/window.h
-build/app/resizableFrame.o: include/ui/clock.h include/ui/command.h
+build/app/resizableFrame.o: include/ui/command.h include/ui/clock.h
 build/app/resizableFrame.o: include/ui/style.h
 build/math/FFT.o: include/math/FFT.h include/math/constants.hpp
 build/math/FT.o: include/math/FT.h include/math/constants.hpp
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/core.h
-build/ui/text.o: include/ui/window.h include/ui/clock.h include/ui/command.h
+build/ui/text.o: include/ui/window.h include/ui/command.h include/ui/clock.h
 build/ui/text.o: include/ui/style.h
 build/ui/style.o: include/ui/style.h
 build/ui/button.o: include/ui/button.h include/ui/frame.h include/ui/core.h
-build/ui/button.o: include/ui/window.h include/ui/clock.h include/ui/command.h
+build/ui/button.o: include/ui/window.h include/ui/command.h include/ui/clock.h
 build/ui/button.o: include/ui/style.h
 build/ui/command.o: include/ui/command.h
-build/ui/window.o: include/ui/window.h include/ui/clock.h include/ui/core.h
-build/ui/window.o: include/ui/style.h include/ui/command.h include/ui/frame.h
+build/ui/window.o: include/ui/window.h include/ui/core.h include/ui/style.h
+build/ui/window.o: include/ui/clock.h include/ui/command.h include/ui/frame.h
 build/ui/clock.o: include/ui/clock.h
 build/ui/frame.o: include/ui/frame.h include/ui/core.h include/ui/window.h
-build/ui/frame.o: include/ui/clock.h include/ui/command.h include/ui/style.h
-build/ui/graph.o: include/ui/graph.h include/ui/frame.h include/ui/core.h
-build/ui/graph.o: include/ui/window.h include/ui/clock.h include/ui/command.h
-build/ui/graph.o: include/ui/style.h
-build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/clock.h
-build/ui/core.o: include/ui/frame.h include/ui/command.h include/ui/style.h
+build/ui/frame.o: include/ui/command.h include/ui/clock.h include/ui/style.h
+build/ui/core.o: include/ui/core.h include/ui/window.h include/ui/frame.h
+build/ui/core.o: include/ui/command.h include/ui/clock.h include/ui/style.h
 build/main.o: include/app/app.h include/ui/core.h include/ui/window.h
-build/main.o: include/ui/clock.h include/ui/frame.h include/ui/command.h
+build/main.o: include/ui/frame.h include/ui/command.h include/ui/clock.h
 build/main.o: include/ui/style.h include/app/mainFrame.h include/app/tab.h
 build/main.o: include/app/resizableFrame.h include/app/box.h
+build/main.o: include/ui/button.h include/ui/text.h
 build/test.o: include/math/FFT.h include/math/FT.h

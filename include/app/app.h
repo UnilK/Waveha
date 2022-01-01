@@ -10,10 +10,10 @@ class App;
 #include <iostream>
 #include <vector>
 
-class FileCommands : public ui::Commandable {
+class SessionCommands : public ui::Commandable {
 
 public:
-    FileCommands();
+    SessionCommands();
     int32_t execute_command(ui::Command &cmd);
 
 };
@@ -54,11 +54,12 @@ public:
 
     MainWindow window;
 
-    FileCommands fileCommands;
+    SessionCommands sessionCommands;
     BoxCommands boxCommands;
     TabCommands tabCommands;
 
-    std::vector<std::string> session;
+    std::string sessionName = "untitled";
+    std::vector<ui::Command> session;
 
 };
 

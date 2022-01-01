@@ -143,6 +143,9 @@ public:
     // Redraw & render.
     int32_t refresh();
 
+    // inform the frame that it should refresh itself.
+    void set_refresh();
+
     // set the window size & positions
     int32_t set_window_size(float windowWidth_, float windowHeight_);
     int32_t set_window_position(float windowX_, float windowY_);
@@ -169,7 +172,7 @@ public:
 
     // update window and canvas sizes in the grid.
     // Needs to be called if window, target or canvas position
-    // or size is changed.
+    // or size is changed. Sets refreshFlag.
     int32_t update_grid();
 
     // place frames to the grid.

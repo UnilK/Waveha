@@ -4,6 +4,7 @@
 #include "app/tab.h"
 
 #include <iostream>
+#include <fstream>
 
 int32_t App::execute_command(ui::Command &cmd){
     
@@ -16,8 +17,8 @@ int32_t App::execute_command(ui::Command &cmd){
     return 1;
 }
 
-FileCommands::FileCommands(){
-    id = "file";
+SessionCommands::SessionCommands(){
+    id = "session";
     commandHelp = "save & load sessions";
     commandDocs = {
         {"save __name", "save session"},
@@ -26,10 +27,89 @@ FileCommands::FileCommands(){
         {"rename _name", "rename session"}};
 }
 
-int32_t FileCommands::execute_command(ui::Command &cmd){
+int32_t SessionCommands::execute_command(ui::Command &cmd){
    
     if(execute_standard(cmd)) return 0;
     
+    std::stringstream cin(cmd.command);
+    std::string prefix;
+
+    cin >> prefix;
+    
+    App &app = *(App*)commandParent;
+   
+    if(prefix == "save"){
+   
+        std::string name;
+
+        cin >> name;
+
+        if(name != "") app.sessionName = name;
+
+        std::ofstream file("sessions/"+app.sessionName+".was");
+
+        for(auto mem : app.session){
+            file << mem.address << ' ' << mem.command << '\n';
+        }
+
+        return 0;
+
+    } else if(prefix == "load"){
+
+        std::string name;
+
+        cin >> name;
+
+        std::ifstream file("sessions/"+name+".was");
+        if(!file.good()) return 1;
+
+        app.sessionName = name;
+        app.session.clear();
+
+        std::string mem;
+
+        while(std::getline(file, mem)){
+            std::stringstream mems(mem);
+            ui::Command command = app.create_command(mems);
+            app.deliver_address(command);
+            app.session.push_back(command);
+        }
+
+        return 0;
+
+    } else if(prefix == "new"){
+
+        std::ifstream file;
+        std::string name;
+
+        cin >> name;
+        
+        if(name == "") return 1;
+
+        app.sessionName = name;
+        app.session.clear();
+
+        return 0;
+
+    } else if(prefix == "rename"){
+
+        std::ifstream file;
+        std::string name;
+
+        cin >> name;
+
+        if(name == "") return 1;
+
+        app.sessionName = name;
+
+        return 0;
+
+    } else {
+        
+        std::cout << "session command not recognized.\n";
+    
+    }
+
     return 0;
 }
 
@@ -64,6 +144,8 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
 
         app.window.main.add_box(pointer);
 
+        app.session.push_back(cmd);
+
         return 0;
     } else if(prefix == "place"){
 
@@ -77,6 +159,8 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
             boxp->place_to_tab(tabp);
         }
         
+        app.session.push_back(cmd);
+        
         return 0;
     } else if(prefix == "detach"){
         
@@ -88,6 +172,9 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
         if(boxp != nullptr){
             boxp->detach_from_tab();
         }
+        
+        app.session.push_back(cmd);
+        
         return 0;
     } else {
         std::cout << "command not recognized. try \"help\"\n";
@@ -124,6 +211,8 @@ int32_t TabCommands::execute_command(ui::Command &cmd){
         Tab *pointer = new Tab(&app.window.main, name);
 
         app.window.main.add_tab(pointer);
+        
+        app.session.push_back(cmd);
 
         return 0;
     } else {

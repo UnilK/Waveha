@@ -63,7 +63,7 @@ void Text::set_text(std::string text_){
     
     text = text_;
     textBox.setString(text);
-    refreshFlag = 1;
+    set_refresh();
 
 }
 

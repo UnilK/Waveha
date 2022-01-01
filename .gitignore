@@ -2,6 +2,7 @@ bin
 build
 tags
 audio
+sessions
 *.swp
 *.wav
 *.bak

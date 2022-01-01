@@ -2,10 +2,10 @@
 
 namespace ui{ class Window; }
 
-#include "ui/clock.h"
 #include "ui/core.h"
 #include "ui/frame.h"
 #include "ui/command.h"
+#include "ui/clock.h"
 
 #include <cstdint>
 #include <string>
@@ -14,6 +14,8 @@ namespace ui{ class Window; }
 #include <vector>
 
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 
 namespace ui{
 
@@ -26,17 +28,14 @@ public:
     // mouse position
     float mouseX = 0, mouseY = 0;
 
-    Clock clock;
-
     Window(Core *core_, float width_, float height_,
             std::string title_, long double refreshRate = 60);
-    
+   
+    Clock clock;
+
     // delete the window and set the destroyed flag.
     int32_t destroy();
     bool destroyed = 0;
-
-    // set this flag if content in window changes
-    bool displayFlag = 0;
 
     // event updates.
     int32_t event_update();
@@ -51,6 +50,9 @@ public:
 
     // Redraw & render.
     int32_t refresh();
+
+    // inform the window that it should refresh itself
+    void set_refresh();
 
     // attach & detach child windows
     int32_t attach_child(Window *child);
@@ -74,6 +76,9 @@ protected:
     std::string title;
 
     float height = 100, width = 100;
+    sf::Texture previousFrame;
+    sf::Sprite previousFrameSprite;
+    bool resizeFlag = 1, refreshFlag = 1;
 
     Frame *softFocus = nullptr;
     Frame *hardFocus = nullptr;

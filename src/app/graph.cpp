@@ -15,46 +15,46 @@ Graph::Graph(Frame *parent_, kwargs values) :
 void Graph::set_origo(float x, float y){
     origoX = x;
     origoY = y;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_scale(float x, float y){
     scaleX = x;
     scaleY = y;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_area(float x, float y){
     scaleX = canvasWidth / x;
     scaleY = canvasHeight / y;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_phase_indicator(bool value){
     hasPhase = value;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_inspection_tool(bool value){
     hasInspector = value;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::switch_inspector_lock(){
     inspectorLock ^= 1;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_axis(bool x, bool y){
     hasXAxis = x;
     hasYAxis = y;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_axis_position(bool x, bool y){
     hasXAxis = x;
     hasYAxis = y;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_data(std::vector<float> &data){
@@ -72,7 +72,7 @@ void Graph::set_data(std::vector<std::complex<float> > &data){
 void Graph::set_data(std::vector<Point> &data){
     points = data;
     vertices.resize(points.size());
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::fitX(){
@@ -88,7 +88,7 @@ void Graph::fitX(){
     origoX = min;
     scaleX = canvasWidth / (max - min);
 
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::autoscaleY(){
@@ -99,17 +99,17 @@ void Graph::autoscaleY(){
 
     scaleY = canvasWidth / max;
 
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_unitX(std::string unit){
     unitX = unit;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 void Graph::set_unitY(std::string unit){
     unitY = unit;
-    refreshFlag = 1;
+    set_refresh();
 }
 
 int32_t Graph::draw(){
