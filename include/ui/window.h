@@ -67,6 +67,8 @@ public:
     virtual int32_t on_close();
     virtual int32_t on_resize();
 
+    void update_style();
+
 protected:
 
     Core *core;

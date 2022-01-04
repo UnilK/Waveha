@@ -13,26 +13,30 @@ ResizerFrame::ResizerFrame(ui::Frame *parent_, kwargs values) :
     if(read_value("direction", value, values))
         value >> directionX >> directionY;
 
-    background.setOutlineColor(color("borderColor"));
-    background.setOutlineThickness(-num("borderThickness"));
-    background.setFillColor(color("background"));
-    background.setPosition(0, 0);
+    set_look(look);
+}
+
+int32_t ResizerFrame::set_look(std::string look_){
+    
+    look = look_;
 
     dot.setRadius(num("dotSize"));
     dot.setFillColor(color("dotBackground"));
     dot.setOutlineThickness(-num("dotBorderThickness"));
     dot.setOutlineColor(color("dotBorderColor"));
 
+    border.set_look(this);
+
     inner_reconfig();
 
+    return 0;
 }
 
 int32_t ResizerFrame::inner_reconfig(){
     
-
     dot.setPosition(canvasWidth/2 - dot.getRadius(), canvasHeight/ 2 - dot.getRadius());
     
-    background.setSize({canvasWidth, canvasHeight}); 
+    border.set_size(canvasWidth, canvasHeight); 
 
     return 0;
 }
@@ -41,7 +45,7 @@ int32_t ResizerFrame::draw(){
 
     canvas.clear(color("background"));
 
-    canvas.draw(background);
+    border.draw(canvas);
     canvas.draw(dot);
 
     return display();
@@ -75,11 +79,23 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
 
             ui::Frame *upper = get_parent(2);
             
-            float minWidth = parent->get(1, 0)->targetWidth + parent->get(1, 2)->targetWidth;
-            float maxWidth = upper->canvasWidth - (parent->globalX - upper->globalX);
+            float minWidth =
+                std::max(parent->windowX, parent->get(1, 0)->targetWidth)
+                + parent->get(1, 2)->targetWidth;
+
+            float maxWidth =
+                upper->canvasWidth
+                + parent->windowX
+                - (parent->globalX - upper->globalX);
             
-            float minHeight = parent->get(0, 1)->targetHeight + parent->get(2, 1)->targetHeight;
-            float maxHeight = upper->canvasHeight - (parent->globalY - upper->globalY);
+            float minHeight =
+                std::max(parent->windowY, parent->get(0, 1)->targetHeight)
+                + parent->get(2, 1)->targetHeight;
+            
+            float maxHeight =
+                upper->canvasHeight
+                + parent->windowY
+                - (parent->globalY - upper->globalY);
 
             parent->set_target_size(
                     std::max(minWidth, std::min(maxWidth, dragWidth + directionX * (x - dragX))),
@@ -98,7 +114,9 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
             if(directionX != 0) deltaY = - 50 * event.mouseWheelScroll.delta;
             if(directionY != 0) deltaX = 50 * event.mouseWheelScroll.delta;
 
-            scrolled->move_canvas(deltaX, deltaY);
+            scrolled->set_canvas_position(
+                    std::max(0.0f, scrolled->canvasX + deltaX),
+                    std::max(0.0f, scrolled->canvasY + deltaY));
             scrolled->update_grid();
 
             return 1;

@@ -3,9 +3,7 @@ font
     default res/fonts/UMR.ttf
 ;
 
-look
-
-VimDefaultColors
+define
     terminal 2e0a24
     green 87ffaf
     darkgreen 4e9a06
@@ -19,19 +17,22 @@ VimDefaultColors
     orange df4a16
 ;
 
+look
+
+
 MainFrame
-    background 2e0a24
+    background $terminal
 ;
 
 TabBar
-    borderColor ad7fa8
-    borderThickness 1
-    background 2e0a24
+    borderColor $blue
+    borderThickness 0 0 0 1
+    background $terminal
 ;
 
 
 Graph
-    background 2e0a24
+    background $terminal
     vertexColor fce94f
     axisColor d7d7d7
     indicatorSize 20
@@ -47,28 +48,30 @@ Tab
 ;
 
 TabResizer
-    borderColor 5ed7ff
-    borderThickness 1
-    background 2e0a24
+    borderColor $blue
+    borderThickness 1 1 0 0
+    background $terminal
     dotSize 5
     dotBorderThickness 1
-    dotBorderColor 5ed7ff
+    dotBorderColor $blue
 ;
 
 TabBorder
-    borderColor 5ed7ff
+    borderColor $blue
     borderThickness 2
-    background 2e0a24
+    background $terminal
 ;
 
 TabBackground
-    background 2e0a24
+    background $terminal
 ;
 
 TabTitle
-    background 2e0a24
+    background $terminal
+    borderColor $blue
+    borderThickness 0 0 0 1
     textSize 18
-    textColor 5ed7ff
+    textColor $blue
     font default
 ;
 
@@ -80,38 +83,76 @@ Box
 ;
 
 BoxResizer
-    borderColor ad7fa8
-    borderThickness 1
-    background 2e0a24
+    borderColor $purple
+    borderThickness 0 0 1 1
+    background $terminal
     dotSize 5
     dotBorderThickness 1
-    dotBorderColor ad7fa8
+    dotBorderColor $purple
 ;
 
 BoxBorder
-    borderColor ad7fa8
+    borderColor $purple
     borderThickness 2
-    background 2e0a24
+    background $terminal
 ;
 
 ButtonBox
-    background 2e0a24
+    background $terminal
 ;
 
 BoxTitle
-    background 2e0a24
+    background $terminal
+    borderColor $purple
+    borderThickness 0 0 0 1
     textSize 18
-    textColor ad7fa8
+    textColor $purple
     font default
 ;
 
-BoxButton
-    background 2e0a24
-    pressedBackground 1e0514
-    borderColor ad7fa8
-    borderThickness 1 1 0 1
+BoxLeftButton
+    normal BoxLeftButtonN
+    pressed BoxLeftButtonP
+;
+
+BoxLeftButtonN
+    background $terminal
+    borderColor $purple
+    borderThickness 0 1 0 1
     textSize 18
-    textColor ad7fa8
+    textColor $purple
+    font default
+;
+
+BoxLeftButtonP
+    background $terminal
+    borderColor $purple
+    borderThickness 0 1 0 1
+    textSize 18
+    textColor $purple
+    font default
+;
+
+BoxRightButton
+    normal BoxRightButtonN
+    pressed BoxRightButtonP
+;
+
+BoxRightButtonN
+    background $terminal
+    borderColor $purple
+    borderThickness 1 0 0 1
+    textSize 18
+    textColor $purple
+    font default
+;
+
+BoxRightButtonP
+    background $terminal
+    borderColor $purple
+    borderThickness 1 0 0 1
+    textSize 18
+    textColor $purple
     font default
 ;
 

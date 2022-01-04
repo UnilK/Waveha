@@ -23,7 +23,7 @@ class Commandable{
 
 public:
 
-    Commandable(std::string id_ = "");
+    Commandable(std::string id_ = "_");
     
     // command execution
     virtual int32_t execute_command(Command &cmd);

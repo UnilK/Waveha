@@ -16,7 +16,9 @@ int32_t TabBar::on_event(sf::Event event, int32_t priority){
         
         float deltaX = 50 * event.mouseWheelScroll.delta;
 
-        tabFrame->move_canvas(deltaX, 0);
+        tabFrame->set_canvas_position(
+                std::max(0.0f, tabFrame->canvasX + deltaX),
+                tabFrame->canvasY);
         tabFrame->update_grid();
 
         return 1;
@@ -29,7 +31,8 @@ int32_t TabBar::on_event(sf::Event event, int32_t priority){
 MainFrame::MainFrame(ui::Window *master_, kwargs values) :
     ui::Frame(master_, values),
     tabFrame(this, {{"look", "MainFrame"}}),
-    tabBar(this, &tabFrame, {{"look", "TabBar"}, {"height", "15"}})
+    tabBar(this, &tabFrame, {{"look", "TabBar"}, {"height", "15"}}),
+    infoTab(this, "info")
 {
     look = "MainFrame";
 
@@ -40,11 +43,15 @@ MainFrame::MainFrame(ui::Window *master_, kwargs values) :
     put(0, 0, &tabBar);
     put(1, 0, &tabFrame);
 
-    tabBar.setup_grid(1, tabMax);
+    tabBar.setup_grid(1, tabMax + 1);
     tabBar.fill_width(0, 1);
 
-    tabFrame.setup_grid(1, tabMax);
+    tabFrame.autoContain = 0;
+    tabFrame.setup_grid(1, tabMax + 1);
     tabFrame.fill_height(0, 1);
+
+    tabFrame.put(0, 0, &infoTab);
+    infoTab.targetWidth = 200;
 
     update_grid();
 }
@@ -54,7 +61,7 @@ bool MainFrame::add_tab(Tab *tab){
     if((int32_t)tabs.size() == tabMax) return 0;
 
     tabs.push_back(tab);
-    for(int32_t i=0; i<tabMax; i++){
+    for(int32_t i=1; i<=tabMax; i++){
         if(tabFrame.get(0, i) == nullptr){
             tabFrame.place_frame(0, i, tab);
             break;
@@ -65,7 +72,8 @@ bool MainFrame::add_tab(Tab *tab){
 }
 
 bool MainFrame::delete_tab(std::string name){
-    for(uint32_t i=0; i<tabs.size(); i++){
+    
+    for(uint32_t i=1; i<=tabs.size(); i++){
         if(tabs[i]->get_title() == name){
 
             tabFrame.remove_frame(tabs[i]);
@@ -77,6 +85,7 @@ bool MainFrame::delete_tab(std::string name){
             return 1;
         }
     }
+
     return 0;
 }
 

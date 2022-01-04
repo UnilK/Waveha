@@ -6,12 +6,26 @@
 #include <iostream>
 #include <fstream>
 
+int32_t App::update_children(){
+    
+    commandChildren = {
+        &sessionCommands,
+        &boxCommands,
+        &tabCommands,
+        &audioCommands,
+        &analysisCommands,
+        &blingCommands
+    };
+    
+    return 0;
+}
+
 int32_t App::execute_command(ui::Command &cmd){
     
     if(execute_standard(cmd)){
         return 0;
     } else {
-        std::cout << "##" << cmd.command << '\n';
+        std::cout << "unrecognized command: " << cmd.command << '\n';
     }
 
     return 1;
@@ -221,3 +235,57 @@ int32_t TabCommands::execute_command(ui::Command &cmd){
     }
 }
 
+
+AudioCommands::AudioCommands(){
+    id = "audio";
+    commandHelp = "manage audio";
+    commandDocs = {
+        {"link _name", "link audio"}};
+}
+
+int32_t AudioCommands::execute_command(ui::Command &cmd){
+    return 1;
+}
+
+
+
+AnalysisCommands::AnalysisCommands(){
+    id = "analysis";
+    commandHelp = "analyze audio";
+    commandDocs = {
+        {"analyze _name", "analyze linked or cached audio"}};
+}
+
+int32_t AnalysisCommands::execute_command(ui::Command &cmd){
+    return 1;
+}
+
+BlingCommands::BlingCommands(){
+    id = "bling";
+    commandHelp = "manage styles";
+    commandDocs = {
+        {"_name", "load syle file"}};
+}
+
+int32_t BlingCommands::execute_command(ui::Command &cmd){
+    
+    if(execute_standard(cmd)) return 0;
+
+    std::stringstream cin(cmd.command);
+    std::string fileName;
+
+    cin >> fileName;
+    
+    std::ifstream I("res/styles/"+fileName+".style");
+
+    if(I.good()){
+        App &app = *(App*)commandParent;
+        app.style.load("res/styles/"+fileName+".style");
+        app.update_style();
+        return 0;
+    } else {
+        std::cout << "file not found: " << "res/styles/"+fileName+".style\n";
+        return 1;
+    }
+
+}

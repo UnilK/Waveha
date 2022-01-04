@@ -22,6 +22,9 @@ public:
     // function to refill the buffer.
     virtual void refill();
 
+    // directly load samples from source without moving pointer
+    virtual std::vector<float> get_data(uint32_t amount, uint32_t begin);
+
     // reading modes used with onGetData.
     // 0 -> read everything from buffer
     // 1 -> read half from buffer

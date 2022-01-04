@@ -8,19 +8,24 @@
 class ResizerFrame : public ui::ContentFrame {
 
     /*
-       style parameters:
-       borderColor (color)
-       borderThickness (num)
+       style:
        background (color)
+       borderColor (color)
+       borderThickness (num) or (num(left) num(right) num(up) num(down))
        dotBackground (color)
        dotSize (num)
        dotBorderThickness (num)
        dotBorderColor (color)
+
+       kwargs:
+       direction (num num)
      */
 
 public:
     
     ResizerFrame(ui::Frame *parent_, kwargs values = {});
+
+    int32_t set_look(std::string look_);
 
     int32_t draw();
     int32_t on_event(sf::Event event, int32_t priority);
@@ -42,6 +47,8 @@ protected:
     bool scrollable = 0;
     ui::Frame *scrolled = nullptr;
 
+    ui::Borders border;
+
     bool pressed = 0;
 
 };
@@ -56,6 +63,10 @@ class ResizableFrame : public ui::Frame {
        style parameters:
        resizerLook (look)
        borderLook (look)
+
+       kwargs:
+       border (num(left) num(right) num(up) num(down))
+       resize (bool(left) bool(right) bool(up) bool(down))
      */
 
 public:

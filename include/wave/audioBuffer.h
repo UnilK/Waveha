@@ -3,6 +3,7 @@
 #include <vector>
 #include <mutex>
 
+
 namespace wave {
 
 class AudioBuffer{
@@ -37,9 +38,6 @@ public:
     // how many audio samples should be preloaded?
     uint32_t preloadSize = 1<<15;
     
-    // will the read pointer move if audio is played?
-    bool stationary = 0;
-
 protected:
 
     uint32_t frameRate, channels;

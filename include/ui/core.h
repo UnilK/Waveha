@@ -1,8 +1,6 @@
 #pragma once
 
-namespace ui{
-class Core;
-}
+namespace ui{ class Core; }
 
 #include "ui/window.h"
 #include "ui/style.h"
@@ -25,6 +23,9 @@ class Core : public Commandable {
 
 public:
 
+    // singleton
+    static Core *object;
+
     Style style;
     Clock clock;
 
@@ -37,6 +38,8 @@ public:
     int32_t clean_windows();
 
     int32_t command_from_terminal(std::string command);
+    
+    void update_style();
 
 protected:
 

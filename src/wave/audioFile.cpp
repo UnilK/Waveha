@@ -51,6 +51,10 @@ void AudioFile::refill(){
     add_data(samples);
 }
 
+std::vector<float> AudioFile::get_data(uint32_t amount, uint32_t begin){
+    return file.read_silent(begin, amount);
+}
+
 
 
 FixedAudioBuffer::FixedAudioBuffer(){}
@@ -98,6 +102,19 @@ void LoadedAudioFile::seek_sample(uint32_t sample){
     position = sample;
     reset();
     refill();
+}
+
+std::vector<float> LoadedAudioFile::get_data(uint32_t amount, uint32_t begin){
+    
+    std::vector<float> samples(amount, 0.0f);
+    
+    uint32_t actual = 0;
+    if(buff->audio.size() >= begin)
+        actual = std::min((uint32_t)buff->audio.size() - begin, amount);
+    
+    for(uint32_t i = 0; i < actual; i++) samples[i] = buff->audio[begin++];
+
+    return samples;
 }
 
 void LoadedAudioFile::refill(){

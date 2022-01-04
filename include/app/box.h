@@ -10,6 +10,13 @@ class Box;
 
 class Box : public ResizableFrame {
 
+    /*
+       style:
+       -
+       kwargs:
+       -
+     */
+
 public:
 
     Box(ui::Frame *parent_, std::string title_, kwargs values = {});

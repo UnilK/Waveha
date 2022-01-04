@@ -1,12 +1,11 @@
 #pragma once
 
-namespace ui{
-class Frame;
-}
+namespace ui{ class Frame; }
 
 #include "ui/core.h"
 #include "ui/window.h"
 #include "ui/command.h"
+#include "ui/borders.h"
 
 #include <cstdint>
 #include <string>
@@ -16,6 +15,7 @@ class Frame;
 
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Font.hpp>
@@ -92,6 +92,23 @@ class Frame : public Commandable {
        1 # # #
        2 # # #
        +
+    */
+
+    /*
+       style:
+       -
+
+       kwargs:
+       
+       look (chars)
+       id (chars)
+       width (num)
+       height (num)
+       columnSpan (num)
+       rowSpan (num)
+       pad (num(left) num(right) num(up) num(down))
+       fill (num(l) num(m) num(r) num(u) num(m) num(d))
+
     */
 
 public:
@@ -224,6 +241,22 @@ public:
     float windowWidth = 0, windowHeight = 0;
     float windowX = 0, windowY = 0;
     float globalX = 0, globalY = 0;
+    
+    // automatic view containment
+    bool autoContain = 1;
+
+    // set look
+    virtual int32_t set_look(std::string look_);
+
+    // update all looks
+    void update_style();
+
+    // access styles
+    std::string chars(std::string key);
+    sf::Color color(std::string key);
+    sf::Font &font(std::string key);
+    uint32_t textStyle(std::string key);
+    long double num(std::string key);
 
 protected:
 
@@ -253,13 +286,6 @@ protected:
     // parser for poor man's **kwargs
     bool read_value(std::string key, std::stringstream &value, kwargs &values);
 
-    // access styles
-    std::string chars(std::string key);
-    sf::Color color(std::string key);
-    sf::Font &font(std::string key);
-    uint32_t textStyle(std::string key);
-    long double num(std::string key);
-
     // flags
     bool refreshFlag = 1;
     bool windowMoved = 0;
@@ -283,22 +309,23 @@ class SolidFrame : public Frame {
     /*
        style parameters:
        borderColor (color)
-       borderThickness (num)
+       borderThickness (num) or (num(left) num(right) num(up) num(down))
        background (color)
     */
 
 public:
 
     SolidFrame(Window *master_, kwargs values = {});
-    SolidFrame(Frame *parent_, kwargs values = {});
+    SolidFrame(Frame *parent_ = nullptr, kwargs values = {});
 
+    int32_t set_look(std::string look_);
+    
     int32_t draw();
     int32_t on_reconfig();
 
 protected:
 
-    // frame with a background color
-    sf::RectangleShape background;
+    Borders border;
 
 };
 
@@ -309,7 +336,7 @@ class ContentFrame : public Frame {
 public:
 
     ContentFrame(Window *master_, kwargs values = {});
-    ContentFrame(Frame *parent_, kwargs values = {});
+    ContentFrame(Frame *parent_ = nullptr, kwargs values = {});
 
     int32_t on_reconfig();
     int32_t display();
@@ -319,6 +346,7 @@ public:
 protected:
 
     sf::RenderTexture canvas;
+    sf::Sprite canvasSprite;
 
 };
 

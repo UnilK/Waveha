@@ -7,9 +7,9 @@ Tab::Tab(ui::Frame *parent_, std::string title_, kwargs values) :
             parent_,
             {{"look", "Tab"},
             {"width", "500"},
-            {"border", "2 15 0 0"},
+            {"border", "0 15 0 0"},
             {"resize", "0 1 0 0"},
-            {"pad", "1 1 0 0"}}),
+            {"pad", "0 0 0 0"}}),
     inner(this),
     boxFrame(&inner, {{"look", "TabBackground"}}),
     titleFrame(&inner, {{"look", "TabTitle"}, {"height", "20"}, {"text", title_}})
@@ -26,6 +26,7 @@ Tab::Tab(ui::Frame *parent_, std::string title_, kwargs values) :
     inner.put(0, 0, &titleFrame);
     inner.put(1, 0, &boxFrame);
 
+    boxFrame.autoContain = 0;
     boxFrame.setup_grid(boxMax, 1);
     boxFrame.fill_width(0, 1);
 
@@ -77,7 +78,10 @@ int32_t Tab::box_index(Box *box){
     return -1;
 }
 
-int32_t Tab::on_event(sf::Event event){
+int32_t Tab::on_event(sf::Event event, int32_t priority){
+
+    // TODO: tab focus.
+
     return -1;
 }
 

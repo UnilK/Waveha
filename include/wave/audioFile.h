@@ -20,6 +20,8 @@ public:
     void onSeek(sf::Time timeOffset);
     void seek_sample(uint32_t sample);
 
+    std::vector<float> get_data(uint32_t amount, uint32_t begin);
+    
     void refill();
 
 protected:
@@ -57,6 +59,8 @@ public:
     void onSeek(sf::Time timeOffset);
     void seek_sample(uint32_t sample);
 
+    std::vector<float> get_data(uint32_t amount, uint32_t begin);
+    
     void refill();
 
 protected:

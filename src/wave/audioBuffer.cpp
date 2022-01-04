@@ -16,8 +16,6 @@ AudioBuffer::AudioBuffer(uint32_t frameRate_, uint32_t channels_){
 
 std::vector<float> AudioBuffer::get_move(uint32_t amount){
    
-    if(stationary) return get_stationary(amount);
-
     audioLock.lock();
     
     std::vector<float> data(amount, 0.0f);

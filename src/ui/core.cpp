@@ -5,6 +5,8 @@
 
 namespace ui{
 
+Core *Core::object = nullptr;
+
 void listen_terminal(Core *core){
     std::string command = "";
     while(1){
@@ -24,6 +26,7 @@ Core::Core(std::string styleFile, long double tickRate) :
 {
     terminal = new std::thread(listen_terminal, this);
     terminal->detach();
+    object = this;
 }
 
 int32_t Core::start(){
@@ -82,6 +85,10 @@ int32_t Core::command_from_terminal(std::string command){
     terminalCommands.push_back(command);
     terminalCommandLock.unlock();
     return 0;
+}
+
+void Core::update_style(){
+    for(auto w : windows) if(!w->destroyed) w->update_style();    
 }
 
 }

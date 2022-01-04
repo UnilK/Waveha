@@ -8,6 +8,13 @@ class Tab;
 
 class Tab : public ResizableFrame {
     
+    /*
+       style:
+       -
+       kwargs:
+       -
+     */
+
 public:
 
     Tab(ui::Frame *parent_, std::string title_, std::map<std::string, std::string> values = {});
@@ -20,12 +27,12 @@ public:
 
     int32_t box_index(Box *box);
 
-    int32_t on_event(sf::Event event);
+    int32_t on_event(sf::Event event, int32_t priority);
 
     void rename(std::string name);
     std::string get_title();
     
-    const int32_t boxMax = 25;
+    const int32_t boxMax = 100;
 
 protected:
 

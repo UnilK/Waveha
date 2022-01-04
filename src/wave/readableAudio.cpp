@@ -30,8 +30,7 @@ bool ReadableAudio::onGetData(Chunk &data){
     }
 
     std::vector<float> floatData;
-    if(stationary) floatData = get_stationary(readAmount);
-    else floatData = get_move(readAmount);
+    floatData = get_move(readAmount);
 
     std::vector<sf::Int16> converted = float_to_int(floatData);
 
@@ -49,5 +48,9 @@ void ReadableAudio::refill(){}
 void ReadableAudio::onSeek(sf::Time timeOffset){}
 
 void ReadableAudio::seek_sample(uint32_t sample){}
+
+std::vector<float> ReadableAudio::get_data(uint32_t amount, uint32_t begin){
+    return std::vector<float>(amount, 0.0f);
+}
 
 }

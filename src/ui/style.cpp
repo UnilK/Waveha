@@ -8,6 +8,14 @@
 namespace ui{
 
 Style::Style(std::string styleFile){
+    load(styleFile);
+}
+
+void Style::load(std::string styleFile){
+    
+    fonts.clear();
+    looks.clear();
+    macros.clear();
     
     std::ifstream I(styleFile);
    
@@ -57,14 +65,38 @@ Style::Style(std::string styleFile){
                     }
                 }
             }
+        } else if(lines[i] == "define"){
+            i++;
+            for(;i<n && lines[i][0] != ';'; i++){
+                if(!lines[i].empty()){
+                    std::string key, value;
+                    std::stringstream in(lines[i]);
+                    in >> key;
+                    std::getline(in, value);
+                            
+                    uint32_t j = 0;
+                    while(j < value.size() && value[j] == ' ') j++;                    
+                    if(j != value.size()) value = value.substr(j, value.size()-j);
+
+                    macros["$"+key] = value;
+                }
+            }
+        }
+    }
+    
+    for(auto &look : looks){
+        for(auto &i : look.second){
+            if(!i.second.empty() && i.second[0] == '$'){
+                i.second = macros[i.second];
+            }
         }
     }
 
-    I.close();
 
+    I.close();
 }
 
-std::map<std::string, std::string> &Style::operator[](std::string key){
+kwargs &Style::operator[](std::string key){
     return looks[key];
 }
 

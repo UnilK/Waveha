@@ -6,6 +6,13 @@
 
 class TabBar : public ui::SolidFrame {
 
+    /*
+       style:
+       -
+       kwargs:
+       -
+     */
+
 public:
 
     TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, kwargs values = {});
@@ -19,6 +26,13 @@ public:
 
 
 class MainFrame : public ui::Frame {
+    
+    /*
+       style:
+       -
+       kwargs:
+       -
+     */
 
 public:
 
@@ -32,13 +46,16 @@ public:
     bool delete_box(std::string name);
     Box *find_box(std::string name);
     
-    const int32_t tabMax = 10;
+    const int32_t tabMax = 100;
+
+    Tab *chosenTab;
 
     std::vector<Tab*> tabs;
     std::vector<Box*> boxes;
 
     ui::SolidFrame tabFrame;
     TabBar tabBar;
+    Tab infoTab;
 
 };
 

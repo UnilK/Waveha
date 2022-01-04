@@ -1,6 +1,5 @@
 #include "ui/frame.h"
 
-#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Text.hpp>
 
 #include <iostream>
@@ -14,16 +13,17 @@ namespace ui{
 
 Frame::Frame(Window *master_, kwargs values){ 
     master = master_;
-    core = master->get_core();
+    core = Core::object;
     parent = nullptr;
     setup(values);
 }
 
 Frame::Frame(Frame *parent_, kwargs values){
     
+    core = Core::object;
+    
     if(parent_ != nullptr){
         parent = parent_;
-        core = parent->core;
         master = parent->master;
     }
 
@@ -36,7 +36,6 @@ void Frame::set_parent(Frame *parent_){
     
     if(parent_ != nullptr){
         parent = parent_;
-        core = parent->core;
         master = parent->master;
     } else {
         parent = nullptr;
@@ -159,7 +158,7 @@ Frame *Frame::get_parent(int32_t steps){
     return parent->get_parent(steps - 1);
 }
 
-int32_t Frame::on_event(sf::Event event, int32_t priority){ return 0; }
+int32_t Frame::on_event(sf::Event event, int32_t priority){ return -1; }
 
 int32_t Frame::core_tick(){
     for(int32_t i=0; i<rows; i++){
@@ -326,8 +325,10 @@ int32_t Frame::update_grid(){
     float heightExtra = std::max(0.0f, canvasHeight-heightMax[rows]);
 
     // move canvas displacement if necessary
-    canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX));
-    canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY));
+    if(autoContain){
+        canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX));
+        canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY));
+    }
 
     float heightTotal = 0, widthTotal = 0;
     for(float i : heightFill) heightTotal += i;
@@ -560,9 +561,14 @@ int32_t Frame::set_canvas_position(float canvasX_, float canvasY_){
     
     float previousX = canvasX;
     float previousY = canvasY;
-  
-    canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX_));
-    canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY_));
+ 
+    canvasX = canvasX_;
+    canvasY = canvasY_;
+
+    if(autoContain){
+        canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX));
+        canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY));
+    }
 
     if(canvasX != previousX || canvasY != previousY)
         canvasMoved = 1;
@@ -644,37 +650,60 @@ void Frame::unset_reconfig(){
     canvasResized = 0;
 }
 
+int32_t Frame::set_look(std::string look_){
+    look = look_;
+    return 0;
+}
+
+void Frame::update_style(){
+    
+    set_look(look);
+
+    for(int32_t i=0; i<rows; i++){
+        for(int32_t j=0; j<columns; j++){
+            if(grid[i][j] != nullptr){
+                grid[i][j]->update_style();
+            }
+        }
+    }
+
+    set_refresh();
+}
+
+
 SolidFrame::SolidFrame(Window *master_, kwargs values) :
     Frame(master_, values)
 {
-    background.setOutlineColor(color("borderColor"));
-    background.setOutlineThickness(-num("borderThickness"));
-    background.setFillColor(color("background"));
-    on_reconfig();
+    set_look(look);
 }
 
 SolidFrame::SolidFrame(Frame *parent_, kwargs values) :
     Frame(parent_, values)
 {
-    background.setOutlineColor(color("borderColor"));
-    background.setOutlineThickness(-num("borderThickness"));
-    background.setFillColor(color("background"));
+    set_look(look);
+}
+
+int32_t SolidFrame::set_look(std::string look_){
+
+    border.set_look(this);
+    
     on_reconfig();
+
+    return 0;
 }
 
 int32_t SolidFrame::on_reconfig(){
 
-    background.setSize({windowWidth, windowHeight});
+    border.set_size(canvasWidth, canvasHeight);
 
     return 0;
 }
 
 int32_t SolidFrame::draw(){
-    
-    background.setPosition(globalX, globalY);
-    
-    master->draw(background);
-    
+   
+    border.set_position(globalX - windowX, globalY - windowY);
+    border.draw(*master);
+
     return 0;
 }
 
@@ -696,7 +725,11 @@ ContentFrame::ContentFrame(Frame *parent_, kwargs values) :
 int32_t ContentFrame::on_reconfig(){
 
     if(canvasWidth < 0.5f || canvasHeight < 0.5f) canvas.create(1, 1);
-    else canvas.create(canvasWidth, canvasHeight);
+    else {
+        canvas.create(canvasWidth, canvasHeight);
+        sf::IntRect area(windowX, canvasHeight - windowY, windowWidth, -windowHeight);
+        canvasSprite.setTextureRect(area);
+    }
 
     return inner_reconfig();
 }
@@ -705,10 +738,9 @@ int32_t ContentFrame::inner_reconfig(){ return 0; }
 
 int32_t ContentFrame::display(){
 
-    sf::IntRect area(windowX, canvasHeight - windowY, windowWidth, -windowHeight);
-    sf::Sprite sprite(canvas.getTexture(), area);
-    sprite.setPosition(globalX, globalY);
-    master->draw(sprite);
+    canvasSprite.setPosition(globalX, globalY);
+    canvasSprite.setTexture(canvas.getTexture());
+    master->draw(canvasSprite);
 
     return 0;
 }

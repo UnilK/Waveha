@@ -6,10 +6,10 @@
 
 namespace ui{
 
-Window::Window(Core *core_, float width_, float height_, std::string title_,
-         long double refreshRate) :
+Window::Window(Core *core_, float width_, float height_,
+        std::string title_, long double refreshRate) :
     sf::RenderWindow(sf::VideoMode(width_, height_), title_),
-    clock(1 / refreshRate)
+    clock(1.0f / refreshRate)
 {
     core = core_;
     width = width_;
@@ -17,6 +17,8 @@ Window::Window(Core *core_, float width_, float height_, std::string title_,
     title = title_;
     core->add_window(this);
 
+    previousFrame.create(width, height);
+    
     setVerticalSyncEnabled(1);
 
 }
@@ -52,23 +54,22 @@ int32_t Window::event_update(){
 
     sf::Event event;
     while (pollEvent(event)){
-        switch(event.type){
-            case sf::Event::Closed:
+        
+        if(event.type == sf::Event::Closed){
                 
                 close();
                 on_close();
                 
                 return destroy();
 
-            case sf::Event::Resized:
+        } else if(event.type == sf::Event::Resized){
                 
                 width = event.size.width;
                 height = event.size.height;
 				
                 setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
-
                 previousFrame.create(width, height);
-                
+
                 mainframe->set_window_size(width, height);
                 mainframe->set_canvas_size(width, height);
                 mainframe->update_grid();
@@ -77,8 +78,7 @@ int32_t Window::event_update(){
                 
                 on_resize();
                 
-                break;
-            case sf::Event::MouseMoved:
+        } else if(event.type == sf::Event::MouseMoved){
                 
                 mouseX = event.mouseMove.x;
                 mouseY = event.mouseMove.y;
@@ -86,8 +86,7 @@ int32_t Window::event_update(){
                 focus = mainframe->find_focus();
                 softFocus = focus.back();
                 
-                break;
-            default:
+        } else {
 
                 if(event.type == sf::Event::MouseButtonPressed){
                     focus = mainframe->find_focus();
@@ -100,8 +99,6 @@ int32_t Window::event_update(){
                     softFocus = focus.back();
                     hardFocus = softFocus;
                 }
-        
-                break;
         }
         
         int32_t priority = focus.size() - 1;
@@ -125,18 +122,23 @@ int32_t Window::refresh(){
     if(destroyed) return 0;
     if(!refreshFlag) return 0;
 
-    clear();
+    if(!resizeFlag){
+        previousFrame.update(*this);
+        previousFrameSprite.setTexture(previousFrame, 1);
+    }
+
+    clear(sf::Color::Transparent);
     
-    if(!resizeFlag) draw(previousFrameSprite);
+    if(!resizeFlag){
+        draw(previousFrameSprite);
+    }
+
     resizeFlag = 0;
 
     mainframe->refresh();
   
     display();
    
-    previousFrame.update(*this);
-    previousFrameSprite.setTexture(previousFrame);
-
     refreshFlag = 0;
 
     return 0;
@@ -166,6 +168,10 @@ int32_t Window::detach_child(Window *child){
     if(!children.count(child)) return 1;
     children.erase(child);
     return 0;
+}
+
+void Window::update_style(){
+    mainframe->update_style();    
 }
 
 }

@@ -24,6 +24,13 @@ Text::Text(Frame *parent_, kwargs values) :
     ContentFrame(parent_, values)
 {
     setup(values);
+    set_look(look);
+    canvas.setSmooth(0);
+}
+
+int32_t Text::set_look(std::string look_){
+    
+    look = look_;
 
     textBox.setString(text);
     textBox.setFont(font("font"));
@@ -31,27 +38,33 @@ Text::Text(Frame *parent_, kwargs values) :
     textBox.setCharacterSize(num("textSize"));
     textBox.setFillColor(color("textColor"));
 
+    border.set_look(this);
+
     inner_reconfig();
 
-    canvas.setSmooth(0);
+    return 0;
 }
 
 int32_t Text::inner_reconfig(){
-
+    
     sf::FloatRect rect = textBox.getLocalBounds();
-
-    float textX = std::round(canvasWidth / 2 - rect.width / 2);
-    float textY = std::round(canvasHeight / 2 - textBox.getCharacterSize() * 1.35f / 2);
+    
+    float textX = std::round((canvasWidth - border.r + border.l) / 2 - rect.width / 2);
+    float textY = std::round((canvasHeight - border.d + border.u) / 2
+            - textBox.getCharacterSize() * 1.35f / 2);
 
     textBox.setPosition(textX, textY);
 
+    border.set_size(canvasWidth, canvasHeight);
+    
     return 0;
 }
 
 int32_t Text::draw(){
    
     canvas.clear(color("background"));
-
+    
+    border.draw(canvas);
     canvas.draw(textBox);
 
     display();

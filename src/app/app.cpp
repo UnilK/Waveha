@@ -14,8 +14,3 @@ App::App() :
 
 }
 
-int32_t App::update_children(){
-    commandChildren = {&sessionCommands, &boxCommands, &tabCommands};
-    return 0;
-}
-
