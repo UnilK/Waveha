@@ -38,7 +38,7 @@ int32_t Text::set_look(std::string look_){
     textBox.setCharacterSize(num("textSize"));
     textBox.setFillColor(color("textColor"));
 
-    border.set_look(this);
+    border.set_look(look);
 
     inner_reconfig();
 

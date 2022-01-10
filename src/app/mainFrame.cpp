@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+namespace app {
 
 TabBar::TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, kwargs values) :
     ui::SolidFrame(parent_, values),
@@ -13,8 +14,14 @@ int32_t TabBar::on_event(sf::Event event, int32_t priority){
     if(priority > 0) return -1;
 
     if(event.type == sf::Event::MouseWheelScrolled){
+            
+        float scrollSpeed = 50;
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+            scrollSpeed = 1;
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+            scrollSpeed = 100;
         
-        float deltaX = 50 * event.mouseWheelScroll.delta;
+        float deltaX = scrollSpeed * event.mouseWheelScroll.delta;
 
         tabFrame->set_canvas_position(
                 std::max(0.0f, tabFrame->canvasX + deltaX),
@@ -43,13 +50,26 @@ MainFrame::MainFrame(ui::Window *master_, kwargs values) :
     put(0, 0, &tabBar);
     put(1, 0, &tabFrame);
 
-    tabBar.setup_grid(1, tabMax + 1);
-    tabBar.fill_width(0, 1);
-
     tabFrame.autoContain = 0;
     tabFrame.setup_grid(1, tabMax + 1);
     tabFrame.fill_height(0, 1);
 
+    tabFrame.put(0, 0, &infoTab);
+    infoTab.targetWidth = 200;
+
+    update_grid();
+}
+
+void MainFrame::clean(){
+    
+    chosenTab = nullptr;
+
+    for(Tab *tab : tabs) delete tab;
+    tabs.clear();
+    boxes.clear();
+    
+    tabFrame.setup_grid(1, tabMax + 1);
+    tabFrame.fill_height(0, 1);
     tabFrame.put(0, 0, &infoTab);
     infoTab.targetWidth = 200;
 
@@ -131,3 +151,4 @@ int32_t MainWindow::on_close(){
     return core->stop();
 }
 
+}

@@ -30,23 +30,25 @@ int32_t Window::destroy(){
     return 0;
 }
 
-int32_t Window::core_tick(){
-    on_core_tick();
-    if(clock.try_tick()) window_tick();
-    mainframe->core_tick();
+int32_t Window::try_tick(){
+    
+    if(eventTick || clock.try_tick()){
+        eventTick = 0;
+        clock.force_sync_tick();
+        tick();
+    }
+
     return 0;
 }
 
-int32_t Window::window_tick(){
-    on_window_tick();
-    mainframe->window_tick();
+int32_t Window::tick(){
+    on_tick();
+    mainframe->tick();
     refresh();
     return 0;
 }
 
-int32_t Window::on_core_tick(){ return 0; }
-
-int32_t Window::on_window_tick(){ return 0; }
+int32_t Window::on_tick(){ return 0; }
 
 int32_t Window::event_update(){
     
@@ -54,7 +56,9 @@ int32_t Window::event_update(){
 
     sf::Event event;
     while (pollEvent(event)){
-        
+       
+        eventTick = 1;
+
         if(event.type == sf::Event::Closed){
                 
                 close();
@@ -104,11 +108,11 @@ int32_t Window::event_update(){
         int32_t priority = focus.size() - 1;
         int32_t captured = 0;
 
-        if(hardFocus != nullptr) captured = hardFocus->on_event(event, -1);
+        if(hardFocus != nullptr) captured = std::max(captured, hardFocus->on_event(event, -1));
         
         for(Frame *frame : focus){
             if(captured > 0) break;
-            if(frame != hardFocus) captured = std::max(captured, frame->on_event(event, priority));
+            captured = std::max(captured, frame->on_event(event, priority));
             priority--;
         }
     
@@ -136,7 +140,8 @@ int32_t Window::refresh(){
     resizeFlag = 0;
 
     mainframe->refresh();
-  
+
+    clock.force_sync_tick();
     display();
    
     refreshFlag = 0;

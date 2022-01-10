@@ -25,7 +25,7 @@ public:
 
     // singleton
     static Core *object;
-
+    
     Style style;
     Clock clock;
 
@@ -39,6 +39,7 @@ public:
 
     int32_t command_from_terminal(std::string command);
     
+    int32_t set_style(std::string styleFile);
     void update_style();
 
 protected:

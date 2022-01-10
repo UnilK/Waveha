@@ -11,6 +11,13 @@
 
 namespace ui{
 
+Frame::Frame(kwargs values){
+    core = Core::object;
+    parent = nullptr;
+    master = nullptr;
+    setup(values);
+}
+
 Frame::Frame(Window *master_, kwargs values){ 
     master = master_;
     core = Core::object;
@@ -59,9 +66,6 @@ int32_t Frame::setup(kwargs &values){
     if(read_value("look", value, values))
         value >> look;
     
-    if(read_value("id", value, values))
-        value >> id;
-    
     if(read_value("width", value, values))
         value >> targetWidth;
     
@@ -83,51 +87,6 @@ int32_t Frame::setup(kwargs &values){
     }
 
     return 0;
-}
-
-std::string Frame::chars(std::string key){
-    return core->style[look][key];
-}
-
-sf::Color Frame::color(std::string key){
-
-    std::string color = core->style[look][key];
-    
-    if(color.size() == 6) color += "ff";
-    while(color.size() < 8) color.push_back('0');
-    
-    uint32_t rgba;
-    std::stringstream(color) >> std::hex >> rgba >> std::dec;
-
-    return sf::Color(rgba>>24&0xff, rgba>>16&0xff, rgba>>8&0xff, rgba&0xff);
-}
-
-sf::Font &Frame::font(std::string key){
-    return core->style.font(core->style[look][key]);
-}
-
-long double Frame::num(std::string key){
-    long double x = 0;
-    if(!core->style[look][key].empty()) std::stringstream(core->style[look][key]) >> x;
-    return x;
-}
-
-uint32_t Frame::textStyle(std::string key){
-    
-    std::string styles = core->style[look][key], style;
-
-    std::stringstream cin(styles) ;
-
-    uint32_t result = 0;
-
-    while(cin >> style){
-        if(style == "bold") result |= sf::Text::Style::Bold;
-        else if(style == "italic") result |= sf::Text::Style::Italic;
-        else if(style == "underlined") result |= sf::Text::Style::Underlined;
-        else if(style == "strikethrough") result |= sf::Text::Style::StrikeThrough;
-    }
-
-    return result;
 }
 
 std::vector<Frame*> Frame::find_focus(){
@@ -154,37 +113,28 @@ void Frame::find_focus_inner(std::vector<Frame*> &focus){
 
 Frame *Frame::get_parent(int32_t steps){
     if(steps < 1) return this;
-    if(this->parent == nullptr) return nullptr;
+    if(parent == nullptr) return nullptr;
     return parent->get_parent(steps - 1);
+}
+
+Frame *Frame::get_top(){
+    if(parent == nullptr || parent == this) return this;
+    return parent->get_top();
 }
 
 int32_t Frame::on_event(sf::Event event, int32_t priority){ return -1; }
 
-int32_t Frame::core_tick(){
+int32_t Frame::tick(){
     for(int32_t i=0; i<rows; i++){
         for(int32_t j=0; j<columns; j++){
             if(grid[i][j] == nullptr) continue;
-            grid[i][j]->core_tick();
+            grid[i][j]->tick();
         }
     }
-    on_core_tick();
-    return 0;
+    return on_tick();
 }
 
-int32_t Frame::window_tick(){
-    for(int32_t i=0; i<rows; i++){
-        for(int32_t j=0; j<columns; j++){
-            if(grid[i][j] == nullptr) continue;
-            grid[i][j]->window_tick();
-        }
-    }
-    on_window_tick();
-    return 0;
-}
-
-int32_t Frame::on_core_tick(){ return 0; }
-
-int32_t Frame::on_window_tick(){ return 0; }
+int32_t Frame::on_tick(){ return 0; }
 
 int32_t Frame::on_reconfig(){ return 0; }
 
@@ -650,11 +600,6 @@ void Frame::unset_reconfig(){
     canvasResized = 0;
 }
 
-int32_t Frame::set_look(std::string look_){
-    look = look_;
-    return 0;
-}
-
 void Frame::update_style(){
     
     set_look(look);
@@ -671,6 +616,13 @@ void Frame::update_style(){
 }
 
 
+
+SolidFrame::SolidFrame(kwargs values) :
+    Frame(values)
+{
+    set_look(look);
+}
+
 SolidFrame::SolidFrame(Window *master_, kwargs values) :
     Frame(master_, values)
 {
@@ -685,10 +637,10 @@ SolidFrame::SolidFrame(Frame *parent_, kwargs values) :
 
 int32_t SolidFrame::set_look(std::string look_){
 
-    border.set_look(this);
-    
-    on_reconfig();
+    look = look_;
 
+    border.set_look(look);
+    
     return 0;
 }
 
@@ -708,18 +660,17 @@ int32_t SolidFrame::draw(){
 }
 
 
+ContentFrame::ContentFrame(kwargs values) :
+    Frame(values)
+{}
 
 ContentFrame::ContentFrame(Window *master_, kwargs values) :
     Frame(master_, values)
-{
-    on_reconfig();
-}
+{}
 
 ContentFrame::ContentFrame(Frame *parent_, kwargs values) :
     Frame(parent_, values)
-{
-    on_reconfig();
-}
+{}
 
 
 int32_t ContentFrame::on_reconfig(){

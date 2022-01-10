@@ -1,51 +1,207 @@
 #include "app/analyzer.h"
+#include "app/app.h"
 
-Analyzer::Analyzer(ui::Frame *parent_, std::string title_, kwargs values) :
-    Box(parent_, title_, values),
-    inner(this),
-    buttonFrame(this),
-    widgetFrame(this),
-    graph(this),
-    fileNameBox(this),
-    switchRegular(this, switch_regular, this),
-    switchFrequncy(this, switch_frequency, this),
-    switchPeak(this, switch_peak, this)
+#include "math/fft.h"
+
+#include <algorithm>
+
+namespace app {
+
+Analyzer::Analyzer(ui::Window *master_, std::string title_) :
+    Box(master_, title_),
+    Commandable(title_),
+    frame(this),
+    analyzerButtons(this, {{"height", "20"}}),
+    analyzerWidgets(this),
+    graph(this, {{"look", "AnalyzerGraph"}}),
+    fileNameBox(this,
+            {{"text", "no linked file"},
+            {"look", "BoxTitle"}}),
+    switchRegular(this, switch_regular, this,
+            {{"text", "time"},
+            {"width", "50"},
+            {"look", "BoxLeftButton"}}),
+    switchFrequency(this, switch_frequency, this,
+            {{"text", "frequency"},
+            {"height", "20"},
+            {"width", "100"},
+            {"look", "BoxLeftButton"}}),
+    switchPeak(this, switch_peak, this,
+            {{"text", "peak"},
+            {"width", "50"},
+            {"look", "BoxLeftButton"}})
 {
 
+    inner.put(1, 0, &frame);
+
+    frame.setup_grid(3, 1);
+    frame.fill_width({1});
+    frame.fill_height({1, 0, 0});
+
+    frame.put(0, 0, &graph);
+    frame.put(1, 0, &analyzerButtons);
+    frame.put(2, 0, &analyzerWidgets);
+
+    analyzerButtons.setup_grid(1, 4);
+    analyzerButtons.fill_height({1});
+    analyzerButtons.fill_width(3, 1);
+
+    analyzerButtons.put(0, 0, &switchRegular);
+    analyzerButtons.put(0, 1, &switchFrequency);
+    analyzerButtons.put(0, 2, &switchPeak);
+    analyzerButtons.put(0, 3, &fileNameBox);
+
+    commandHelp = "audio analyzer";
+    commandDocs = {
+        {"link _name", "set analyzed audio"}};
 }
+
+Analyzer::~Analyzer(){
+    if(source != nullptr){
+        source->stop();
+        delete source;
+    }
+}
+
+int32_t Analyzer::switch_mode(Mode mode){
     
-int32_t Analyzer::switch_regular(void *analyzer){
+    dataMode = mode;
+    update_data();
+    
+    if(dataMode == regularMode){
+        
+        graph.set_relative_origo(0, 0.5);
+        graph.fit_x();
+        graph.fit_y();
+    
+    } else if(dataMode == frequencyMode){
+        
+        graph.set_relative_origo(0, 0.05);
+        graph.fit_x();
+        graph.fit_y();
+
+    } else {
+
+    }
 
     return 0;
+}
+
+void Analyzer::update_data(){
+
+    if(source == nullptr){
+
+        graph.set_data(std::vector<float>(length, 0.0f));
+
+    } else {
+
+        if(dataMode == regularMode){
+            
+            graph.set_data(source->get_data(length, position));
+        
+        } else if(dataMode == frequencyMode){
+            
+            auto data = math::fft(source->get_data(length, position));
+            data.resize(data.size()/2 + 1);
+
+            graph.set_data(data);
+            
+        } else {
+
+            graph.set_data(std::vector<float>(length, 0.0f));
+
+        }
+    }
+
+}
+
+
+int32_t Analyzer::switch_regular(void *analyzer){
+    return ((Analyzer*)analyzer)->switch_mode(regularMode);
 }
 
 int32_t Analyzer::switch_frequency(void *analyzer){
-
-    return 0;
+    return ((Analyzer*)analyzer)->switch_mode(frequencyMode);
 }
 
 int32_t Analyzer::switch_peak(void *analyzer){
+    return ((Analyzer*)analyzer)->switch_mode(peakMode);
+}
+
+int32_t Analyzer::execute_command(ui::Command cmd){
+
+    if(execute_standard(cmd)) return 0;
+
+    App &app = *(App*)core;
     
+    std::stringstream cin(cmd.command);
+    std::string prefix;
+
+    cin >> prefix;
+
+    if(prefix == "link"){
+        
+        std::string handle;
+        cin >> handle;
+
+        app.log_command(cmd);
+
+        return link_audio(handle);
+    }
+
     return 0;
 }
 
-bool Analyzer::link_file(std::string fileName){
+int32_t Analyzer::on_event(sf::Event event, int32_t priority){
+   
+    if(event.type == sf::Event::KeyPressed){
+        
+        if(event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::D){
+            
+            int32_t speed = 1<<4;
+            if(event.key.code == sf::Keyboard::A) speed = -speed;
 
-    return 1;
-}
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+                speed /= 1<<4;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                speed *= 1<<4;
 
-int32_t Analyzer::inner_reconfig(){
+            position = std::max(0, position + speed);
 
-    return 0;
-}
+            update_data();
 
-int32_t Analyzer::draw(){
+            return 1;
 
-    return 0;
-}
+        } else if(event.key.code == sf::Keyboard::W || event.key.code == sf::Keyboard::S){
 
-int32_t Analyzer::execute_command(ui::Command &cmd){
+            if(event.key.code == sf::Keyboard::S)
+                length = std::max(1, length / 2);
+            else 
+                length = std::min(1<<20, length * 2);
+
+            update_data();
+
+            return 1;
+        }
+    
+    }
 
     return -1;
 }
 
+int32_t Analyzer::link_audio(std::string fileName){
+    
+    App &app = *(App*)core;
+    delete source;
+    
+    source = app.create_source(fileName);
+    position = 0;
+    length = defaultLength;
+
+    update_data();
+    switch_mode(dataMode);
+
+    return source != nullptr;
+}
+
+}

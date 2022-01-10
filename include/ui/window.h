@@ -4,7 +4,6 @@ namespace ui{ class Window; }
 
 #include "ui/core.h"
 #include "ui/frame.h"
-#include "ui/command.h"
 #include "ui/clock.h"
 
 #include <cstdint>
@@ -19,7 +18,7 @@ namespace ui{ class Window; }
 
 namespace ui{
 
-class Window : public sf::RenderWindow, public Commandable {
+class Window : public sf::RenderWindow {
  
     // Class built around sf::RenderWindow.
 
@@ -40,13 +39,10 @@ public:
     // event updates.
     int32_t event_update();
     
-    // ticks
-    int32_t core_tick();
-    int32_t window_tick();
-
-    // extra actions related to ticks. 
-    virtual int32_t on_core_tick();
-    virtual int32_t on_window_tick();
+    // actions run before every refresh.
+    int32_t try_tick();
+    int32_t tick();
+    virtual int32_t on_tick();
 
     // Redraw & render.
     int32_t refresh();
@@ -80,7 +76,7 @@ protected:
     float height = 100, width = 100;
     sf::Texture previousFrame;
     sf::Sprite previousFrameSprite;
-    bool resizeFlag = 1, refreshFlag = 1;
+    bool resizeFlag = 1, refreshFlag = 1, eventTick = 0;
 
     Frame *softFocus = nullptr;
     Frame *hardFocus = nullptr;

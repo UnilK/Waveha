@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 
+namespace app {
+
 ResizerFrame::ResizerFrame(ui::Frame *parent_, kwargs values) : 
     ui::ContentFrame(parent_, values)
 {
@@ -25,7 +27,7 @@ int32_t ResizerFrame::set_look(std::string look_){
     dot.setOutlineThickness(-num("dotBorderThickness"));
     dot.setOutlineColor(color("dotBorderColor"));
 
-    border.set_look(this);
+    border.set_look(look);
 
     inner_reconfig();
 
@@ -57,23 +59,30 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
 
     if(event.type == sf::Event::MouseButtonPressed){
         
-        auto [x, y] = global_mouse();
-        dragX = x;
-        dragY = y;
-        
-        auto [width, height] = parent->get_target_canvas_size();
-        dragWidth = width;
-        dragHeight = height;
-        
-        pressed = 1;
-        return 1;
+        if(event.mouseButton.button == sf::Mouse::Left){
+            
+            auto [x, y] = global_mouse();
+            dragX = x;
+            dragY = y;
+            
+            auto [width, height] = parent->get_target_canvas_size();
+            dragWidth = width;
+            dragHeight = height;
+            
+            resizerPressed = 1;
+
+            return 1;
+        }
     }
     else if(event.type == sf::Event::MouseButtonReleased){
-        pressed = 0;
-        return 1;
+
+        if(event.mouseButton.button == sf::Mouse::Left){
+            resizerPressed = 0;
+            return 1;
+        }
     }
     else if(event.type == sf::Event::MouseMoved){
-        if(pressed){
+        if(resizerPressed){
             
             auto [x, y] = global_mouse();
 
@@ -108,11 +117,18 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
     } else if(event.type == sf::Event::MouseWheelScrolled){
         
         if(scrollable){
+
+            float scrollSpeed = 50;
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+                scrollSpeed = 1;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                scrollSpeed = 100;
+
             
             float deltaX = 0, deltaY = 0;
             
-            if(directionX != 0) deltaY = - 50 * event.mouseWheelScroll.delta;
-            if(directionY != 0) deltaX = 50 * event.mouseWheelScroll.delta;
+            if(directionX != 0) deltaY = - scrollSpeed * event.mouseWheelScroll.delta;
+            if(directionY != 0) deltaX = scrollSpeed * event.mouseWheelScroll.delta;
 
             scrolled->set_canvas_position(
                     std::max(0.0f, scrolled->canvasX + deltaX),
@@ -136,6 +152,17 @@ void ResizerFrame::set_scrollable(bool scrollable_, ui::Frame *scrolled_){
 ResizableFrame::ResizableFrame(ui::Frame *parent_, kwargs values) :
     ui::Frame(parent_, values)
 {
+    init(values);
+}
+
+ResizableFrame::ResizableFrame(ui::Window *master_, kwargs values) :
+    ui::Frame(master_, values)
+{
+    init(values);
+}
+
+void ResizableFrame::init(kwargs &values) {
+
     std::stringstream value;
     
     if(read_value("border", value, values))
@@ -246,3 +273,4 @@ void ResizableFrame::set_inner(ui::Frame *frame){
     grid[1][1] = frame;
 }
 
+}

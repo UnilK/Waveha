@@ -3,12 +3,16 @@ font
     default res/fonts/UMR.ttf
 ;
 
+
+
 define
     terminal 2e0a24
+    darkterminal 2e0a24
     green 87ffaf
     darkgreen 4e9a06
     yellow fce94f
     purple ad7fa8
+    darkpurple 825f7e
     blue 5ed7ff
     darkblue 3465a4
     lightgray d7d7d7
@@ -17,8 +21,9 @@ define
     orange df4a16
 ;
 
-look
 
+
+look
 
 MainFrame
     background $terminal
@@ -28,16 +33,6 @@ TabBar
     borderColor $blue
     borderThickness 0 0 0 1
     background $terminal
-;
-
-
-Graph
-    background $terminal
-    vertexColor fce94f
-    axisColor d7d7d7
-    indicatorSize 20
-    indicatorColor 87ffaf
-    font default
 ;
 
 
@@ -125,11 +120,11 @@ BoxLeftButtonN
 ;
 
 BoxLeftButtonP
-    background $terminal
-    borderColor $purple
+    background $darkterminal
+    borderColor $darkpurple
     borderThickness 0 1 0 1
     textSize 18
-    textColor $purple
+    textColor $darkpurple
     font default
 ;
 
@@ -148,11 +143,25 @@ BoxRightButtonN
 ;
 
 BoxRightButtonP
-    background $terminal
-    borderColor $purple
+    background $darkterminal
+    borderColor $darkpurple
     borderThickness 1 0 0 1
     textSize 18
-    textColor $purple
+    textColor $darkpurple
     font default
 ;
+
+
+
+AnalyzerGraph
+    background $terminal
+    borderColor $purple
+    borderThickness 0 0 0 1
+    vertexColor $yellow
+    axisColor $lightgray
+    indicatorSize 18
+    indicatorColor $green
+    font default
+;
+
 

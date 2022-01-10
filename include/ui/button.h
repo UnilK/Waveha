@@ -38,9 +38,9 @@ protected:
 
     std::string baseLook;
 
+    bool buttonPressed = 0;
     int32_t (*function)(void*);
     void *target;
-    bool pressed = 0;
 
 };
 

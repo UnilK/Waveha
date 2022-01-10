@@ -5,6 +5,8 @@
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 
+namespace app {
+
 class ResizerFrame : public ui::ContentFrame {
 
     /*
@@ -44,12 +46,11 @@ protected:
     float dragX = 0, dragY = 0;
     float dragWidth = 0, dragHeight = 0;
 
+    bool resizerPressed = 0;
     bool scrollable = 0;
     ui::Frame *scrolled = nullptr;
 
     ui::Borders border;
-
-    bool pressed = 0;
 
 };
 
@@ -72,6 +73,7 @@ class ResizableFrame : public ui::Frame {
 public:
 
     ResizableFrame(ui::Frame *parent_, kwargs values = {});
+    ResizableFrame(ui::Window *parent_, kwargs values = {});
     ~ResizableFrame();
 
     void set_inner(ui::Frame *frame);
@@ -84,5 +86,10 @@ protected:
     float borderLeft = 0, borderRight = 0, borderUp = 0, borderDown = 0;
     bool resizeLeft = 0, resizeRight = 0, resizeUp = 0, resizeDown = 0;
 
+private:
+
+    void init(kwargs &values);
+
 };
 
+}

@@ -1,10 +1,12 @@
 #pragma once
 
-class Tab;
+namespace app { class Tab; }
 
 #include "app/resizableFrame.h"
 #include "app/box.h"
 #include "ui/text.h"
+
+namespace app {
 
 class Tab : public ResizableFrame {
     
@@ -17,6 +19,7 @@ class Tab : public ResizableFrame {
 
 public:
 
+    Tab(ui::Window *master_, std::string title_, std::map<std::string, std::string> values = {});
     Tab(ui::Frame *parent_, std::string title_, std::map<std::string, std::string> values = {});
 
     bool swap_box(int32_t index, int32_t direction);
@@ -44,3 +47,4 @@ protected:
 
 };
 
+}

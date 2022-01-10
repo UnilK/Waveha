@@ -57,12 +57,6 @@ class Style{
 
      */
 
-protected:
-
-    std::map<std::string, sf::Font> fonts;
-    std::map<std::string, kwargs > looks;
-    kwargs macros;
-
 public:
 
     Style(std::string styleFile);
@@ -72,6 +66,32 @@ public:
     kwargs &operator[](std::string key);
     sf::Font &font(std::string key);
 
+protected:
+
+    std::map<std::string, sf::Font> fonts;
+    std::map<std::string, kwargs > looks;
+    kwargs macros;
+
+};
+
+class Styled {
+
+    // simple class for accessing styles
+
+public:
+
+    Styled();
+    virtual ~Styled();
+
+    virtual int32_t set_look(std::string look_);
+    
+    std::string look;
+    
+    std::string chars(std::string key);
+    sf::Color color(std::string key);
+    sf::Font &font(std::string key);
+    uint32_t textStyle(std::string key);
+    long double num(std::string key);
 };
 
 }

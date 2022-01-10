@@ -4,7 +4,6 @@ namespace ui{ class Frame; }
 
 #include "ui/core.h"
 #include "ui/window.h"
-#include "ui/command.h"
 #include "ui/borders.h"
 
 #include <cstdint>
@@ -24,7 +23,7 @@ typedef std::map<std::string, std::string> kwargs;
 
 namespace ui{
 
-class Frame : public Commandable {
+class Frame : public Styled {
 
     /*
        Class for managing input focus and ui layout.
@@ -101,7 +100,6 @@ class Frame : public Commandable {
        kwargs:
        
        look (chars)
-       id (chars)
        width (num)
        height (num)
        columnSpan (num)
@@ -113,8 +111,9 @@ class Frame : public Commandable {
 
 public:
 
+    Frame(kwargs values = {});
     Frame(Window *master_, kwargs values = {});
-    Frame(Frame *parent_ = nullptr, kwargs values = {});
+    Frame(Frame *parent_, kwargs values = {});
     virtual ~Frame();
 
     void set_parent(Frame *parent_);
@@ -138,13 +137,9 @@ public:
     // can this frame assume hard focus?
     bool focusable = 1;
 
-    // ticks
-    int32_t core_tick();
-    int32_t window_tick();
-
-    // extra actions related to ticks. 
-    virtual int32_t on_core_tick();
-    virtual int32_t on_window_tick();
+    // tick and actions related to a tick. 1 tick = 1 frame displayed.
+    int32_t tick();
+    virtual int32_t on_tick();
 
     // draw contents and display them on the window
     virtual int32_t draw();
@@ -222,6 +217,7 @@ public:
 
     // get parent some steps up
     Frame *get_parent(int32_t steps = 1);
+    Frame *get_top();
 
     // giving each of these variables getters would be stupid.
     // use only for access.
@@ -242,21 +238,14 @@ public:
     float windowX = 0, windowY = 0;
     float globalX = 0, globalY = 0;
     
+    // grid dimensions
+    int32_t columns = 0, rows = 0;
+    
     // automatic view containment
     bool autoContain = 1;
 
-    // set look
-    virtual int32_t set_look(std::string look_);
-
     // update all looks
     void update_style();
-
-    // access styles
-    std::string chars(std::string key);
-    sf::Color color(std::string key);
-    sf::Font &font(std::string key);
-    uint32_t textStyle(std::string key);
-    long double num(std::string key);
 
 protected:
 
@@ -264,16 +253,12 @@ protected:
     Frame *parent = nullptr;
     Window *master = nullptr;
 
-    std::string look = "";
-
-    // grid layout management
-    int32_t columns = 0, rows = 0;
+    // grid and fill configuration
     std::vector<float> widthFill, heightFill;
     std::vector<std::vector<Frame*> > grid;
 
     // grid content layout management
     std::vector<float> widthMax = {0}, heightMax = {0};
-
 
     // The frame's size on it's parent's grid.
     int32_t rowSpan = 1, columnSpan = 1; 
@@ -315,13 +300,14 @@ class SolidFrame : public Frame {
 
 public:
 
+    SolidFrame(kwargs values = {});
     SolidFrame(Window *master_, kwargs values = {});
     SolidFrame(Frame *parent_ = nullptr, kwargs values = {});
 
-    int32_t set_look(std::string look_);
-    
     int32_t draw();
     int32_t on_reconfig();
+
+    int32_t set_look(std::string look_);
 
 protected:
 
@@ -335,6 +321,7 @@ class ContentFrame : public Frame {
  
 public:
 
+    ContentFrame(kwargs values = {});
     ContentFrame(Window *master_, kwargs values = {});
     ContentFrame(Frame *parent_ = nullptr, kwargs values = {});
 

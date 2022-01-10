@@ -1,4 +1,4 @@
-#include "math/FFT.h"
+#include "math/fft.h"
 #include "math/constants.hpp"
 
 #include <algorithm>
@@ -74,18 +74,18 @@ void in_place_fft(vector<complex<float> > &v, bool inv){
     in_place_fft(v.data(), v.size(), inv);
 }
 
-vector<complex<float> > fft(float *v, int32_t n){
+vector<complex<float> > fft(const float *v, int32_t n){
     vector<complex<float> > f(n);
     for(int32_t i=0; i<n; i++) f[i] = v[i];
     in_place_fft(f, n);
     return f;
 }
 
-vector<complex<float> > fft(vector<float> &v){
+vector<complex<float> > fft(const vector<float> &v){
     return fft(v.data(), v.size());
 }
 
-vector<float> inverse_fft(complex<float> *v, int32_t n){
+vector<float> inverse_fft(const complex<float> *v, int32_t n){
     vector<float> r(n);
     vector<complex<float> > f(n);
     for(int32_t i=0; i<n; i++) f[i] = v[i];
@@ -94,7 +94,7 @@ vector<float> inverse_fft(complex<float> *v, int32_t n){
     return r;
 }
 
-vector<float> inverse_fft(vector<complex<float> > &v){
+vector<float> inverse_fft(const vector<complex<float> > &v){
     return inverse_fft(v.data(), v.size());
 }
 

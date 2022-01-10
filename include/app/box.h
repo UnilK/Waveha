@@ -1,12 +1,14 @@
 #pragma once
 
-class Box;
+namespace app { class Box; }
 
 #include "ui/button.h"
 #include "ui/text.h"
 
 #include "app/resizableFrame.h"
 #include "app/tab.h"
+
+namespace app {
 
 class Box : public ResizableFrame {
 
@@ -19,7 +21,7 @@ class Box : public ResizableFrame {
 
 public:
 
-    Box(ui::Frame *parent_, std::string title_, kwargs values = {});
+    Box(ui::Window *master_, std::string title_, kwargs values = {});
 
     bool place_to_tab(Tab *newTab);
     void detach_from_tab();
@@ -47,13 +49,4 @@ protected:
 
 };
 
-class NoContentBox : public Box {
-
-public:
-
-    NoContentBox(ui::Frame *parent_, std::string title_, kwargs values = {});
-
-    ui::Text text;
-
-};
-
+}

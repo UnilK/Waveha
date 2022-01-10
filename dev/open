@@ -7,6 +7,7 @@ openui="gnome-terminal --tab -t ui -- vim -S dev/.vimrc -p src/ui/*.cpp"
 openapp="gnome-terminal --tab -t app -- vim -S dev/.vimrc -p src/app/*.cpp"
 openstyle="gnome-terminal --tab -t style -- vim -S dev/.vimrc -p res/styles/*.style"
 openmain="gnome-terminal --tab -t main -- vim -S dev/.vimrc src/main.cpp"
+openchanger="gnome-terminal --tab -t changer -- vim -S dev/.vimrc src/changer/*.cpp"
 
 if [ $# -eq 0 ]
 then
@@ -39,6 +40,9 @@ do
             ;;
         style)
             $openstyle
+            ;;
+        changer)
+            $openchanger
             ;;
         make)
             $openterminal

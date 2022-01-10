@@ -2,8 +2,10 @@
 
 #include <iostream>
 
-Box::Box(ui::Frame *parent_, std::string title_, kwargs values) :
-    ResizableFrame(parent_,
+namespace app{
+
+Box::Box(ui::Window *master_, std::string title_, kwargs values) :
+    ResizableFrame(master_,
             {{"look", "Box"},
             {"height", "200"},
             {"border", "0 0 0 15"},
@@ -13,23 +15,23 @@ Box::Box(ui::Frame *parent_, std::string title_, kwargs values) :
     buttonFrame(this, {{"look", "ButtonBox"}, {"height", "24"}}),
     titleText(this, 
             {{"look", "BoxTitle"},
-            {"height", "24"},
+            {"height", "20"},
             {"text", title_}}),
     upSwitch(this, switch_up, this,
             {{"text", "up"},
-            {"height", "24"},
+            {"height", "20"},
             {"width", "50"},
             {"look", "BoxLeftButton"},
             {"pad", "0 0 0 0"}}),
     downSwitch(this, switch_down, this,
             {{"text", "down"},
-            {"height", "24"},
+            {"height", "20"},
             {"width", "50"},
             {"look", "BoxLeftButton"},
             {"pad", "0 0 0 0"}}),
     xButton(this, detach_box, this,
             {{"text", "detach"},
-            {"height", "24"},
+            {"height", "20"},
             {"width", "70"},
             {"look", "BoxRightButton"},
             {"pad", "0 0 0 0"}})
@@ -104,16 +106,4 @@ int32_t Box::index(){
     return tab->box_index(this);
 }
 
-
-
-NoContentBox::NoContentBox(ui::Frame *parent_, std::string title_, kwargs values) :
-    Box(parent_, title_, values),
-    text(this, 
-            {{"look", "BoxTitle"},
-            {"height", "24"},
-            {"width", "80"},
-            {"text", title_}})
-{
-    inner.put(1, 0, &text);
 }
-

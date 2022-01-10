@@ -1,20 +1,23 @@
 #include "ui/borders.h"
 #include "ui/frame.h"
 
+#include <iostream>
 #include <sstream>
 
 namespace ui {
 
-void Borders::set_look(Frame *parent){
+int32_t Borders::set_look(std::string look_){
 
-    back.setFillColor(parent->color("background"));
-    left.setFillColor(parent->color("borderColor"));
-    right.setFillColor(parent->color("borderColor"));
-    up.setFillColor(parent->color("borderColor"));
-    down.setFillColor(parent->color("borderColor"));
+    look = look_;
 
-    std::stringstream probe(parent->chars("borderThickness"));
-    std::stringstream borders(parent->chars("borderThickness"));
+    back.setFillColor(color("background"));
+    left.setFillColor(color("borderColor"));
+    right.setFillColor(color("borderColor"));
+    up.setFillColor(color("borderColor"));
+    down.setFillColor(color("borderColor"));
+
+    std::stringstream probe(chars("borderThickness"));
+    std::stringstream borders(chars("borderThickness"));
     std::string thickness;
     int32_t total = 0;
 
@@ -27,6 +30,7 @@ void Borders::set_look(Frame *parent){
         borders >> l >> r >> u >> d;
     }
 
+    return 0;
 }
 
 void Borders::set_size(float width, float height){

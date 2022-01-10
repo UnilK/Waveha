@@ -1,4 +1,4 @@
-#include "math/FT.h"
+#include "math/ft.h"
 #include "math/constants.hpp"
 
 #include <math.h>

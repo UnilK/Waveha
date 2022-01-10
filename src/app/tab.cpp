@@ -1,6 +1,41 @@
 #include "app/tab.h"
+#include <app/mainFrame.h>
 
 #include <iostream>
+
+namespace app {
+
+Tab::Tab(ui::Window *master_, std::string title_, kwargs values) :
+    ResizableFrame(
+            master_,
+            {{"look", "Tab"},
+            {"width", "500"},
+            {"border", "0 15 0 0"},
+            {"resize", "0 1 0 0"},
+            {"pad", "0 0 0 0"}}),
+    inner(this),
+    boxFrame(&inner, {{"look", "TabBackground"}}),
+    titleFrame(&inner, {{"look", "TabTitle"}, {"height", "20"}, {"text", title_}})
+{
+
+    title = title_;
+
+    set_inner(&inner);
+
+    inner.setup_grid(2, 1);
+    inner.fill_height(1, 1);
+    inner.fill_width(0, 1);
+
+    inner.put(0, 0, &titleFrame);
+    inner.put(1, 0, &boxFrame);
+
+    boxFrame.autoContain = 0;
+    boxFrame.setup_grid(boxMax, 1);
+    boxFrame.fill_width(0, 1);
+
+    ((ResizerFrame*)grid[1][2])->set_scrollable(1, &boxFrame);
+
+}
 
 Tab::Tab(ui::Frame *parent_, std::string title_, kwargs values) :
     ResizableFrame(
@@ -80,7 +115,12 @@ int32_t Tab::box_index(Box *box){
 
 int32_t Tab::on_event(sf::Event event, int32_t priority){
 
-    // TODO: tab focus.
+    if(event.type == sf::Event::MouseButtonPressed){
+       
+        ((MainFrame*)get_top())->chosenTab = this;
+
+        return 0;
+    }
 
     return -1;
 }
@@ -92,3 +132,4 @@ void Tab::rename(std::string name){
 
 std::string Tab::get_title(){ return title; }
 
+}

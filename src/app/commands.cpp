@@ -1,38 +1,31 @@
 #include "app/app.h"
-
 #include "app/box.h"
 #include "app/tab.h"
+
+#include "wstream/wstream.h"
 
 #include <iostream>
 #include <fstream>
 
-int32_t App::update_children(){
-    
-    commandChildren = {
-        &sessionCommands,
-        &boxCommands,
-        &tabCommands,
-        &audioCommands,
-        &analysisCommands,
-        &blingCommands
-    };
-    
-    return 0;
-}
+namespace app {
 
-int32_t App::execute_command(ui::Command &cmd){
+int32_t App::execute_command(ui::Command cmd){
     
     if(execute_standard(cmd)){
         return 0;
     } else {
-        std::cout << "unrecognized command: " << cmd.command << '\n';
+        std::cout << "unrecognized command: " << cmd.address << ' ' << cmd.command << '\n';
     }
 
     return 1;
 }
 
+void App::log_command(ui::Command cmd){
+    session.push_back(cmd);
+}
+
 SessionCommands::SessionCommands(){
-    id = "session";
+    commandId = "ses";
     commandHelp = "save & load sessions";
     commandDocs = {
         {"save __name", "save session"},
@@ -41,7 +34,7 @@ SessionCommands::SessionCommands(){
         {"rename _name", "rename session"}};
 }
 
-int32_t SessionCommands::execute_command(ui::Command &cmd){
+int32_t SessionCommands::execute_command(ui::Command cmd){
    
     if(execute_standard(cmd)) return 0;
     
@@ -75,18 +68,20 @@ int32_t SessionCommands::execute_command(ui::Command &cmd){
         cin >> name;
 
         std::ifstream file("sessions/"+name+".was");
-        if(!file.good()) return 1;
+        if(!file.good()){
+            return 1;
+            std::cout << "bad file\n";
+        }
+        
+        app.clean();
 
         app.sessionName = name;
-        app.session.clear();
 
         std::string mem;
 
         while(std::getline(file, mem)){
-            std::stringstream mems(mem);
-            ui::Command command = app.create_command(mems);
+            ui::Command command = app.create_command(mem);
             app.deliver_address(command);
-            app.session.push_back(command);
         }
 
         return 0;
@@ -99,6 +94,8 @@ int32_t SessionCommands::execute_command(ui::Command &cmd){
         cin >> name;
         
         if(name == "") return 1;
+
+        app.clean();
 
         app.sessionName = name;
         app.session.clear();
@@ -130,15 +127,15 @@ int32_t SessionCommands::execute_command(ui::Command &cmd){
 
 
 BoxCommands::BoxCommands(){
-    id = "box";
+    commandId = "box";
     commandHelp = "manage boxes";
     commandDocs = {
-        {"new _name", "create new nocontentbox"},
+        {"analyzer _name", "create new analyzer"},
         {"place _box _tab", "place box to tab"},
         {"detach _box", "detach box from tab"}};
 }
 
-int32_t BoxCommands::execute_command(ui::Command &cmd){
+int32_t BoxCommands::execute_command(ui::Command cmd){
 
     if(execute_standard(cmd)) return 0;
 
@@ -149,16 +146,20 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
 
     App &app = *(App*)commandParent;
         
-    if(prefix == "new"){
+    if(prefix == "analyzer"){
         
         std::string name;
         cin >> name;
 
-        NoContentBox *pointer = new NoContentBox(&app.window.main, name);
+        Analyzer *pointer = new Analyzer(&app.window, name);
+        MainFrame &main = app.window.main;
 
+        app.analyzers.push_back(pointer);
         app.window.main.add_box(pointer);
+        app.analyzerCommands.link_child(pointer);
+        if(main.chosenTab != nullptr) pointer->place_to_tab(main.chosenTab); 
 
-        app.session.push_back(cmd);
+        app.log_command(cmd);
 
         return 0;
     } else if(prefix == "place"){
@@ -170,12 +171,18 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
         Tab *tabp = app.window.main.find_tab(tab);
 
         if(boxp != nullptr && tabp != nullptr){
+            
             boxp->place_to_tab(tabp);
+            app.log_command(cmd);
+            
+            return 0;
+        }
+        else {
+            if(boxp == nullptr) std::cout << "error: box not found\n";
+            if(tabp == nullptr) std::cout << "error: tab not found\n";
+            return 1;
         }
         
-        app.session.push_back(cmd);
-        
-        return 0;
     } else if(prefix == "detach"){
         
         std::string box;
@@ -187,7 +194,7 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
             boxp->detach_from_tab();
         }
         
-        app.session.push_back(cmd);
+        app.log_command(cmd);
         
         return 0;
     } else {
@@ -200,13 +207,13 @@ int32_t BoxCommands::execute_command(ui::Command &cmd){
 
 
 TabCommands::TabCommands(){
-    id = "tab";
+    commandId = "tab";
     commandHelp = "manage tabs";
     commandDocs = {
         {"new _name", "create new tab"}};
 }
 
-int32_t TabCommands::execute_command(ui::Command &cmd){
+int32_t TabCommands::execute_command(ui::Command cmd){
 
     if(execute_standard(cmd)) return 0;
 
@@ -222,11 +229,12 @@ int32_t TabCommands::execute_command(ui::Command &cmd){
         std::string name;
         cin >> name;
 
-        Tab *pointer = new Tab(&app.window.main, name);
+        Tab *pointer = new Tab(&app.window, name);
 
         app.window.main.add_tab(pointer);
-        
-        app.session.push_back(cmd);
+        app.window.main.chosenTab = pointer;
+
+        app.log_command(cmd);
 
         return 0;
     } else {
@@ -237,37 +245,100 @@ int32_t TabCommands::execute_command(ui::Command &cmd){
 
 
 AudioCommands::AudioCommands(){
-    id = "audio";
+    commandId = "aud";
     commandHelp = "manage audio";
     commandDocs = {
-        {"link _name", "link audio"}};
+        {"link _file __handle", "link wav files"},
+        {"list", "list linked audio"}};
 }
 
-int32_t AudioCommands::execute_command(ui::Command &cmd){
+int32_t AudioCommands::execute_command(ui::Command cmd){
+    
+    if(execute_standard(cmd)) return 0;
+
+    App &app = *(App*)commandParent;
+    
+    std::stringstream cin(cmd.command);
+    std::string prefix;
+
+    cin >> prefix;
+
+    if(prefix == "link"){
+
+        std::string fileName, handle;
+
+        cin >> fileName >> handle;
+
+        iwstream I;
+        I.logging = 1;
+        
+        if(I.open(fileName)){
+            if(handle.empty()) handle = fileName;
+            AudioSource source{fileName, handle, AudioSource::File};
+            app.sources.push_back(source);
+            app.log_command(cmd);
+            return 0;
+        } else if(I.open("audio/" + fileName + ".wav")){
+            if(handle.empty()) handle = fileName;
+            AudioSource source{"audio/" + fileName + ".wav", handle, AudioSource::File};
+            app.sources.push_back(source);
+            app.log_command(cmd);
+            return 0;
+        } else {
+            std::cout << "error linking audio:\n";
+            for(auto log : I.get_log()) std::cout << log << '\n';
+            return 1;
+        }
+
+    } else if(prefix == "list"){
+
+        std::cout << "audio sources:\n";
+        for(auto i : app.sources) std::cout << i.handle << ": " << i.name << '\n'; 
+
+    } else {
+
+    }
+
     return 1;
 }
 
 
 
-AnalysisCommands::AnalysisCommands(){
-    id = "analysis";
+AnalyzerCommands::AnalyzerCommands(){
+    commandId = "ana";
     commandHelp = "analyze audio";
-    commandDocs = {
-        {"analyze _name", "analyze linked or cached audio"}};
+    commandDocs = {{"list", "list analyzers"}};
 }
 
-int32_t AnalysisCommands::execute_command(ui::Command &cmd){
-    return 1;
+int32_t AnalyzerCommands::execute_command(ui::Command cmd){
+    
+    if(execute_standard(cmd)) return 0;
+
+    App &app = *(App*)commandParent;
+    
+    std::stringstream cin(cmd.command);
+    std::string prefix;
+
+    cin >> prefix;
+    
+    if(prefix == "list"){
+        std::cout << "analyzers:\n";
+        for(Analyzer *a : app.analyzers) std::cout << a->get_title() << '\n';
+        return 0;
+    } else {
+        std::cout << "analyzer command not recognized.\n";
+        return 1;
+    }
 }
 
 BlingCommands::BlingCommands(){
-    id = "bling";
+    commandId = "bling";
     commandHelp = "manage styles";
     commandDocs = {
         {"_name", "load syle file"}};
 }
 
-int32_t BlingCommands::execute_command(ui::Command &cmd){
+int32_t BlingCommands::execute_command(ui::Command cmd){
     
     if(execute_standard(cmd)) return 0;
 
@@ -276,16 +347,16 @@ int32_t BlingCommands::execute_command(ui::Command &cmd){
 
     cin >> fileName;
     
-    std::ifstream I("res/styles/"+fileName+".style");
-
-    if(I.good()){
-        App &app = *(App*)commandParent;
-        app.style.load("res/styles/"+fileName+".style");
-        app.update_style();
-        return 0;
-    } else {
-        std::cout << "file not found: " << "res/styles/"+fileName+".style\n";
+    App &app = *(App*)commandParent;
+    
+    if(app.set_style("res/styles/"+fileName+".style")){
+        std::cout << "file not found: res/styles/"+fileName+".style\n";
         return 1;
+    } else {
+        std::cout << "style updated\n";
+        return 0;
     }
+
+}
 
 }

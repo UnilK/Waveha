@@ -19,7 +19,7 @@ int32_t Button::set_look(std::string look_){
     
     look = look_;
 
-    if(pressed) look = chars("pressed");
+    if(buttonPressed) look = chars("pressed");
     else look = chars("normal");
 
     textBox.setString(text);
@@ -28,7 +28,7 @@ int32_t Button::set_look(std::string look_){
     textBox.setCharacterSize(num("textSize"));
     textBox.setFillColor(color("textColor"));
 
-    border.set_look(this);
+    border.set_look(look);
 
     look = look_;
 
@@ -42,12 +42,12 @@ int32_t Button::on_event(sf::Event event, int32_t priority){
     if(priority > 0) return -1;
 
     if(event.type == sf::Event::MouseButtonPressed){
-        pressed = 1;
+        buttonPressed = 1;
         set_refresh();
         set_look(look);
     }
     else if(event.type == sf::Event::MouseButtonReleased){
-        pressed = 0;
+        buttonPressed = 0;
         set_refresh();
         set_look(look);
         if(master->get_soft_focus() == this)

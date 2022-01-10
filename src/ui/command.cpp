@@ -1,6 +1,7 @@
 #include "ui/command.h"
 
 #include <iostream>
+#include <sstream>
 
 namespace ui{
 
@@ -15,13 +16,21 @@ Command::Command(std::string a, std::string c, bool r, void *p) :
 
 
 
-Commandable::Commandable(std::string id_) : id(id_) {}
+Commandable::Commandable(std::string id) : commandId(id) {
+    commandFocus = this;
+}
 
-int32_t Commandable::execute_command(Command &cmd){
+Commandable::~Commandable(){
+    if(commandRoot != nullptr && commandRoot->commandFocus == this){
+        commandRoot->commandFocus = commandRoot;
+    }
+}
+
+int32_t Commandable::execute_command(Command cmd){
     return 0;
 }
 
-bool Commandable::execute_standard(Command &cmd){
+bool Commandable::execute_standard(Command cmd){
 
     std::stringstream cmds(cmd.command);
     
@@ -29,17 +38,23 @@ bool Commandable::execute_standard(Command &cmd){
     cmds >> head;
 
     if(head == _CMD_HELP){
+        
         std::cout << commandHelp << '\n';
         return 1;
+
     } else if(head == _CMD_LIST_COMMANDS){
+        
         for(auto i : commandDocs) std::cout << i.first << ": " << i.second << '\n';
         return 1;
+    
     } else if(head == _CMD_LIST){
-        for(auto child : commandChildren) std::cout << child->id << '\n';
+
+        for(auto child : commandChildren) std::cout << child->commandId << '\n';
         return 1;
+
     } else if(head == _CMD_MOVE){
         
-        commandRoot->commandFocus = address;
+        commandRoot->commandFocus = this;
 
         std::string location;
         cmds >> location;
@@ -53,7 +68,7 @@ bool Commandable::execute_standard(Command &cmd){
             }
         } else {
             for(auto child : commandChildren){
-                if(child->id == location){
+                if(child->commandId == location){
                     std::string nextAddress;
                     std::getline(cmds, nextAddress);
                     Command next("", "cd "+nextAddress);
@@ -73,69 +88,92 @@ int32_t Commandable::execute_requests(){
     commandRequests.clear();
     return 0;
 }
-
-int32_t Commandable::update_children(){
-    return 0;
+    
+void Commandable::link_child(Commandable *child){
+    child->commandRoot = commandRoot;
+    child->commandParent = this;
+    commandChildren.insert(child);
 }
 
-int32_t Commandable::update_address(std::string a, Commandable *parent_){
-    
-    address = a;
-    if(parent_ == nullptr){
-        commandRoot = this;
-        commandParent = nullptr;
-    } else {
-        commandParent = parent_;
-        commandRoot = commandParent->commandRoot;
-    }
-
-    for(auto &child : commandChildren){
-        if(a.empty()) child->update_address(child->id, this);
-        else child->update_address(a + " " + child->id, this);
-    }
-
-    return 0;
+void Commandable::detach_child(Commandable *child){
+    child->commandRoot = nullptr;
+    child->commandParent = nullptr;
+    commandChildren.erase(child);
 }
 
-int32_t Commandable::deliver_address(Command &cmd){
-
-    if(address == cmd.address){
-        if(cmd.request) commandRequests.push_back(cmd);
-        else execute_command(cmd);
-    } else {
-        for(auto &child : commandChildren) child->deliver_address(cmd);
-    }
-
-    return 0;
+void Commandable::clear_children(){
+    while(!commandChildren.empty()) detach_child(*commandChildren.begin());
 }
 
-int32_t Commandable::deliver_id(Command &cmd){
-    
-    for(auto &child : commandChildren) child->deliver_id(cmd);
-    
-    if(id == cmd.address){
-        if(cmd.request) commandRequests.push_back(cmd);
-        else execute_command(cmd);
+int32_t Commandable::deliver_address(Command cmd){
+
+    std::stringstream cin(cmd.address);
+
+    Commandable *current = commandFocus;
+    std::string id;
+
+    while(cin >> id) {
+        for(auto child : current->commandChildren){
+            if(child->commandId == id){
+                current = child;
+                break;
+            }
+        }
+        if(current->commandId != id) break;
     }
+
+    if(cmd.request) current->commandRequests.push_back(cmd);
+    else current->execute_command(cmd);
 
     return 0;
 }
 
-Command Commandable::create_command(std::stringstream &addressCommand){
+int32_t Commandable::deliver_id(Command cmd){
     
-    std::string next;
-    addressCommand >> next;
+    auto inner = [&](auto &&inner, Commandable *current) -> void {
+        for(auto child : current->commandChildren){
+            if(child->commandId == cmd.address){
+                if(current->commandId == cmd.address){
+                    if(cmd.request) current->commandRequests.push_back(cmd);
+                    else current->execute_command(cmd);
+                }
+                else {
+                    inner(inner, child);
+                }
+            }
+        }
+    };
 
-    for(auto child : commandChildren){
-        if(child->id == next) return child->create_command(addressCommand);
+    inner(inner, commandFocus);
+
+    return 0;
+}
+
+Command Commandable::create_command(std::string addressCommand){
+    
+    std::stringstream cin(addressCommand);
+    std::string address, id;
+    
+    Commandable *current = commandFocus;
+
+    while(cin >> id) {
+        for(auto child : current->commandChildren){
+            if(child->commandId == id){
+                if(address.empty()) address += id;
+                else address += " " + id;
+                current = child;
+                break;
+            }
+        }
+        if(current->commandId != id) break;
     }
 
     std::string rest;
-    std::getline(addressCommand, rest);
+    std::getline(cin, rest);
 
-    next += rest;
+    id += rest;
 
-    return Command(address, next);
+    return Command(address, id);
 }
 
 }

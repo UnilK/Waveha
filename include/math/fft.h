@@ -15,11 +15,11 @@ using std::complex;
 void in_place_fft(complex<float> *v, int32_t n, bool inv = 0);
 void in_place_fft(vector<complex<float> > &v, bool inv = 0);
 
-vector<complex<float> > fft(float *v, int32_t n);
-vector<complex<float> > fft(vector<float> &v);
+vector<complex<float> > fft(const float *v, int32_t n);
+vector<complex<float> > fft(const vector<float> &v);
 
-vector<float> inverse_fft(complex<float> *v, int32_t n);
-vector<float> inverse_fft(vector<complex<float> > &v);
+vector<float> inverse_fft(const complex<float> *v, int32_t n);
+vector<float> inverse_fft(const vector<complex<float> > &v);
 
 vector<complex<float> > fft(vector<complex<float> > v, bool inv = 0);
 vector<complex<float> > fft(complex<float> *v, int32_t n, bool inv = 0);
@@ -30,7 +30,7 @@ vector<complex<float> > convolution(
         vector<complex<float> > b,
         int32_t size = 0);
 
-// this are here for fun
+// these are here for fun
 vector<complex<float> > bluestein(vector<complex<float> > v, bool inv = 0); 
 vector<complex<float> > bluestein(vector<float> &v, bool inv = 0);
 vector<float> inverse_bluestein(vector<complex<float> > &v); 

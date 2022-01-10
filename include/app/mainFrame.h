@@ -4,6 +4,8 @@
 #include "app/tab.h"
 #include "app/box.h"
 
+namespace app {
+
 class TabBar : public ui::SolidFrame {
 
     /*
@@ -48,7 +50,7 @@ public:
     
     const int32_t tabMax = 100;
 
-    Tab *chosenTab;
+    Tab *chosenTab = nullptr;
 
     std::vector<Tab*> tabs;
     std::vector<Box*> boxes;
@@ -56,6 +58,8 @@ public:
     ui::SolidFrame tabFrame;
     TabBar tabBar;
     Tab infoTab;
+
+    void clean();
 
 };
 
@@ -73,3 +77,4 @@ public:
 
 };
 
+}

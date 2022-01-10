@@ -6,8 +6,8 @@ using namespace std;
 
 int main(int argc, char *argv[]){
 
-    App app;
-    app.start();
+    app::App waveha;
+    waveha.start();
 
     return 0;
 }

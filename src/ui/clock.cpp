@@ -36,7 +36,7 @@ void Clock::join_tick(){
         return;
     }
     std::this_thread::sleep_for(length);
-force_sync_tick();
+    force_sync_tick();
 }
 
 long double Clock::get_duration(){

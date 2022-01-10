@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ui/style.h"
+
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 
@@ -7,11 +9,11 @@ namespace ui{
 
 class Frame;
 
-class Borders {
+class Borders : public Styled {
 
 public:
 
-    void set_look(Frame *parent);
+    int32_t set_look(std::string look_);
     void set_size(float width, float height);
     void set_position(float x, float y);
     void draw(sf::RenderTarget &target);

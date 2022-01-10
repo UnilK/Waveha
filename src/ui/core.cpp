@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
 
 namespace ui{
 
@@ -24,6 +25,9 @@ Core::Core(std::string styleFile, long double tickRate) :
     style(styleFile),
     clock(1.0l/tickRate)
 {
+    commandId = "";
+    commandRoot = this;
+    commandFocus = this;
     terminal = new std::thread(listen_terminal, this);
     terminal->detach();
     object = this;
@@ -38,10 +42,8 @@ int32_t Core::start(){
         terminalCommandLock.lock();
 
         for(auto cmd : terminalCommands){
-            cmd = commandFocus + " " + cmd;
-            std::stringstream cmds(cmd);
-            Command command = create_command(cmds);
-            deliver_address(command);
+            Command command = commandFocus->create_command(cmd);
+            commandFocus->deliver_address(command);
         }
 
         terminalCommands.clear();
@@ -50,7 +52,7 @@ int32_t Core::start(){
 
         for(Window *window : windows){
             window->event_update();
-            window->core_tick();
+            window->tick();
         }
         clean_windows();
 
@@ -85,6 +87,19 @@ int32_t Core::command_from_terminal(std::string command){
     terminalCommands.push_back(command);
     terminalCommandLock.unlock();
     return 0;
+}
+
+int32_t Core::set_style(std::string styleFile){
+
+    std::ifstream I(styleFile);
+
+    if(I.good()){
+        style.load(styleFile);
+        update_style();
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 void Core::update_style(){
