@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ui{ class Core; }
+namespace ui { class Core; }
 
 #include "ui/window.h"
 #include "ui/style.h"
@@ -12,7 +12,7 @@ namespace ui{ class Core; }
 #include <thread>
 #include <mutex>
 
-namespace ui{
+namespace ui {
 
 class Core : public Commandable {
     

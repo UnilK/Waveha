@@ -5,7 +5,7 @@ namespace app { class App; }
 #include "ui/core.h"
 #include "ui/window.h"
 
-#include "wave/readableAudio.h"
+#include "wave/file.h"
 
 #include "app/mainFrame.h"
 #include "app/analyzer.h"
@@ -91,7 +91,7 @@ public:
     std::vector<ui::Command> session;
     void log_command(ui::Command cmd);
 
-    wave::ReadableAudio *create_source(std::string handle);
+    wave::Source *create_source(std::string handle);
     std::vector<AudioSource> sources;
     
     std::vector<Analyzer*> analyzers;

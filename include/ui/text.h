@@ -5,7 +5,7 @@
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 
-namespace ui{
+namespace ui {
 
 class Text : public ContentFrame {
 

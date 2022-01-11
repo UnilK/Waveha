@@ -5,7 +5,7 @@
 #include <math.h>
 #include <string>
 
-namespace ui{
+namespace ui {
     
 Button::Button(Frame *parent_, int32_t(*function_)(void *), void *target_, kwargs values) :
     Text(parent_, values),

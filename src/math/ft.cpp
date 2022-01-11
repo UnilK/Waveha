@@ -3,7 +3,7 @@
 
 #include <math.h>
 
-namespace math{
+namespace math {
 
 using std::vector;
 using std::complex;

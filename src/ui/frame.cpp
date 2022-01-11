@@ -9,7 +9,7 @@
 #include <math.h>
 #include <assert.h>
 
-namespace ui{
+namespace ui {
 
 Frame::Frame(kwargs values){
     core = Core::object;

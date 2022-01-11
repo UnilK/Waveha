@@ -41,12 +41,12 @@ void App::clean(){
     analyzers.clear();
 }
 
-wave::ReadableAudio *App::create_source(std::string handle){
+wave::Source *App::create_source(std::string handle){
    
     for(auto source : sources){
         if(source.handle == handle){
             if(source.type == AudioSource::File){
-                wave::ReadableAudio *pointer = new wave::AudioFile(source.name);
+                wave::Source *pointer = new wave::File(source.name);
                 return pointer;
             }
         }

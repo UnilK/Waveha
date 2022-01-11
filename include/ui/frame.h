@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ui{ class Frame; }
+namespace ui { class Frame; }
 
 #include "ui/core.h"
 #include "ui/window.h"
@@ -21,7 +21,7 @@ namespace ui{ class Frame; }
 
 typedef std::map<std::string, std::string> kwargs;
 
-namespace ui{
+namespace ui {
 
 class Frame : public Styled {
 

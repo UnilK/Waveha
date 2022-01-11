@@ -8,7 +8,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace ui{
+namespace ui {
 
 Style::Style(std::string styleFile){
     load(styleFile);

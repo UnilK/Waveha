@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-namespace app{
+namespace app {
 
 Box::Box(ui::Window *master_, std::string title_, kwargs values) :
     ResizableFrame(master_,

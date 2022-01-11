@@ -1,10 +1,10 @@
-#include "wave/typeConverter.h"
+#include "wave/util.h"
 
 #include <algorithm>
 #include <math.h>
 #include <cstdint>
 
-namespace wave{
+namespace wave {
 
 sf::Int16 float_to_int(float num){
     return (sf::Int16)std::round(std::min((float)(1<<15)-1, std::max(-(float)(1<<15), num*(1<<15))));

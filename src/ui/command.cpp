@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace ui{
+namespace ui {
 
 const std::string _CMD_LIST_COMMANDS = "cmd";
 const std::string _CMD_HELP = "help";

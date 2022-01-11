@@ -2,7 +2,7 @@
 
 #include "ui/text.h"
 
-namespace ui{
+namespace ui {
 
 class Button : public ui::Text {
 

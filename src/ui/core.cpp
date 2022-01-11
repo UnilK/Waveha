@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace ui{
+namespace ui {
 
 Core *Core::object = nullptr;
 

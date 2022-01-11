@@ -1,16 +1,16 @@
 #pragma once
 
-#include "wave/audioBuffer.h"
+#include "wave/buffer.h"
 
 #include <SFML/Audio/SoundRecorder.hpp>
 
 namespace wave{
 
-class RecordableAudio : public AudioBuffer, public sf::SoundRecorder {
+class Mic : public Buffer, public sf::SoundRecorder {
 
 public:
 
-    RecordableAudio();
+    Mic();
 
     bool onStart();
 

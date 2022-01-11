@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ui{ class Window; }
+namespace ui { class Window; }
 
 #include "ui/core.h"
 #include "ui/frame.h"
@@ -16,7 +16,7 @@ namespace ui{ class Window; }
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 
-namespace ui{
+namespace ui {
 
 class Window : public sf::RenderWindow {
  

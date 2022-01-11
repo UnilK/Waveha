@@ -7,9 +7,9 @@
 
 typedef std::map<std::string, std::string> kwargs;
 
-namespace ui{
+namespace ui {
 
-class Style{
+class Style {
 
     // class for managing outlooks.
 

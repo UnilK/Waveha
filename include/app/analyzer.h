@@ -3,7 +3,7 @@
 #include "app/box.h"
 #include "app/graph.h"
 #include "ui/command.h"
-#include "wave/audioFile.h"
+#include "wave/source.h"
 
 namespace app {
 
@@ -38,7 +38,7 @@ protected:
 
     const int32_t defaultLength = 1<<10;
 
-    wave::ReadableAudio *source = nullptr;
+    wave::Source *source = nullptr;
     int32_t position = 0, length = defaultLength;
 
     Mode dataMode = regularMode;

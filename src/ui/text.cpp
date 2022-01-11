@@ -4,7 +4,7 @@
 #include <iostream>
 #include <math.h>
 
-namespace ui{
+namespace ui {
 
 int32_t Text::setup(kwargs &values){
     

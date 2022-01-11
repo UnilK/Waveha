@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace ui{
+namespace ui {
 
 using namespace std::chrono;
 

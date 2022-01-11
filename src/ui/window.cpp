@@ -4,7 +4,7 @@
 #include <sstream>
 #include <math.h>
 
-namespace ui{
+namespace ui {
 
 Window::Window(Core *core_, float width_, float height_,
         std::string title_, long double refreshRate) :

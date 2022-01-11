@@ -4,9 +4,9 @@
 #include <vector>
 #include <set>
 
-namespace ui{
+namespace ui {
 
-class Command{
+class Command {
 
 public:
 
@@ -19,7 +19,7 @@ public:
 
 };
 
-class Commandable{
+class Commandable {
 
 public:
 

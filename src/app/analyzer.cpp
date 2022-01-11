@@ -58,7 +58,6 @@ Analyzer::Analyzer(ui::Window *master_, std::string title_) :
 
 Analyzer::~Analyzer(){
     if(source != nullptr){
-        source->stop();
         delete source;
     }
 }
@@ -97,11 +96,11 @@ void Analyzer::update_data(){
 
         if(dataMode == regularMode){
             
-            graph.set_data(source->get_data(length, position));
+            graph.set_data(source->get(length, position));
         
         } else if(dataMode == frequencyMode){
             
-            auto data = math::fft(source->get_data(length, position));
+            auto data = math::fft(source->get(length, position));
             data.resize(data.size()/2 + 1);
 
             graph.set_data(data);
