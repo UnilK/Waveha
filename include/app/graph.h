@@ -34,7 +34,7 @@ class Graph : public ui::ContentFrame {
 
 public:
 
-    Graph(ui::Frame *parent_, kwargs values = {});
+    Graph(ui::Window *master_, kwargs values = {});
 
     int32_t set_look(std::string look_);
     int32_t on_event(sf::Event event, int32_t priority);

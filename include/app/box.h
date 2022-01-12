@@ -28,24 +28,27 @@ public:
 
     void rename(std::string name);
 
-    static int32_t switch_up(void *box);
-    static int32_t switch_down(void *box);
-    static int32_t detach_box(void *box);
-
     std::string get_title();
     Tab *get_tab();
 
 protected:
 
-    ui::Frame inner, buttonFrame;
+    ui::Frame inner;
     
     ui::Text titleText;
-    ui::Button upSwitch, downSwitch, xButton;
-
+    
     Tab *tab = nullptr;
     int32_t index();
 
     std::string title;
+
+private:
+    
+    ui::Frame buttonFrame;
+    class BU : public ui::Button { using ui::Button::Button; void function(); }; BU upSwitch;
+    class BD : public ui::Button { using ui::Button::Button; void function(); }; BD downSwitch;
+    class BX : public ui::Button { using ui::Button::Button; void function(); }; BX detachButton;
+
 
 };
 

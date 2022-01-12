@@ -7,10 +7,9 @@
 
 namespace ui {
     
-Button::Button(Frame *parent_, int32_t(*function_)(void *), void *target_, kwargs values) :
-    Text(parent_, values),
-    function(function_),
-    target(target_)
+Button::Button(Window *master_, void *commander_, kwargs values) :
+    Text(master_, values),
+    commander(commander_)
 {
     set_look(look);
 }
@@ -50,8 +49,7 @@ int32_t Button::on_event(sf::Event event, int32_t priority){
         buttonPressed = 0;
         set_refresh();
         set_look(look);
-        if(master->get_soft_focus() == this)
-            function(target);
+        if(master->get_soft_focus() == this) function();
     }
 
     return 0;

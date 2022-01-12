@@ -7,17 +7,6 @@ namespace ui {
 class Button : public ui::Text {
 
     /*
-       my design pattern need improvement here.
-
-       create a button on a parent frame.
-       give the parent frame static method that takes
-       it's own pointer as input.
-       pass static function and "this" to button.
-
-       maybe lambdas? template magic?
-
-
-
        style:
        normal (look)
        pressed (look)
@@ -28,7 +17,7 @@ class Button : public ui::Text {
 
 public:
 
-    Button(Frame *parent_, int32_t (*function_)(void*), void *target_, kwargs values = {});
+    Button(Window *master_, void *commander_, kwargs values = {});
 
     int32_t set_look(std::string look_);
     
@@ -38,9 +27,11 @@ protected:
 
     std::string baseLook;
 
+    void *commander = nullptr;
+
+    virtual void function() = 0;
+
     bool buttonPressed = 0;
-    int32_t (*function)(void*);
-    void *target;
 
 };
 

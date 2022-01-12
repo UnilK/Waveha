@@ -7,15 +7,15 @@ namespace app {
 
 Tab::Tab(ui::Window *master_, std::string title_, kwargs values) :
     ResizableFrame(
-            master_,
+            master_, kwargs
             {{"look", "Tab"},
             {"width", "500"},
             {"border", "0 15 0 0"},
             {"resize", "0 1 0 0"},
             {"pad", "0 0 0 0"}}),
-    inner(this),
-    boxFrame(&inner, {{"look", "TabBackground"}}),
-    titleFrame(&inner, {{"look", "TabTitle"}, {"height", "20"}, {"text", title_}})
+    inner(master_),
+    boxFrame(master_, kwargs{{"look", "TabBackground"}}),
+    titleFrame(master_, kwargs{{"look", "TabTitle"}, {"height", "20"}, {"text", title_}})
 {
 
     title = title_;
@@ -33,39 +33,7 @@ Tab::Tab(ui::Window *master_, std::string title_, kwargs values) :
     boxFrame.setup_grid(boxMax, 1);
     boxFrame.fill_width(0, 1);
 
-    ((ResizerFrame*)grid[1][2])->set_scrollable(1, &boxFrame);
-
-}
-
-Tab::Tab(ui::Frame *parent_, std::string title_, kwargs values) :
-    ResizableFrame(
-            parent_,
-            {{"look", "Tab"},
-            {"width", "500"},
-            {"border", "0 15 0 0"},
-            {"resize", "0 1 0 0"},
-            {"pad", "0 0 0 0"}}),
-    inner(this),
-    boxFrame(&inner, {{"look", "TabBackground"}}),
-    titleFrame(&inner, {{"look", "TabTitle"}, {"height", "20"}, {"text", title_}})
-{
-
-    title = title_;
-
-    set_inner(&inner);
-
-    inner.setup_grid(2, 1);
-    inner.fill_height(1, 1);
-    inner.fill_width(0, 1);
-
-    inner.put(0, 0, &titleFrame);
-    inner.put(1, 0, &boxFrame);
-
-    boxFrame.autoContain = 0;
-    boxFrame.setup_grid(boxMax, 1);
-    boxFrame.fill_width(0, 1);
-
-    ((ResizerFrame*)grid[1][2])->set_scrollable(1, &boxFrame);
+    ((ResizerFrame*)get(1, 2))->set_scrollable(1, &boxFrame);
 
 }
 
@@ -109,7 +77,10 @@ void Tab::clean_layout(){
 }
 
 int32_t Tab::box_index(Box *box){
-    for(int32_t i=0; i<boxMax; i++) if(boxFrame.get(i, 0) == box) return i;
+    for(int32_t i=0; i<boxMax; i++){
+        if(boxFrame.get(i, 0) == box) return i;
+    }
+
     return -1;
 }
 

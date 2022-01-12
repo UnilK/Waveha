@@ -17,7 +17,7 @@ class TabBar : public ui::SolidFrame {
 
 public:
 
-    TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, kwargs values = {});
+    TabBar(ui::Window *master_, ui::Frame *tabFrame_, kwargs values = {});
 
     int32_t on_event(sf::Event event, int32_t priority = 0);
 

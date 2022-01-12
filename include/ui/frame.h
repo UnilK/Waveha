@@ -5,6 +5,7 @@ namespace ui { class Frame; }
 #include "ui/core.h"
 #include "ui/window.h"
 #include "ui/borders.h"
+#include "ui/style.h"
 
 #include <cstdint>
 #include <string>
@@ -19,7 +20,7 @@ namespace ui { class Frame; }
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Font.hpp>
 
-typedef std::map<std::string, std::string> kwargs;
+typedef const std::map<std::string, std::string>& kwargs;
 
 namespace ui {
 
@@ -111,9 +112,7 @@ class Frame : public Styled {
 
 public:
 
-    Frame(kwargs values = {});
     Frame(Window *master_, kwargs values = {});
-    Frame(Frame *parent_, kwargs values = {});
     virtual ~Frame();
 
     void set_parent(Frame *parent_);
@@ -269,7 +268,7 @@ protected:
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
 
     // parser for poor man's **kwargs
-    bool read_value(std::string key, std::stringstream &value, kwargs &values);
+    bool read_value(std::string key, std::stringstream &value, kwargs values);
 
     // flags
     bool refreshFlag = 1;
@@ -283,7 +282,7 @@ protected:
 
 private:
 
-    int32_t setup(kwargs &values);
+    int32_t setup(kwargs values);
 
 };
 
@@ -300,9 +299,7 @@ class SolidFrame : public Frame {
 
 public:
 
-    SolidFrame(kwargs values = {});
     SolidFrame(Window *master_, kwargs values = {});
-    SolidFrame(Frame *parent_ = nullptr, kwargs values = {});
 
     int32_t draw();
     int32_t on_reconfig();
@@ -321,9 +318,7 @@ class ContentFrame : public Frame {
  
 public:
 
-    ContentFrame(kwargs values = {});
     ContentFrame(Window *master_, kwargs values = {});
-    ContentFrame(Frame *parent_ = nullptr, kwargs values = {});
 
     int32_t on_reconfig();
     int32_t display();

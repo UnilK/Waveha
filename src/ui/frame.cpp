@@ -11,29 +11,10 @@
 
 namespace ui {
 
-Frame::Frame(kwargs values){
-    core = Core::object;
-    parent = nullptr;
-    master = nullptr;
-    setup(values);
-}
-
 Frame::Frame(Window *master_, kwargs values){ 
     master = master_;
     core = Core::object;
     parent = nullptr;
-    setup(values);
-}
-
-Frame::Frame(Frame *parent_, kwargs values){
-    
-    core = Core::object;
-    
-    if(parent_ != nullptr){
-        parent = parent_;
-        master = parent->master;
-    }
-
     setup(values);
 }
 
@@ -53,13 +34,13 @@ void Frame::set_parent(Frame *parent_){
 bool Frame::read_value(
         std::string key,
         std::stringstream &value,
-        kwargs &values){
-    if(values[key].empty()) return 0;
-    value = std::stringstream(values[key]);
+        kwargs values){
+    if(values.count(key) == 0) return 0;
+    value = std::stringstream(values.at(key));
     return 1;
 }
 
-int32_t Frame::setup(kwargs &values){
+int32_t Frame::setup(kwargs values){
     
     std::stringstream value;
 
@@ -177,7 +158,10 @@ int32_t Frame::refresh(){
     }
 
     if(refreshFlag){
-        if(!degenerate()) draw();
+        if(!degenerate()){
+            assert(master != nullptr);
+            draw();
+        }
         refreshFlag = 0;
     }
 
@@ -617,20 +601,8 @@ void Frame::update_style(){
 
 
 
-SolidFrame::SolidFrame(kwargs values) :
-    Frame(values)
-{
-    set_look(look);
-}
-
 SolidFrame::SolidFrame(Window *master_, kwargs values) :
     Frame(master_, values)
-{
-    set_look(look);
-}
-
-SolidFrame::SolidFrame(Frame *parent_, kwargs values) :
-    Frame(parent_, values)
 {
     set_look(look);
 }
@@ -660,18 +632,9 @@ int32_t SolidFrame::draw(){
 }
 
 
-ContentFrame::ContentFrame(kwargs values) :
-    Frame(values)
-{}
-
 ContentFrame::ContentFrame(Window *master_, kwargs values) :
     Frame(master_, values)
 {}
-
-ContentFrame::ContentFrame(Frame *parent_, kwargs values) :
-    Frame(parent_, values)
-{}
-
 
 int32_t ContentFrame::on_reconfig(){
 

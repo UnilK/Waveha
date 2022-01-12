@@ -20,8 +20,8 @@ int32_t Text::setup(kwargs &values){
     return 0;
 }
 
-Text::Text(Frame *parent_, kwargs values) :
-    ContentFrame(parent_, values)
+Text::Text(Window *master_, kwargs values) :
+    ContentFrame(master_, values)
 {
     setup(values);
     set_look(look);

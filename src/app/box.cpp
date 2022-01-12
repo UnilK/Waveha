@@ -5,31 +5,31 @@
 namespace app {
 
 Box::Box(ui::Window *master_, std::string title_, kwargs values) :
-    ResizableFrame(master_,
+    ResizableFrame(master_, kwargs
             {{"look", "Box"},
             {"height", "200"},
             {"border", "0 0 0 15"},
             {"resize", "0 0 0 1"},
             {"pad", "0 0 0 0"}}),
-    inner(this),
-    buttonFrame(this, {{"look", "ButtonBox"}, {"height", "24"}}),
-    titleText(this, 
+    inner(master_),
+    titleText(master_, kwargs
             {{"look", "BoxTitle"},
             {"height", "20"},
             {"text", title_}}),
-    upSwitch(this, switch_up, this,
+    buttonFrame(master_, kwargs{{"look", "ButtonBox"}, {"height", "24"}}),
+    upSwitch(master_, this, kwargs
             {{"text", "up"},
             {"height", "20"},
             {"width", "50"},
             {"look", "BoxLeftButton"},
             {"pad", "0 0 0 0"}}),
-    downSwitch(this, switch_down, this,
+    downSwitch(master_, this, kwargs
             {{"text", "down"},
             {"height", "20"},
             {"width", "50"},
             {"look", "BoxLeftButton"},
             {"pad", "0 0 0 0"}}),
-    xButton(this, detach_box, this,
+    detachButton(master_, this, kwargs
             {{"text", "detach"},
             {"height", "20"},
             {"width", "70"},
@@ -55,7 +55,7 @@ Box::Box(ui::Window *master_, std::string title_, kwargs values) :
     buttonFrame.put(0, 0, &upSwitch);
     buttonFrame.put(0, 1, &downSwitch);
     buttonFrame.put(0, 5, &titleText);
-    buttonFrame.put(0, 9, &xButton);
+    buttonFrame.put(0, 9, &detachButton);
 
 }
 
@@ -83,22 +83,19 @@ void Box::rename(std::string name){
 
 std::string Box::get_title(){ return title; }
 
-int32_t Box::switch_up(void *box){
-    Box &x = *(Box*)box;
+void Box::BU::function(){
+    Box &x = *(Box*)commander;
     x.tab->swap_box(x.index(), -1);
-    return 0;
 }
 
-int32_t Box::switch_down(void *box){
-    Box &x = *(Box*)box;
+void Box::BD::function(){
+    Box &x = *(Box*)commander;
     x.tab->swap_box(x.index(), 1);
-    return 0;
 }
 
-int32_t Box::detach_box(void *box){
-    Box &x = *(Box*)box;
+void Box::BX::function(){
+    Box &x = *(Box*)commander;
     x.detach_from_tab();
-    return 0;
 }
 
 int32_t Box::index(){

@@ -106,7 +106,7 @@ void Style::load(std::string styleFile){
     I.close();
 }
 
-kwargs &Style::operator[](std::string key){
+kvpairs &Style::operator[](std::string key){
     return looks[key];
 }
 

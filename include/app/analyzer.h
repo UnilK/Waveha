@@ -4,6 +4,7 @@
 #include "app/graph.h"
 #include "ui/command.h"
 #include "wave/source.h"
+#include "changer/pitch.h"
 
 namespace app {
 
@@ -30,10 +31,6 @@ public:
     
     void update_data();
 
-    static int32_t switch_regular(void *analyzer);
-    static int32_t switch_frequency(void *analyzer);
-    static int32_t switch_peak(void *analyzer);
-
 protected:
 
     const int32_t defaultLength = 1<<10;
@@ -47,7 +44,12 @@ protected:
     Graph graph;
 
     ui::Text fileNameBox;
-    ui::Button switchRegular, switchFrequency, switchPeak;
+    
+    class SR : public ui::Button { using ui::Button::Button; void function(); }; SR switchRegular;
+    class SF : public ui::Button { using ui::Button::Button; void function(); }; SF switchFrequency;
+    class SP : public ui::Button { using ui::Button::Button; void function(); }; SP switchPeak;
+
+    wave::Pitch pitch;
 
 };
 

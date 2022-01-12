@@ -25,7 +25,7 @@ class ResizerFrame : public ui::ContentFrame {
 
 public:
     
-    ResizerFrame(ui::Frame *parent_, kwargs values = {});
+    ResizerFrame(ui::Window *master_, kwargs values = {});
 
     int32_t set_look(std::string look_);
 
@@ -72,7 +72,6 @@ class ResizableFrame : public ui::Frame {
 
 public:
 
-    ResizableFrame(ui::Frame *parent_, kwargs values = {});
     ResizableFrame(ui::Window *parent_, kwargs values = {});
     ~ResizableFrame();
 
@@ -85,10 +84,6 @@ protected:
     
     float borderLeft = 0, borderRight = 0, borderUp = 0, borderDown = 0;
     bool resizeLeft = 0, resizeRight = 0, resizeUp = 0, resizeDown = 0;
-
-private:
-
-    void init(kwargs &values);
 
 };
 

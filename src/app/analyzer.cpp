@@ -1,6 +1,5 @@
 #include "app/analyzer.h"
 #include "app/app.h"
-
 #include "math/fft.h"
 
 #include <algorithm>
@@ -10,23 +9,23 @@ namespace app {
 Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     Box(master_, title_),
     Commandable(title_),
-    frame(this),
-    analyzerButtons(this, {{"height", "20"}}),
-    analyzerWidgets(this),
-    graph(this, {{"look", "AnalyzerGraph"}}),
-    fileNameBox(this,
+    frame(master_),
+    analyzerButtons(master_, kwargs{{"height", "20"}}),
+    analyzerWidgets(master_),
+    graph(master_, kwargs{{"look", "AnalyzerGraph"}}),
+    fileNameBox(master_, kwargs
             {{"text", "no linked file"},
             {"look", "BoxTitle"}}),
-    switchRegular(this, switch_regular, this,
+    switchRegular(master_, this, kwargs
             {{"text", "time"},
             {"width", "50"},
             {"look", "BoxLeftButton"}}),
-    switchFrequency(this, switch_frequency, this,
+    switchFrequency(master_, this, kwargs
             {{"text", "frequency"},
             {"height", "20"},
             {"width", "100"},
             {"look", "BoxLeftButton"}}),
-    switchPeak(this, switch_peak, this,
+    switchPeak(master_, this, kwargs
             {{"text", "peak"},
             {"width", "50"},
             {"look", "BoxLeftButton"}})
@@ -79,7 +78,11 @@ int32_t Analyzer::switch_mode(Mode mode){
         graph.fit_x();
         graph.fit_y();
 
-    } else {
+    } else if(dataMode == peakMode){
+
+        graph.set_relative_origo(0, 0.05);
+        graph.fit_x();
+        graph.fit_y();
 
     }
 
@@ -105,26 +108,28 @@ void Analyzer::update_data(){
 
             graph.set_data(data);
             
-        } else {
+        } else if(dataMode == peakMode){
 
-            graph.set_data(std::vector<float>(length, 0.0f));
+            graph.set_data(pitch.graph(source->get(length, position)));
 
         }
     }
 
 }
 
-
-int32_t Analyzer::switch_regular(void *analyzer){
-    return ((Analyzer*)analyzer)->switch_mode(regularMode);
+void Analyzer::SR::function(){
+    Analyzer &a = *(Analyzer*)commander;
+    a.switch_mode(Analyzer::regularMode);
 }
 
-int32_t Analyzer::switch_frequency(void *analyzer){
-    return ((Analyzer*)analyzer)->switch_mode(frequencyMode);
+void Analyzer::SF::function(){
+    Analyzer &a = *(Analyzer*)commander;
+    a.switch_mode(Analyzer::frequencyMode);
 }
 
-int32_t Analyzer::switch_peak(void *analyzer){
-    return ((Analyzer*)analyzer)->switch_mode(peakMode);
+void Analyzer::SP::function(){
+    Analyzer &a = *(Analyzer*)commander;
+    a.switch_mode(Analyzer::peakMode);
 }
 
 int32_t Analyzer::execute_command(ui::Command cmd){

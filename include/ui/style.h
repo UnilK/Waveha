@@ -5,9 +5,9 @@
 #include <map>
 #include <SFML/Graphics/Font.hpp>
 
-typedef std::map<std::string, std::string> kwargs;
-
 namespace ui {
+
+typedef std::map<std::string, std::string> kvpairs;
 
 class Style {
 
@@ -63,14 +63,14 @@ public:
     
     void load(std::string styleFile);
 
-    kwargs &operator[](std::string key);
+    kvpairs &operator[](std::string key);
     sf::Font &font(std::string key);
 
 protected:
 
     std::map<std::string, sf::Font> fonts;
-    std::map<std::string, kwargs > looks;
-    kwargs macros;
+    std::map<std::string, kvpairs > looks;
+    kvpairs macros;
 
 };
 

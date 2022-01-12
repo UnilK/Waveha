@@ -4,8 +4,8 @@
 
 namespace app {
 
-TabBar::TabBar(ui::Frame *parent_, ui::Frame *tabFrame_, kwargs values) :
-    ui::SolidFrame(parent_, values),
+TabBar::TabBar(ui::Window *master_, ui::Frame *tabFrame_, kwargs values) :
+    ui::SolidFrame(master_, values),
     tabFrame(tabFrame_)
 {}
 
@@ -37,9 +37,9 @@ int32_t TabBar::on_event(sf::Event event, int32_t priority){
 
 MainFrame::MainFrame(ui::Window *master_, kwargs values) :
     ui::Frame(master_, values),
-    tabFrame(this, {{"look", "MainFrame"}}),
-    tabBar(this, &tabFrame, {{"look", "TabBar"}, {"height", "15"}}),
-    infoTab(this, "info")
+    tabFrame(master_, kwargs{{"look", "MainFrame"}}),
+    tabBar(master_, &tabFrame, kwargs{{"look", "TabBar"}, {"height", "15"}}),
+    infoTab(master_, "info")
 {
     look = "MainFrame";
 

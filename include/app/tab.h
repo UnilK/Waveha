@@ -19,8 +19,7 @@ class Tab : public ResizableFrame {
 
 public:
 
-    Tab(ui::Window *master_, std::string title_, std::map<std::string, std::string> values = {});
-    Tab(ui::Frame *parent_, std::string title_, std::map<std::string, std::string> values = {});
+    Tab(ui::Window *master_, std::string title_, kwargs values = {});
 
     bool swap_box(int32_t index, int32_t direction);
 

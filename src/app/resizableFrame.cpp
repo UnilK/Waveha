@@ -6,8 +6,8 @@
 
 namespace app {
 
-ResizerFrame::ResizerFrame(ui::Frame *parent_, kwargs values) : 
-    ui::ContentFrame(parent_, values)
+ResizerFrame::ResizerFrame(ui::Window *master_, kwargs values) : 
+    ui::ContentFrame(master_, values)
 {
 
     std::stringstream value;
@@ -149,20 +149,10 @@ void ResizerFrame::set_scrollable(bool scrollable_, ui::Frame *scrolled_){
 
 
 
-ResizableFrame::ResizableFrame(ui::Frame *parent_, kwargs values) :
-    ui::Frame(parent_, values)
-{
-    init(values);
-}
-
 ResizableFrame::ResizableFrame(ui::Window *master_, kwargs values) :
     ui::Frame(master_, values)
 {
-    init(values);
-}
-
-void ResizableFrame::init(kwargs &values) {
-
+    
     std::stringstream value;
     
     if(read_value("border", value, values))
@@ -176,91 +166,91 @@ void ResizableFrame::init(kwargs &values) {
     fill_height({0, 1, 0});
 
     if(resizeLeft){
-        auto pointer = new ResizerFrame(this,
+        auto pointer = new ResizerFrame(master, kwargs
                 {{"width", std::to_string(borderLeft)},
                 {"look", chars("resizerLook")},
                 {"direction", "-1 0"}});
         resizers.push_back(pointer);
-        grid[1][0] = pointer;
+        put(1, 0, pointer);
     } else {
-        auto pointer = new ui::SolidFrame(this,
+        auto pointer = new ui::SolidFrame(master, kwargs
                 {{"width", std::to_string(borderLeft)},
                 {"look", chars("borderLook")}});
         borders.push_back(pointer);
-        grid[1][0] = pointer;
+        put(1, 0, pointer);
     }
     if(resizeRight){
-        auto pointer = new ResizerFrame(this,
+        auto pointer = new ResizerFrame(master, kwargs
                 {{"width", std::to_string(borderRight)},
                 {"look", chars("resizerLook")},
                 {"direction", "1 0"}});
         resizers.push_back(pointer);
-        grid[1][2] = pointer;
+        put(1, 2, pointer);
     } else {
-        auto pointer = new ui::SolidFrame(this,
+        auto pointer = new ui::SolidFrame(master, kwargs
                 {{"width", std::to_string(borderRight)},
                 {"look", chars("borderLook")}});
         borders.push_back(pointer);
-        grid[1][2] = pointer;
+        put(1, 2, pointer);
     }
     if(resizeUp){
-        auto pointer = new ResizerFrame(this,
+        auto pointer = new ResizerFrame(master, kwargs
                 {{"height", std::to_string(borderUp)},
                 {"look", chars("resizerLook")},
                 {"direction", "0 -1"}});
         resizers.push_back(pointer);
-        grid[0][1] = pointer;
+        put(0, 1, pointer);
     } else {
-        auto pointer = new ui::SolidFrame(this,
+        auto pointer = new ui::SolidFrame(master, kwargs
                 {{"height", std::to_string(borderUp)},
                 {"look", chars("borderLook")}});
         borders.push_back(pointer);
-        grid[0][1] = pointer;
+        put(0, 1, pointer);
     }
     if(resizeDown){
-        auto pointer = new ResizerFrame(this,
+        auto pointer = new ResizerFrame(master, kwargs
                 {{"height", std::to_string(borderDown)},
                 {"look", chars("resizerLook")},
                 {"direction", "0 1"}});
         resizers.push_back(pointer);
-        grid[2][1] = pointer;
+        put(2, 1, pointer);
     } else {
-        auto pointer = new ui::SolidFrame(this,
+        auto pointer = new ui::SolidFrame(master, kwargs
                 {{"height", std::to_string(borderDown)},
                 {"look", chars("borderLook")}});
         borders.push_back(pointer);
-        grid[2][1] = pointer;
+        put(2, 1, pointer);
     }
 
     ui::SolidFrame *pointer;
     
-    pointer = new ui::SolidFrame(this,
+    pointer = new ui::SolidFrame(master, kwargs
                 {{"width", std::to_string(borderLeft)},
                 {"height", std::to_string(borderUp)},
                 {"look", chars("borderLook")}});
     borders.push_back(pointer);
-    grid[0][0] = pointer;
+    put(0, 0, pointer);
     
-    pointer = new ui::SolidFrame(this,
+    pointer = new ui::SolidFrame(master, kwargs
                 {{"width", std::to_string(borderLeft)},
                 {"height", std::to_string(borderDown)},
                 {"look", chars("borderLook")}});
     borders.push_back(pointer);
-    grid[2][0] = pointer;
+    put(2, 0, pointer);
     
-    pointer = new ui::SolidFrame(this,
+    pointer = new ui::SolidFrame(master, kwargs
                 {{"width", std::to_string(borderRight)},
                 {"height", std::to_string(borderUp)},
                 {"look", chars("borderLook")}});
     borders.push_back(pointer);
-    grid[0][2] = pointer;
+    put(0, 2, pointer);
     
-    pointer = new ui::SolidFrame(this,
+    pointer = new ui::SolidFrame(master, kwargs
                 {{"width", std::to_string(borderRight)},
                 {"height", std::to_string(borderDown)},
                 {"look", chars("borderLook")}});
     borders.push_back(pointer);
-    grid[2][2] = pointer;
+    put(2, 2, pointer);
     
 }
 
@@ -270,7 +260,7 @@ ResizableFrame::~ResizableFrame(){
 }
 
 void ResizableFrame::set_inner(ui::Frame *frame){
-    grid[1][1] = frame;
+    put(1, 1, frame);
 }
 
 }

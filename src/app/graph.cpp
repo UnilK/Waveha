@@ -8,8 +8,8 @@
 
 namespace app {
 
-Graph::Graph(Frame *parent_, kwargs values) :
-    ContentFrame(parent_, values),
+Graph::Graph(ui::Window *master_, kwargs values) :
+    ContentFrame(master_, values),
     vertices(sf::LineStrip, 0),
     xAxis(sf::LineStrip, 2),
     yAxis(sf::LineStrip, 2),
