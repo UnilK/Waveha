@@ -28,6 +28,10 @@ Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     switchPeak(master_, this, kwargs
             {{"text", "peak"},
             {"width", "50"},
+            {"look", "BoxLeftButton"}}),
+    switchCorrelation(master_, this, kwargs
+            {{"text", "correlation"},
+            {"width", "120"},
             {"look", "BoxLeftButton"}})
 {
 
@@ -41,14 +45,16 @@ Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     frame.put(1, 0, &analyzerButtons);
     frame.put(2, 0, &analyzerWidgets);
 
-    analyzerButtons.setup_grid(1, 4);
+    analyzerButtons.setup_grid(1, 10);
     analyzerButtons.fill_height({1});
-    analyzerButtons.fill_width(3, 1);
+    analyzerButtons.fill_width(9, 1);
 
     analyzerButtons.put(0, 0, &switchRegular);
     analyzerButtons.put(0, 1, &switchFrequency);
     analyzerButtons.put(0, 2, &switchPeak);
-    analyzerButtons.put(0, 3, &fileNameBox);
+    analyzerButtons.put(0, 3, &switchCorrelation);
+
+    analyzerButtons.put(0, 9, &fileNameBox);
 
     commandHelp = "audio analyzer";
     commandDocs = {
@@ -68,19 +74,21 @@ int32_t Analyzer::switch_mode(Mode mode){
     
     if(dataMode == regularMode){
         
-        graph.set_relative_origo(0, 0.5);
         graph.fit_x();
         graph.fit_y();
     
     } else if(dataMode == frequencyMode){
         
-        graph.set_relative_origo(0, 0.05);
         graph.fit_x();
         graph.fit_y();
 
     } else if(dataMode == peakMode){
 
-        graph.set_relative_origo(0, 0.05);
+        graph.fit_x();
+        graph.fit_y();
+
+    } else if(dataMode == correlationMode){
+
         graph.fit_x();
         graph.fit_y();
 
@@ -112,6 +120,10 @@ void Analyzer::update_data(){
 
             graph.set_data(pitch.graph(source->get(length, position)));
 
+        } else if(dataMode == correlationMode){
+            
+            
+
         }
     }
 
@@ -130,6 +142,11 @@ void Analyzer::SF::function(){
 void Analyzer::SP::function(){
     Analyzer &a = *(Analyzer*)commander;
     a.switch_mode(Analyzer::peakMode);
+}
+
+void Analyzer::AC::function(){
+    Analyzer &a = *(Analyzer*)commander;
+    a.switch_mode(Analyzer::correlationMode);
 }
 
 int32_t Analyzer::execute_command(ui::Command cmd){
@@ -165,7 +182,10 @@ int32_t Analyzer::on_event(sf::Event event, int32_t priority){
             int32_t speed = 1<<4;
             if(event.key.code == sf::Keyboard::A) speed = -speed;
 
-            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
+                && sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                speed = speed / 1<<4 * source->frameRate * source->channels;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
                 speed /= 1<<4;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                 speed *= 1<<4;

@@ -524,23 +524,25 @@ float Frame::target_height(){
 
 
 int32_t Frame::fill_height(std::vector<float> heightFill_){
+    assert(heightFill_.size() == (uint32_t)rows);
     heightFill = heightFill_;
-    heightFill.resize(rows, 0);
     return 0;
 }
 
 int32_t Frame::fill_width(std::vector<float> widthFill_){
+    assert(widthFill_.size() == (uint32_t)columns);
     widthFill = widthFill_;
-    widthFill.resize(columns, 0);
     return 0;
 }
 
 int32_t Frame::fill_height(int32_t row, float value){
-   heightFill[row] = value;
-   return 0;
+    assert(row >= 0 && row < rows);
+    heightFill[row] = value;
+    return 0;
 }
 
 int32_t Frame::fill_width(int32_t column, float value){
+    assert(column >= 0 && column < columns);
     widthFill[column] = value;
     return 0;
 }
@@ -607,6 +609,8 @@ SolidFrame::SolidFrame(Window *master_, kwargs values) :
     set_look(look);
 }
 
+SolidFrame::~SolidFrame(){}
+
 int32_t SolidFrame::set_look(std::string look_){
 
     look = look_;
@@ -635,6 +639,8 @@ int32_t SolidFrame::draw(){
 ContentFrame::ContentFrame(Window *master_, kwargs values) :
     Frame(master_, values)
 {}
+
+ContentFrame::~ContentFrame(){}
 
 int32_t ContentFrame::on_reconfig(){
 

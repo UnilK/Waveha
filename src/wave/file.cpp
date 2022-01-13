@@ -12,6 +12,8 @@ File::File(std::string fileName){
     open(fileName);
 }
 
+File::~File(){}
+
 void File::open(std::string fileName){
     
     good = 1;
@@ -28,15 +30,15 @@ void File::seek(uint32_t sample){
     file.seek(sample);
 }
 
-std::vector<float> File::pull(uint32_t amount){
+bool File::pull(uint32_t amount, std::vector<float> &samples){
     
     good = 1;
     
-    std::vector<float> audio;
+    samples = std::vector<float>(amount, 0.0f);
     
-    if(file.read_move(audio, amount) != amount) good = 0;
+    if(file.read_move(samples, amount) != amount) good = 0;
     
-    return audio;
+    return good;
 }
 
 std::vector<float> File::get(uint32_t amount, uint32_t begin){

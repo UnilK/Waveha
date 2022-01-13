@@ -26,6 +26,7 @@ class Text : public ContentFrame {
 public:
 
     Text(Window *master_, kwargs values = {});
+    virtual ~Text();
     
     virtual int32_t set_look(std::string look_);
 

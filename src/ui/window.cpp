@@ -20,8 +20,9 @@ Window::Window(Core *core_, float width_, float height_,
     previousFrame.create(width, height);
     
     setVerticalSyncEnabled(1);
-
 }
+
+Window::~Window(){}
 
 int32_t Window::destroy(){
     if(destroyed) return 1;

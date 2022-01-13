@@ -131,7 +131,7 @@ public:
     // -1 frame didn't use event
     // 0 frame used event but didn't capture it
     // 1 frame used event and captured it.
-    virtual int32_t on_event(sf::Event event, int32_t priority = 0);
+    virtual int32_t on_event(sf::Event event, int32_t priority);
     
     // can this frame assume hard focus?
     bool focusable = 1;
@@ -300,6 +300,7 @@ class SolidFrame : public Frame {
 public:
 
     SolidFrame(Window *master_, kwargs values = {});
+    virtual ~SolidFrame();
 
     int32_t draw();
     int32_t on_reconfig();
@@ -319,6 +320,7 @@ class ContentFrame : public Frame {
 public:
 
     ContentFrame(Window *master_, kwargs values = {});
+    virtual ~ContentFrame();
 
     int32_t on_reconfig();
     int32_t display();

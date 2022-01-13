@@ -10,7 +10,7 @@ Core *Core::object = nullptr;
 
 void listen_terminal(Core *core){
     std::string command = "";
-    while(1){
+    while(!std::cin.eof()){
         std::string input;
         std::getline(std::cin, input);
         command += input;
@@ -19,6 +19,7 @@ void listen_terminal(Core *core){
             command.clear();
         } else command.pop_back();
     }
+    std::cout << "terminal input polling terminated\n";
 }
 
 Core::Core(std::string styleFile, long double tickRate) :

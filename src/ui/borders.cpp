@@ -6,6 +6,8 @@
 
 namespace ui {
 
+Borders::~Borders(){}
+
 int32_t Borders::set_look(std::string look_){
 
     look = look_;

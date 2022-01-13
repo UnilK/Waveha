@@ -11,6 +11,8 @@ Clock::Clock(long double seconds) :
     clock(high_resolution_clock::now())
 {}
 
+Clock::~Clock(){}
+
 bool Clock::try_tick(){
     if(high_resolution_clock::now() >= clock + tick_length){
         clock += tick_length;

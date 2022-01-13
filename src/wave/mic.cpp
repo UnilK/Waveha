@@ -6,6 +6,8 @@ namespace wave {
 
 Mic::Mic(){}
 
+Mic::~Mic(){}
+
 bool Mic::onStart(){
     
     reset();

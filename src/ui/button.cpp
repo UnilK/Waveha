@@ -14,6 +14,8 @@ Button::Button(Window *master_, void *commander_, kwargs values) :
     set_look(look);
 }
 
+Button::~Button(){}
+
 int32_t Button::set_look(std::string look_){
     
     look = look_;

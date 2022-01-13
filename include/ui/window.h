@@ -29,6 +29,7 @@ public:
 
     Window(Core *core_, float width_, float height_,
             std::string title_, long double refreshRate = 60);
+    virtual ~Window();
    
     Clock clock;
 

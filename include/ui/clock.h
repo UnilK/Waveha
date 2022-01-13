@@ -16,6 +16,7 @@ protected:
 public:
 
     Clock(long double seconds);
+    virtual ~Clock();
 
     bool try_tick();
     void force_sync_tick();

@@ -12,6 +12,8 @@ public:
 
     Mic();
 
+    virtual ~Mic();
+
     bool onStart();
 
     bool onProcessSamples(const sf::Int16 *samples, std::size_t sampleCount);

@@ -15,7 +15,8 @@ public:
     enum Mode {
         regularMode,
         frequencyMode,
-        peakMode
+        peakMode,
+        correlationMode
     };
     
     Analyzer(ui::Window *parent_, std::string title_);
@@ -45,9 +46,14 @@ protected:
 
     ui::Text fileNameBox;
     
-    class SR : public ui::Button { using ui::Button::Button; void function(); }; SR switchRegular;
-    class SF : public ui::Button { using ui::Button::Button; void function(); }; SF switchFrequency;
-    class SP : public ui::Button { using ui::Button::Button; void function(); }; SP switchPeak;
+    class SR : public ui::Button { using ui::Button::Button; void function(); };
+    SR switchRegular;
+    class SF : public ui::Button { using ui::Button::Button; void function(); };
+    SF switchFrequency;
+    class SP : public ui::Button { using ui::Button::Button; void function(); };
+    SP switchPeak;
+    class AC : public ui::Button { using ui::Button::Button; void function(); };
+    AC switchCorrelation;
 
     wave::Pitch pitch;
 

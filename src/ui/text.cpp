@@ -28,6 +28,8 @@ Text::Text(Window *master_, kwargs values) :
     canvas.setSmooth(0);
 }
 
+Text::~Text(){}
+
 int32_t Text::set_look(std::string look_){
     
     look = look_;

@@ -13,6 +13,8 @@ class Borders : public Styled {
 
 public:
 
+    virtual ~Borders();
+
     int32_t set_look(std::string look_);
     void set_size(float width, float height);
     void set_position(float x, float y);

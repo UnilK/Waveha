@@ -5,66 +5,76 @@
 
 namespace wave {
 
-Cache::Cache(const std::vector<float> &audio_, uint32_t channels_, uint32_t frameRate_){
-    open(audio_, channels_, frameRate_);
-}
+Audio::Audio(){}
 
-Cache::Cache(std::string fileName){
+Audio::Audio(std::string fileName){
     open(fileName);
 }
 
-void Cache::open(const std::vector<float> &audio_, uint32_t channels_, uint32_t frameRate_){
+Audio::~Audio(){}
 
-    good = 1;
-
-    audio = audio_;
-    channels = channels_;
-    frameRate = frameRate_;
-
-}
-
-void Cache::open(std::string fileName){
-    
-    good = 1;
+bool Audio::open(std::string fileName){
 
     iwstream file;
 
     if(file.open(fileName)){
+        
+        name = fileName;
+
         frameRate = file.get_frame_rate();
         channels = file.get_channel_amount();
-        audio = file.read_file();
+        
+        data = file.read_file();
+        
+        return 1;
     }
-    else good = 0;
+
+    return 0;
+}
+
+
+
+Cache::Cache(Audio &audio_) : audio(audio_) {
+    channels = audio.channels;
+    frameRate = audio.frameRate;
+}
+
+Cache::~Cache(){}
+
+void Cache::open(Audio &audio_){
+    audio = audio_;
+    channels = audio.channels;
+    frameRate = audio.frameRate;
 }
 
 void Cache::seek(uint32_t sample){
-    read = std::min(sample, (uint32_t)audio.size());
+    read = std::min(sample, (uint32_t)audio.data.size());
 }
 
-std::vector<float> Cache::pull(uint32_t amount){
-    
+bool Cache::pull(uint32_t amount, std::vector<float> &samples){
+
     good = 1;
 
-    std::vector<float> samples(amount, 0.0f);
+    samples = std::vector<float>(amount, 0.0f);
 
-    amount = std::min(amount, (uint32_t)audio.size() - read);
+    amount = std::min(amount, (uint32_t)audio.data.size() - read);
 
     if(amount != samples.size()) good = 0;
 
-    memcpy(samples.data(), audio.data() + read, sizeof(float) * amount);
+    memcpy(samples.data(), audio.data.data() + read, sizeof(float) * amount);
     read += amount;
 
-    return samples;
+    return good;
 }
 
 std::vector<float> Cache::get(uint32_t amount, uint32_t begin){
     
     std::vector<float> samples(amount, 0.0f);
 
-    if(begin < audio.size()) amount = std::min(amount, (uint32_t)audio.size() - begin);
+    if(begin < audio.data.size()) amount = std::min(amount, (uint32_t)audio.data.size() - begin);
     else amount = 0;
 
-    memcpy(samples.data(), audio.data() + begin, sizeof(float) * amount);
+    memcpy(samples.data(), audio.data.data() + begin, sizeof(float) * amount);
 
     return samples;
 }

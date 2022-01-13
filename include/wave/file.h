@@ -14,11 +14,12 @@ public:
 
     File();
     File(std::string fileName);
+    virtual ~File();
 
     void open(std::string fileName);
 
     void seek(uint32_t sample);
-    std::vector<float> pull(uint32_t amount);
+    bool pull(uint32_t amount, std::vector<float> &samples);
     std::vector<float> get(uint32_t amount, uint32_t begin);
 
 protected:

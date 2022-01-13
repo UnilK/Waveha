@@ -90,6 +90,7 @@ build/wave/buffer.o: include/wave/buffer.h include/wave/util.h
 build/wave/mic.o: include/wave/mic.h include/wave/buffer.h include/wave/util.h
 build/wave/source.o: include/wave/source.h
 build/wave/sound.o: include/wave/sound.h include/wave/buffer.h
+build/wave/sound.o: include/wave/source.h include/wave/util.h
 build/wave/util.o: include/wave/util.h
 build/app/mainFrame.o: include/app/mainFrame.h include/ui/frame.h
 build/app/mainFrame.o: include/ui/core.h include/ui/window.h include/ui/clock.h
@@ -152,6 +153,9 @@ build/ui/text.o: include/ui/command.h include/ui/borders.h
 build/ui/borders.o: include/ui/borders.h include/ui/style.h include/ui/frame.h
 build/ui/borders.o: include/ui/core.h include/ui/window.h include/ui/clock.h
 build/ui/borders.o: include/ui/command.h
+build/ui/knob.o: include/ui/knob.h include/ui/frame.h include/ui/core.h
+build/ui/knob.o: include/ui/window.h include/ui/clock.h include/ui/style.h
+build/ui/knob.o: include/ui/command.h include/ui/borders.h
 build/ui/style.o: include/ui/style.h include/ui/core.h include/ui/window.h
 build/ui/style.o: include/ui/frame.h include/ui/borders.h include/ui/clock.h
 build/ui/style.o: include/ui/command.h

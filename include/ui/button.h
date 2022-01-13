@@ -18,14 +18,13 @@ class Button : public ui::Text {
 public:
 
     Button(Window *master_, void *commander_, kwargs values = {});
+    virtual ~Button();
 
     int32_t set_look(std::string look_);
     
     int32_t on_event(sf::Event event, int32_t priority);
 
 protected:
-
-    std::string baseLook;
 
     void *commander = nullptr;
 
