@@ -12,12 +12,18 @@ class Knob : public ContentFrame {
     
 public:
 
-    Knob(Window *master_, void *commander_, kwargs = {});
+    Knob(Window *master_, void *commander_, kwargs values = {});
     virtual ~Knob();
 
     int32_t set_look(std::string look_);
     
+    int32_t inner_reconfig();
+
     int32_t on_event(sf::Event event, int32_t priority);
+
+    void set_angle(float);
+
+    int32_t draw();
 
 protected:
 
@@ -26,13 +32,10 @@ protected:
     virtual void function(float delta) = 0;
     
     Borders border;
-    std::string text = "";
 
-private:
-
+    float radius, angle = 0;
     sf::CircleShape circle;
     sf::VertexArray needle;
-    sf::Text textBox;
 
 };
 

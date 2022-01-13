@@ -111,6 +111,7 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
                 newY = origoY;
 
             set_origo(newX, newY);
+            refresh_vertices();
         }
 
         refresh_indicator();
@@ -143,8 +144,7 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
         origoX = centerX - (x / scaleX);
         origoY = centerY - ((canvasHeight - y) / scaleY);
 
-        refresh_vertices();
-        refresh_indicator();
+        refresh_all();
 
         return 1;
     }
@@ -152,10 +152,12 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
         
         if(event.key.code == sf::Keyboard::X){
             fit_x();
+            refresh_all();
             return 1;
         }
         else if(event.key.code == sf::Keyboard::Y){
             fit_y();
+            refresh_all();
             return 1;
         }
 
@@ -167,50 +169,38 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
 void Graph::set_origo(float x, float y){
     origoX = x;
     origoY = y;
-    refresh_vertices();
-    refresh_indicator();
 }
 
 void Graph::set_scale(float x, float y){
     scaleX = x;
     scaleY = y;
-    refresh_vertices();
-    refresh_indicator();
 }
 
 void Graph::scale(float x, float y){
     scaleX *= x;
     scaleY *= y;
-    refresh_vertices();
-    refresh_indicator();
 }
 
 void Graph::set_area(float x, float y){
     scaleX = canvasWidth / x;
     scaleY = canvasHeight / y;
-    refresh_vertices();
-    refresh_indicator();
 }
 
 void Graph::set_relative_origo(float x, float y){
     origoY = canvasHeight / scaleY * (1 - y);
     origoX = canvasWidth / scaleX * x;
-    refresh_vertices();
 }
 
 void Graph::switch_phase_indicator(bool value){
     hasPhase = value;
-    refresh_indicator();
 }
 
 void Graph::switch_inspection_tool(bool value){
     hasInspector = value;
-    refresh_indicator();
 }
 
 void Graph::switch_inspector_lock(){
     inspectorLock ^= 1;
-    refresh_indicator();
 }
 
 void Graph::set_data(const std::vector<float> &data, bool imag){
@@ -229,8 +219,6 @@ void Graph::set_data(const std::vector<Point> &data, bool imag){
     points = data;
     isComplex = imag;
     vertices.resize(points.size());
-    refresh_vertices();
-    refresh_indicator();
 }
 
 void Graph::fit_x(){
@@ -247,9 +235,6 @@ void Graph::fit_x(){
 
     origoX = min;
     scaleX = canvasWidth / (max - min);
-
-    refresh_vertices();
-    refresh_indicator();
 }
 
 void Graph::fit_y(){
@@ -268,27 +253,37 @@ void Graph::fit_y(){
 
     scaleY = canvasHeight / (max - min) * 0.9f;
     origoY = min - (max - min) * 0.05f;
-
-    refresh_vertices();
-    refresh_indicator();
 }
 
 void Graph::set_unit_x(std::string unit){
     unitX = unit;
-    refresh_indicator();
 }
 
 void Graph::set_unit_y(std::string unit){
     unitY = unit;
-    refresh_indicator();
+}
+    
+void Graph::set_offset_x(double x){
+    offsetX = x;
+}
+
+void Graph::set_offset_y(double y){
+    offsetY = y;
+}
+
+void Graph::set_scalar_x(double x){
+    scalarX = x;
+}
+
+void Graph::set_scalar_y(double y){
+    scalarY = y;
 }
 
 int32_t Graph::inner_reconfig(){
 
     border.set_size(canvasWidth, canvasHeight);
-    refresh_vertices();
-    refresh_indicator();
-   
+    refresh_all();  
+
     return 0;
 }
 
@@ -342,14 +337,22 @@ void Graph::refresh_indicator(){
 
     indicatorNeedle[0].position = sf::Vector2f(indicatorSize, indicatorSize);
     indicatorNeedle[1].position = sf::Vector2f(
-            indicatorSize * (1 + std::polar(1.0f, indicatorA).real()),
-            indicatorSize * (1 - std::polar(1.0f, indicatorA).imag()));
+            indicatorSize * (1 + std::polar(1.0, indicatorA).real()),
+            indicatorSize * (1 - std::polar(1.0, indicatorA).imag()));
 
-    indicatorTextX.setString("X: " + std::to_string(indicatorX / scaleX + origoX) + " " + unitX);
-    indicatorTextY.setString("Y: " + std::to_string(indicatorY) + " " + unitY);
+    indicatorTextX.setString(
+            "X: " + std::to_string((indicatorX / scaleX + origoX) * scalarX + offsetX)
+            + " " + unitX);
+
+    indicatorTextY.setString("Y: " + std::to_string(indicatorY * scalarY + offsetY) + " " + unitY);
     indicatorTextA.setString("A: " + std::to_string(indicatorA));
 
     set_refresh();
+}
+
+void Graph::refresh_all(){
+    refresh_vertices();
+    refresh_indicator();
 }
 
 int32_t Graph::draw(){

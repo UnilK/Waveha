@@ -7,7 +7,9 @@ namespace wave {
 
 std::vector<float> Pitch::graph(const std::vector<float> &audio){
 
-    auto spectrum = math::fft(audio);
+    std::vector<float> copy = audio;
+    for(auto &i : copy) i = i*i*i; 
+    auto spectrum = math::fft(copy);
 
     std::vector<float> plot(audio.size(), 0.0f);
 

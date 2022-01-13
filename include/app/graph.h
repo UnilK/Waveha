@@ -41,6 +41,10 @@ public:
     int32_t inner_reconfig();
     int32_t draw();
 
+    // NOTE: since most of these operations are rather heavy,
+    // they don't update the plot automatically. The plot is updated
+    // manually with the provided refresh functions.
+
     // set offset coordinates for origo (lower left corner).
     void set_origo(float x, float y);
     // set graph scale.
@@ -70,11 +74,17 @@ public:
     void fit_x();
     void fit_y();
 
+    // manipulate indicator text.
     void set_unit_x(std::string unit);
     void set_unit_y(std::string unit);
+    void set_offset_x(double);
+    void set_offset_y(double);
+    void set_scalar_x(double);
+    void set_scalar_y(double);
 
     void refresh_vertices();
     void refresh_indicator();
+    void refresh_all();
     
     bool isComplex = 1;
 
@@ -90,18 +100,24 @@ protected:
     sf::VertexArray xAxis, yAxis;
     bool yAxisPosition = 0, xAxisPosition = 0;
   
+    // for mocign the graph with a mouse
+    float dragX = 0, dragY = 0;
+    float beginX = 0, beginY = 0;
+
+    // offsets to indicator text values.
+    double offsetX = 0, offsetY = 0;
+    double scalarX = 1, scalarY = 1;
+
+    ui::Borders border;
+
+    // indicator stuff
     bool graphPressed = 0;
     bool hasPhase = 1;
     bool hasInspector = 1;
     bool inspectorLock = 0;
     float indicatorSize = 0;
-    float indicatorA = 0, indicatorX = 0, indicatorY = 0;
+    double indicatorA = 0, indicatorX = 0, indicatorY = 0;
     std::string unitX = "", unitY = "";
-
-    float dragX = 0, dragY = 0;
-    float beginX = 0, beginY = 0;
-
-    ui::Borders border;
 
     sf::VertexArray indicatorNeedle;
     sf::VertexArray indicatorLine;

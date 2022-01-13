@@ -14,7 +14,7 @@ Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     analyzerWidgets(master_),
     graph(master_, kwargs{{"look", "AnalyzerGraph"}}),
     fileNameBox(master_, kwargs
-            {{"text", "no linked file"},
+            {{"text", "no linked audio"},
             {"look", "BoxTitle"}}),
     switchRegular(master_, this, kwargs
             {{"text", "time"},
@@ -76,21 +76,33 @@ int32_t Analyzer::switch_mode(Mode mode){
         
         graph.fit_x();
         graph.fit_y();
+        graph.set_unit_x("");
+        graph.set_unit_y("");
+        graph.refresh_all();
     
     } else if(dataMode == frequencyMode){
         
         graph.fit_x();
         graph.fit_y();
+        graph.set_unit_x("Hz");
+        graph.set_unit_y("");
+        graph.refresh_all();
 
     } else if(dataMode == peakMode){
 
         graph.fit_x();
         graph.fit_y();
+        graph.set_unit_x("");
+        graph.set_unit_y("");
+        graph.refresh_all();
 
     } else if(dataMode == correlationMode){
 
         graph.fit_x();
         graph.fit_y();
+        graph.set_unit_x("");
+        graph.set_unit_y("");
+        graph.refresh_all();
 
     }
 
@@ -108,6 +120,9 @@ void Analyzer::update_data(){
         if(dataMode == regularMode){
             
             graph.set_data(source->get(length, position));
+            graph.set_offset_x(position);
+            graph.set_scalar_x(1);
+            graph.refresh_all();
         
         } else if(dataMode == frequencyMode){
             
@@ -115,14 +130,22 @@ void Analyzer::update_data(){
             data.resize(data.size()/2 + 1);
 
             graph.set_data(data);
+            graph.set_offset_x(0);
+            graph.set_scalar_x((double)source->frameRate / length);
+            graph.refresh_all();
             
         } else if(dataMode == peakMode){
 
             graph.set_data(pitch.graph(source->get(length, position)));
+            graph.set_offset_x(0);
+            graph.set_scalar_x(1);
+            graph.refresh_all();
 
         } else if(dataMode == correlationMode){
             
-            
+            graph.set_offset_x(0);
+            graph.set_scalar_x(1);
+            graph.refresh_all();
 
         }
     }
@@ -184,7 +207,7 @@ int32_t Analyzer::on_event(sf::Event event, int32_t priority){
 
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
                 && sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed = speed / 1<<4 * source->frameRate * source->channels;
+                speed = speed / (1<<4) * source->frameRate * source->channels;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
                 speed /= 1<<4;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
@@ -221,6 +244,8 @@ int32_t Analyzer::link_audio(std::string fileName){
     source = app.create_source(fileName);
     position = 0;
     length = defaultLength;
+
+    fileNameBox.set_text(fileName);
 
     update_data();
     switch_mode(dataMode);
