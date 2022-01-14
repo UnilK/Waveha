@@ -8,7 +8,7 @@
 
 namespace ui {
 
-class Knob : public ContentFrame {
+class Knob : public Frame {
     
 public:
 
@@ -17,7 +17,7 @@ public:
 
     int32_t set_look(std::string look_);
     
-    int32_t inner_reconfig();
+    int32_t on_reconfig();
 
     int32_t on_event(sf::Event event, int32_t priority);
 

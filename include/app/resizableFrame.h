@@ -7,7 +7,7 @@
 
 namespace app {
 
-class ResizerFrame : public ui::ContentFrame {
+class ResizerFrame : public ui::Frame {
 
     /*
        style:
@@ -34,7 +34,7 @@ public:
 
     void set_scrollable(bool scrollable_, ui::Frame *scrolled_ = nullptr);
     
-    int32_t inner_reconfig();
+    int32_t on_reconfig();
 
 protected:
 

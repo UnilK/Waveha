@@ -313,26 +313,5 @@ protected:
 
 };
 
-
-
-class ContentFrame : public Frame {
- 
-public:
-
-    ContentFrame(Window *master_, kwargs values = {});
-    virtual ~ContentFrame();
-
-    int32_t on_reconfig();
-    int32_t display();
-
-    virtual int32_t inner_reconfig();
-
-protected:
-
-    sf::RenderTexture canvas;
-    sf::Sprite canvasSprite;
-
-};
-
 }
 

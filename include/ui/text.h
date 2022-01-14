@@ -7,7 +7,7 @@
 
 namespace ui {
 
-class Text : public ContentFrame {
+class Text : public Frame {
 
     /*
        style:
@@ -31,7 +31,7 @@ public:
     virtual int32_t set_look(std::string look_);
 
     int32_t draw();
-    int32_t inner_reconfig();
+    int32_t on_reconfig();
 
     void set_text(std::string text_);
 
@@ -40,10 +40,6 @@ protected:
     Borders border;
     std::string text = "";
     sf::Text textBox;
-
-private:
-    
-    int32_t setup(kwargs &values);
 
 };
 

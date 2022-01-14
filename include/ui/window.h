@@ -74,7 +74,6 @@ protected:
 
     std::string title;
 
-    float height = 100, width = 100;
     sf::Texture previousFrame;
     sf::Sprite previousFrameSprite;
     bool resizeFlag = 1, refreshFlag = 1, eventTick = 0;

@@ -5,7 +5,7 @@
 namespace ui {
 
 Knob::Knob(Window *master_, void *commander_, kwargs values) :
-    ContentFrame(master_, values),
+    Frame(master_, values),
     commander(commander_),
     needle(sf::LineStrip, 2)
 {
@@ -29,18 +29,18 @@ int32_t Knob::set_look(std::string look_){
 
     border.set_look(look);
 
-    inner_reconfig();
+    on_reconfig();
     
     return 0;
 }
 
 void Knob::set_angle(float rad){
     angle = rad;
-    inner_reconfig();
+    on_reconfig();
     set_refresh();
 }
 
-int32_t Knob::inner_reconfig(){
+int32_t Knob::on_reconfig(){
 
     float midX = (canvasWidth - border.r + border.l) / 2;
     float midY = (canvasHeight - border.d + border.u) / 2;
@@ -69,12 +69,10 @@ int32_t Knob::on_event(sf::Event event, int32_t priority){
 
 int32_t Knob::draw(){
 
-    border.draw(canvas);
-    canvas.draw(circle);
-    canvas.draw(needle);
+    border.draw(*master);
+    master->draw(circle);
+    master->draw(needle);
     
-    display();
-
     return 0;
 }
 

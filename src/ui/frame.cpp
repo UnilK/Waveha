@@ -156,11 +156,30 @@ int32_t Frame::refresh(){
         on_reconfig();
         unset_reconfig();
     }
+    
+    auto [masterWidth, masterHeight] = master->getSize();
 
     if(refreshFlag){
         if(!degenerate()){
+            
             assert(master != nullptr);
+
+            // set drawing area to a subrectangle on the window.
+            
+            sf::View w(sf::FloatRect(0, 0, windowWidth, windowHeight));
+            
+            w.setViewport(sf::FloatRect(
+                        globalX / masterWidth,
+                        globalY / masterHeight,
+                        windowWidth / masterWidth,
+                        windowHeight / masterHeight));
+            
+            master->setView(w);
+
             draw();
+
+            master->setView(sf::View(sf::FloatRect(0, 0, masterWidth, masterHeight)));
+
         }
         refreshFlag = 0;
     }
@@ -628,42 +647,10 @@ int32_t SolidFrame::on_reconfig(){
 }
 
 int32_t SolidFrame::draw(){
-   
-    border.set_position(globalX - windowX, globalY - windowY);
+
     border.draw(*master);
 
     return 0;
 }
 
-
-ContentFrame::ContentFrame(Window *master_, kwargs values) :
-    Frame(master_, values)
-{}
-
-ContentFrame::~ContentFrame(){}
-
-int32_t ContentFrame::on_reconfig(){
-
-    if(canvasWidth < 0.5f || canvasHeight < 0.5f) canvas.create(1, 1);
-    else {
-        canvas.create(canvasWidth, canvasHeight);
-        sf::IntRect area(windowX, canvasHeight - windowY, windowWidth, -windowHeight);
-        canvasSprite.setTextureRect(area);
-    }
-
-    return inner_reconfig();
 }
-
-int32_t ContentFrame::inner_reconfig(){ return 0; }
-
-int32_t ContentFrame::display(){
-
-    canvasSprite.setPosition(globalX, globalY);
-    canvasSprite.setTexture(canvas.getTexture());
-    master->draw(canvasSprite);
-
-    return 0;
-}
-
-}
-

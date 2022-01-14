@@ -6,8 +6,9 @@
 
 namespace ui {
 
-int32_t Text::setup(kwargs &values){
-    
+Text::Text(Window *master_, kwargs values) :
+    Frame(master_, values)
+{
     std::stringstream value;
     
     if(read_value("text", value, values)){
@@ -16,16 +17,8 @@ int32_t Text::setup(kwargs &values){
         while(std::getline(value, word)) text += word+"\n";
         if(!text.empty()) text.pop_back();
     }
-    
-    return 0;
-}
 
-Text::Text(Window *master_, kwargs values) :
-    ContentFrame(master_, values)
-{
-    setup(values);
     set_look(look);
-    canvas.setSmooth(0);
 }
 
 Text::~Text(){}
@@ -42,12 +35,12 @@ int32_t Text::set_look(std::string look_){
 
     border.set_look(look);
 
-    inner_reconfig();
+    on_reconfig();
 
     return 0;
 }
 
-int32_t Text::inner_reconfig(){
+int32_t Text::on_reconfig(){
     
     sf::FloatRect rect = textBox.getLocalBounds();
     
@@ -64,12 +57,8 @@ int32_t Text::inner_reconfig(){
 
 int32_t Text::draw(){
    
-    canvas.clear(color("background"));
-    
-    border.draw(canvas);
-    canvas.draw(textBox);
-
-    display();
+    border.draw(*master);
+    master->draw(textBox);
 
     return 0;
 }

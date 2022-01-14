@@ -12,12 +12,10 @@ Window::Window(Core *core_, float width_, float height_,
     clock(1.0f / refreshRate)
 {
     core = core_;
-    width = width_;
-    height = height_;
     title = title_;
     core->add_window(this);
 
-    previousFrame.create(width, height);
+    previousFrame.create(width_, height_);
     
     setVerticalSyncEnabled(1);
 }
@@ -69,10 +67,10 @@ int32_t Window::event_update(){
 
         } else if(event.type == sf::Event::Resized){
                 
-                width = event.size.width;
-                height = event.size.height;
-				
-                setView(sf::View(sf::FloatRect(0.0f, 0.0f, width, height)));
+                float width = event.size.width;
+                float height = event.size.height;
+
+                setView(sf::View(sf::FloatRect(0, 0, width, height)));
                 previousFrame.create(width, height);
 
                 mainframe->set_window_size(width, height);
@@ -126,7 +124,7 @@ int32_t Window::refresh(){
     
     if(destroyed) return 0;
     if(!refreshFlag) return 0;
-
+    
     if(!resizeFlag){
         previousFrame.update(*this);
         previousFrameSprite.setTexture(previousFrame, 1);
@@ -143,6 +141,7 @@ int32_t Window::refresh(){
     mainframe->refresh();
 
     clock.force_sync_tick();
+    
     display();
    
     refreshFlag = 0;

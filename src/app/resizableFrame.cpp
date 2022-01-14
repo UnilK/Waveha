@@ -7,7 +7,7 @@
 namespace app {
 
 ResizerFrame::ResizerFrame(ui::Window *master_, kwargs values) : 
-    ui::ContentFrame(master_, values)
+    ui::Frame(master_, values)
 {
 
     std::stringstream value;
@@ -29,12 +29,12 @@ int32_t ResizerFrame::set_look(std::string look_){
 
     border.set_look(look);
 
-    inner_reconfig();
+    on_reconfig();
 
     return 0;
 }
 
-int32_t ResizerFrame::inner_reconfig(){
+int32_t ResizerFrame::on_reconfig(){
     
     dot.setPosition(canvasWidth/2 - dot.getRadius(), canvasHeight/ 2 - dot.getRadius());
     
@@ -45,12 +45,10 @@ int32_t ResizerFrame::inner_reconfig(){
 
 int32_t ResizerFrame::draw(){
 
-    canvas.clear(color("background"));
+    border.draw(*master);
+    master->draw(dot);
 
-    border.draw(canvas);
-    canvas.draw(dot);
-
-    return display();
+    return 0;
 }
 
 int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){

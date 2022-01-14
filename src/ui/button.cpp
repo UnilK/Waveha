@@ -33,7 +33,7 @@ int32_t Button::set_look(std::string look_){
 
     look = look_;
 
-    inner_reconfig();
+    on_reconfig();
 
     return 0;
 }

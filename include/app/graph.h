@@ -16,7 +16,7 @@ struct Point {
     std::complex<float> y;
 };
 
-class Graph : public ui::ContentFrame {
+class Graph : public ui::Frame {
 
     /*
        style:
@@ -38,7 +38,7 @@ public:
 
     int32_t set_look(std::string look_);
     int32_t on_event(sf::Event event, int32_t priority);
-    int32_t inner_reconfig();
+    int32_t on_reconfig();
     int32_t draw();
 
     // NOTE: since most of these operations are rather heavy,

@@ -9,7 +9,7 @@
 namespace app {
 
 Graph::Graph(ui::Window *master_, kwargs values) :
-    ContentFrame(master_, values),
+    Frame(master_, values),
     vertices(sf::LineStrip, 0),
     xAxis(sf::LineStrip, 2),
     yAxis(sf::LineStrip, 2),
@@ -279,7 +279,7 @@ void Graph::set_scalar_y(double y){
     scalarY = y;
 }
 
-int32_t Graph::inner_reconfig(){
+int32_t Graph::on_reconfig(){
 
     border.set_size(canvasWidth, canvasHeight);
     refresh_all();  
@@ -357,26 +357,22 @@ void Graph::refresh_all(){
 
 int32_t Graph::draw(){
 
-    canvas.clear(color("background"));
+    border.draw(*master);
 
-    border.draw(canvas);
-
-    canvas.draw(xAxis);
-    canvas.draw(yAxis);
-    canvas.draw(vertices);
+    master->draw(xAxis);
+    master->draw(yAxis);
+    master->draw(vertices);
 
     if(hasInspector){
 
-        canvas.draw(indicatorLine);
-        canvas.draw(phaseIndicator);
-        canvas.draw(indicatorNeedle);
-        canvas.draw(indicatorTextX);
-        canvas.draw(indicatorTextY);
-        canvas.draw(indicatorTextA);
+        master->draw(indicatorLine);
+        master->draw(phaseIndicator);
+        master->draw(indicatorNeedle);
+        master->draw(indicatorTextX);
+        master->draw(indicatorTextY);
+        master->draw(indicatorTextA);
 
     }
-
-    display();
 
     return 0;
 }
