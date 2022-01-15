@@ -1,9 +1,5 @@
 #pragma once
 
-namespace ui { class Frame; }
-
-#include "ui/core.h"
-#include "ui/window.h"
 #include "ui/borders.h"
 #include "ui/style.h"
 
@@ -14,11 +10,6 @@ namespace ui { class Frame; }
 #include <map>
 
 #include <SFML/Window/Event.hpp>
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/RenderTexture.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/Graphics/Font.hpp>
 
 namespace ui {
 
@@ -38,6 +29,8 @@ struct FrameArgs {
 
 typedef const FrameArgs& Kwargs;
 
+class Window;
+
 class Frame : public Styled {
 
     /*
@@ -46,7 +39,7 @@ class Frame : public Styled {
        built around this class.
        
        Frames are structured in a tree-like fashion,
-       with the core and window (master frame) linked to every frame.
+       with the window (master frame) linked to every frame.
 
        Top design principles:
 
@@ -248,7 +241,7 @@ protected:
     
     Window *master = nullptr;
     Frame *parent = nullptr;
-    Core *core = nullptr;
+    bool refreshFlag = 1;
     
 private:
 
@@ -269,7 +262,6 @@ private:
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
 
     // flags
-    bool refreshFlag = 1;
     bool reconfigFlag = 0;
 
     // is the window size 0?
@@ -309,4 +301,6 @@ private:
 };
 
 }
+
+#include "ui/window.h"
 

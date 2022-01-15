@@ -1,4 +1,5 @@
 #include "ui/frame.h"
+#include "ui/window.h"
 
 #include <SFML/Graphics/Text.hpp>
 
@@ -14,7 +15,6 @@ namespace ui {
 Frame::Frame(Window *master_, Kwargs kwargs){ 
     
     master = master_;
-    core = Core::object;
     parent = nullptr;
     
     look = kwargs.look;
@@ -111,17 +111,18 @@ void Frame::on_refresh(){}
 
 void Frame::set_refresh(){
     refreshFlag = 1;
-    if(master != nullptr) master->set_refresh();
+    if(master != this) master->set_refresh();
 }
 
 std::array<float, 2> Frame::global_mouse(){
-    return {master->mouseX, master->mouseY};
+    return master->mouse();
 }
 
 std::array<float, 2> Frame::local_mouse(){
+    auto [x, y] = master->mouse();
     return {
-        master->mouseX - globalX + windowX + canvasX,
-        master->mouseY - globalY + windowY + canvasY};
+        x - globalX + windowX + canvasX,
+        y - globalY + windowY + canvasY};
 }
 
 bool Frame::contains_mouse(){

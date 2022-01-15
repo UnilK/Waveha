@@ -8,7 +8,6 @@ namespace app {
 
 Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     Box(master_, title_),
-    Commandable(title_),
     frame(master_),
     analyzerButtons(master_, {.height = 20}),
     analyzerWidgets(master_),
@@ -41,10 +40,6 @@ Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     analyzerButtons.put(0, 3, &switchCorrelation);
 
     analyzerButtons.put(0, 9, &fileNameBox);
-
-    commandHelp = "audio analyzer";
-    commandDocs = {
-        {"link _name", "set analyzed audio"}};
 }
 
 Analyzer::~Analyzer(){
@@ -158,30 +153,6 @@ void Analyzer::AC::function(){
     a.switch_mode(Analyzer::correlationMode);
 }
 
-int32_t Analyzer::execute_command(ui::Command cmd){
-
-    if(execute_standard(cmd)) return 0;
-
-    App &app = *(App*)core;
-    
-    std::stringstream cin(cmd.command);
-    std::string prefix;
-
-    cin >> prefix;
-
-    if(prefix == "link"){
-        
-        std::string handle;
-        cin >> handle;
-
-        app.log_command(cmd);
-
-        return link_audio(handle);
-    }
-
-    return 0;
-}
-
 ui::Frame::Capture Analyzer::on_event(sf::Event event, int32_t priority){
 
     if(event.type == sf::Event::KeyPressed){
@@ -224,7 +195,10 @@ ui::Frame::Capture Analyzer::on_event(sf::Event event, int32_t priority){
 
 int32_t Analyzer::link_audio(std::string fileName){
     
-    App &app = *(App*)core;
+    return 0;
+
+    /*
+    App &app = *(App*)master;
     delete source;
     
     source = app.create_source(fileName);
@@ -237,6 +211,7 @@ int32_t Analyzer::link_audio(std::string fileName){
     switch_mode(dataMode);
 
     return source != nullptr;
+    */
 }
 
 }

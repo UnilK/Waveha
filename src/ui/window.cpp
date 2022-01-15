@@ -1,4 +1,5 @@
 #include "ui/window.h"
+#include "ui/clock.h"
 
 #include <iostream>
 #include <sstream>
@@ -6,64 +7,27 @@
 
 namespace ui {
 
-Window::Window(Core *core_, float width_, float height_,
-        std::string title_, long double refreshRate) :
-    sf::RenderWindow(sf::VideoMode(width_, height_), title_),
-    clock(1.0f / refreshRate)
+Window::Window(float width, float height, std::string title) :
+    sf::RenderWindow(sf::VideoMode(width, height), title),
+    Frame(this)
 {
-    core = core_;
-    title = title_;
-    core->add_window(this);
-
-    previousFrame.create(width_, height_);
-    
+    previousFrame.create(width, height);
     setVerticalSyncEnabled(1);
 }
 
 Window::~Window(){}
 
-int32_t Window::destroy(){
-    if(destroyed) return 1;
-    destroyed = 1;
-    for(Window *child : children) child->destroy();
-    return 0;
-}
-
-int32_t Window::try_tick(){
+void Window::event_update(){
     
-    if(eventTick || clock.try_tick()){
-        eventTick = 0;
-        clock.force_sync_tick();
-        tick();
-    }
-
-    return 0;
-}
-
-int32_t Window::tick(){
-    on_tick();
-    mainframe->tick();
-    refresh();
-    return 0;
-}
-
-int32_t Window::on_tick(){ return 0; }
-
-int32_t Window::event_update(){
-    
-    if(destroyed) return 0;
-
     sf::Event event;
     while (pollEvent(event)){
-       
-        eventTick = 1;
 
         if(event.type == sf::Event::Closed){
                 
                 close();
                 on_close();
                 
-                return destroy();
+                destroyed = 1;
 
         } else if(event.type == sf::Event::Resized){
                 
@@ -73,9 +37,9 @@ int32_t Window::event_update(){
                 setView(sf::View(sf::FloatRect(0, 0, width, height)));
                 previousFrame.create(width, height);
 
-                mainframe->set_window_size(width, height);
-                mainframe->set_canvas_size(width, height);
-                mainframe->update_grid();
+                set_window_size(width, height);
+                set_canvas_size(width, height);
+                update_grid();
 
                 resizeFlag = 1;
                 
@@ -86,26 +50,26 @@ int32_t Window::event_update(){
                 mouseX = event.mouseMove.x;
                 mouseY = event.mouseMove.y;
 
-                focus = mainframe->find_focus();
+                focus = find_focus();
                 softFocus = focus.back();
                 
         } else {
 
                 if(event.type == sf::Event::MouseButtonPressed){
-                    focus = mainframe->find_focus();
+                    focus = find_focus();
                     softFocus = focus.back();
                     hardFocus = softFocus;
                 }
                 
                 if(event.type == sf::Event::MouseWheelScrolled){
-                    focus = mainframe->find_focus();
+                    focus = find_focus();
                     softFocus = focus.back();
                     hardFocus = softFocus;
                 }
         }
         
         int32_t priority = focus.size() - 1;
-        Frame::Capture captured = Frame::Capture::pass;
+        Capture captured = Capture::pass;
 
         if(hardFocus != nullptr) captured = std::max(captured, hardFocus->on_event(event, -1));
         
@@ -116,14 +80,25 @@ int32_t Window::event_update(){
         }
     
     }
-
-    return 0;
 }
 
-int32_t Window::refresh(){
+void Window::loop(){
     
-    if(destroyed) return 0;
-    if(!refreshFlag) return 0;
+    Clock clock(1.0 / 60);
+
+    while(!destroyed){
+        event_update();
+        if(!destroyed) tick();
+        if(!destroyed) window_refresh();
+        clock.join_tick();
+    }
+
+    kill_children();
+}
+
+void Window::window_refresh(){
+    
+    // if(!refreshFlag) return;
     
     if(!resizeFlag){
         previousFrame.update(*this);
@@ -132,51 +107,46 @@ int32_t Window::refresh(){
 
     clear(sf::Color::Transparent);
     
-    if(!resizeFlag){
-        draw(previousFrameSprite);
-    }
+    if(!resizeFlag) draw(previousFrameSprite);
 
     resizeFlag = 0;
 
-    mainframe->refresh();
-
-    clock.force_sync_tick();
+    refresh();
     
     display();
-   
-    refreshFlag = 0;
-
-    return 0;
 }
 
-void Window::set_refresh(){
-    refreshFlag = 1;
-}
+std::array<float, 2> Window::mouse(){ return {mouseX, mouseY}; }
 
 Frame *Window::get_soft_focus(){ return softFocus; }
 
 Frame *Window::get_hard_focus(){ return hardFocus; }
 
-Core *Window::get_core(){ return core; };
+void Window::on_close(){}
 
-int32_t Window::on_close(){ return 0; }
+void Window::on_resize(){}
 
-int32_t Window::on_resize(){ return 0; }
-
-int32_t Window::attach_child(Window *child){
-    if(children.count(child)) return 1;
+void Window::attach_child(Window *child){
     children.insert(child);
-    return 0;
 }
 
-int32_t Window::detach_child(Window *child){
-    if(!children.count(child)) return 1;
-    children.erase(child);
-    return 0;
+void Window::kill_child(Window *child){
+    if(children.count(child)){
+        children.erase(child);
+        delete child;
+    }
 }
 
-void Window::update_style(){
-    mainframe->update_style();    
+void Window::kill_children(){
+    for(auto child : children){
+        child->kill_children();
+        delete child;
+    }
+}
+
+void Window::style(){
+    update_style();
+    for(auto child : children) child->style();
 }
 
 }

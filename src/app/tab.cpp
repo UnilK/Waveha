@@ -1,5 +1,4 @@
 #include "app/tab.h"
-#include <app/mainFrame.h>
 
 #include <iostream>
 
@@ -82,7 +81,7 @@ ui::Frame::Capture Tab::on_event(sf::Event event, int32_t priority){
 
     if(event.type == sf::Event::MouseButtonPressed){
        
-        ((MainFrame*)get_top())->chosenTab = this;
+        // ((MainFrame*)get_top())->chosenTab = this;
 
         return Capture::use;
     }

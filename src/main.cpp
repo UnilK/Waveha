@@ -6,8 +6,10 @@ using namespace std;
 
 int main(int argc, char *argv[]){
 
+    ui::Style::load("res/styles/default.style");
+
     app::App waveha;
-    waveha.start();
+    waveha.loop();
 
     return 0;
 }

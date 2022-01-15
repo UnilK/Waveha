@@ -12,13 +12,6 @@ using ui::Kwargs;
 
 class Tab : public ResizableFrame {
     
-    /*
-       style:
-       -
-       kwargs:
-       -
-     */
-
 public:
 
     Tab(ui::Window *master_, std::string title_, Kwargs = {});
@@ -36,7 +29,7 @@ public:
     void rename(std::string name);
     std::string get_title();
     
-    const int32_t boxMax = 100;
+    const int32_t boxMax = 1;
 
 protected:
 
