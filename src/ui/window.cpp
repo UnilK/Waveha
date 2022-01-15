@@ -105,12 +105,12 @@ int32_t Window::event_update(){
         }
         
         int32_t priority = focus.size() - 1;
-        int32_t captured = 0;
+        Frame::Capture captured = Frame::Capture::pass;
 
         if(hardFocus != nullptr) captured = std::max(captured, hardFocus->on_event(event, -1));
         
         for(Frame *frame : focus){
-            if(captured > 0) break;
+            if(captured == Frame::Capture::capture) break;
             captured = std::max(captured, frame->on_event(event, priority));
             priority--;
         }

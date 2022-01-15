@@ -1,24 +1,19 @@
 #include "app/resizableFrame.h"
 
-#include <sstream>
 #include <string>
 #include <iostream>
 
 namespace app {
 
-ResizerFrame::ResizerFrame(ui::Window *master_, kwargs values) : 
-    ui::Frame(master_, values)
+ResizerFrame::ResizerFrame(ui::Window *master_, float dX, float dY, Kwargs kwargs) : 
+    ui::Frame(master_, kwargs)
 {
-
-    std::stringstream value;
-
-    if(read_value("direction", value, values))
-        value >> directionX >> directionY;
-
+    directionX = dX;
+    directionY = dY;
     set_look(look);
 }
 
-int32_t ResizerFrame::set_look(std::string look_){
+void ResizerFrame::set_look(std::string look_){
     
     look = look_;
 
@@ -30,30 +25,21 @@ int32_t ResizerFrame::set_look(std::string look_){
     border.set_look(look);
 
     on_reconfig();
-
-    return 0;
 }
 
-int32_t ResizerFrame::on_reconfig(){
-    
+void ResizerFrame::on_reconfig(){
     dot.setPosition(canvasWidth/2 - dot.getRadius(), canvasHeight/ 2 - dot.getRadius());
-    
     border.set_size(canvasWidth, canvasHeight); 
-
-    return 0;
 }
 
-int32_t ResizerFrame::draw(){
-
+void ResizerFrame::on_refresh(){
     border.draw(*master);
     master->draw(dot);
-
-    return 0;
 }
 
-int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
+ui::Frame::Capture ResizerFrame::on_event(sf::Event event, int32_t priority){
     
-    if(priority > 0) return -1;
+    if(priority > 0) return Capture::pass;
 
     if(event.type == sf::Event::MouseButtonPressed){
         
@@ -63,20 +49,19 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
             dragX = x;
             dragY = y;
             
-            auto [width, height] = parent->get_target_canvas_size();
-            dragWidth = width;
-            dragHeight = height;
+            dragWidth = parent->targetWidth;
+            dragHeight = parent->targetHeight;
             
             resizerPressed = 1;
 
-            return 1;
+            return Capture::capture;
         }
     }
     else if(event.type == sf::Event::MouseButtonReleased){
 
         if(event.mouseButton.button == sf::Mouse::Left){
             resizerPressed = 0;
-            return 1;
+            return Capture::capture;
         }
     }
     else if(event.type == sf::Event::MouseMoved){
@@ -110,7 +95,7 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
             
             get_parent(2)->update_grid();
 
-            return 1;
+            return Capture::capture;
         }
     } else if(event.type == sf::Event::MouseWheelScrolled){
         
@@ -133,30 +118,38 @@ int32_t ResizerFrame::on_event(sf::Event event, int32_t priority){
                     std::max(0.0f, scrolled->canvasY + deltaY));
             scrolled->update_grid();
 
-            return 1;
+            return Capture::capture;
         }
     }
 
-    return -1;
+    return Capture::pass;
 }
 
-void ResizerFrame::set_scrollable(bool scrollable_, ui::Frame *scrolled_){
-    scrollable = scrollable_;
+void ResizerFrame::set_scrolled(ui::Frame *scrolled_){
+    if(scrolled_ == nullptr) scrollable = 0;
+    else scrollable = 1;
     scrolled = scrolled_;
 }
 
 
 
-ResizableFrame::ResizableFrame(ui::Window *master_, kwargs values) :
-    ui::Frame(master_, values)
+ResizableFrame::ResizableFrame(
+        ui::Window *master_,
+        std::array<float, 4> border,
+        std::array<bool, 4> resize,
+        Kwargs kwargs) :
+    ui::Frame(master_, kwargs)
 {
+
+    borderLeft = border[0];
+    borderRight = border[1];
+    borderUp = border[2];
+    borderDown = border[3];
     
-    std::stringstream value;
-    
-    if(read_value("border", value, values))
-        value >> borderLeft >> borderRight >> borderUp >> borderDown;
-    if(read_value("resize", value, values))
-        value >> resizeLeft >> resizeRight >> resizeUp >> resizeDown;
+    resizeLeft = resize[0];
+    resizeRight = resize[1];
+    resizeUp = resize[2];
+    resizeDown = resize[3];
     
     setup_grid(3, 3);
 
@@ -164,92 +157,55 @@ ResizableFrame::ResizableFrame(ui::Window *master_, kwargs values) :
     fill_height({0, 1, 0});
 
     if(resizeLeft){
-        auto pointer = new ResizerFrame(master, kwargs
-                {{"width", std::to_string(borderLeft)},
-                {"look", chars("resizerLook")},
-                {"direction", "-1 0"}});
-        resizers.push_back(pointer);
-        put(1, 0, pointer);
+        resizers.push_back(new ResizerFrame(master, -1, 0,
+                {.look = chars("resizerLook"), .width = borderLeft}));
+        put(1, 0, resizers.back());
     } else {
-        auto pointer = new ui::SolidFrame(master, kwargs
-                {{"width", std::to_string(borderLeft)},
-                {"look", chars("borderLook")}});
-        borders.push_back(pointer);
-        put(1, 0, pointer);
+        borders.push_back(new ui::SolidFrame(master,
+                    {.look = chars("borderLook"), .width = borderLeft}));
+        put(1, 0, borders.back());
     }
     if(resizeRight){
-        auto pointer = new ResizerFrame(master, kwargs
-                {{"width", std::to_string(borderRight)},
-                {"look", chars("resizerLook")},
-                {"direction", "1 0"}});
-        resizers.push_back(pointer);
-        put(1, 2, pointer);
+        resizers.push_back(new ResizerFrame(master, 1, 0,
+                {.look = chars("resizerLook"), .width = borderRight}));
+        put(1, 2, resizers.back());
     } else {
-        auto pointer = new ui::SolidFrame(master, kwargs
-                {{"width", std::to_string(borderRight)},
-                {"look", chars("borderLook")}});
-        borders.push_back(pointer);
-        put(1, 2, pointer);
+        borders.push_back(new ui::SolidFrame(master,
+                    {.look = chars("borderLook"), .width = borderRight}));
+        put(1, 2, borders.back());
     }
     if(resizeUp){
-        auto pointer = new ResizerFrame(master, kwargs
-                {{"height", std::to_string(borderUp)},
-                {"look", chars("resizerLook")},
-                {"direction", "0 -1"}});
-        resizers.push_back(pointer);
-        put(0, 1, pointer);
+        resizers.push_back(new ResizerFrame(master, 0, -1,
+                {.look = chars("resizerLook"), .height = borderUp}));
+        put(0, 1, resizers.back());
     } else {
-        auto pointer = new ui::SolidFrame(master, kwargs
-                {{"height", std::to_string(borderUp)},
-                {"look", chars("borderLook")}});
-        borders.push_back(pointer);
-        put(0, 1, pointer);
+        borders.push_back(new ui::SolidFrame(master,
+                    {.look = chars("borderLook"), .height = borderUp}));
+        put(0, 1, borders.back());
     }
     if(resizeDown){
-        auto pointer = new ResizerFrame(master, kwargs
-                {{"height", std::to_string(borderDown)},
-                {"look", chars("resizerLook")},
-                {"direction", "0 1"}});
-        resizers.push_back(pointer);
-        put(2, 1, pointer);
+        resizers.push_back(new ResizerFrame(master, 0, 1,
+                {.look = chars("resizerLook"), .height = borderDown}));
+        put(2, 1, resizers.back());
     } else {
-        auto pointer = new ui::SolidFrame(master, kwargs
-                {{"height", std::to_string(borderDown)},
-                {"look", chars("borderLook")}});
-        borders.push_back(pointer);
-        put(2, 1, pointer);
+        borders.push_back(new ui::SolidFrame(master,
+                    {.look = chars("borderLook"), .height = borderDown}));
+        put(2, 1, borders.back());
     }
+    
+    borders.push_back(new ui::SolidFrame(master,
+                {.look = chars("borderLook"), .width = borderLeft, .height = borderUp}));
+    put(0, 0, borders.back());
+    borders.push_back(new ui::SolidFrame(master,
+                {.look = chars("borderLook"), .width = borderRight, .height = borderUp}));
+    put(0, 2, borders.back());
+    borders.push_back(new ui::SolidFrame(master,
+                {.look = chars("borderLook"), .width = borderLeft, .height = borderDown}));
+    put(2, 0, borders.back());
+    borders.push_back(new ui::SolidFrame(master,
+                {.look = chars("borderLook"), .width = borderRight, .height = borderDown}));
+    put(2, 2, borders.back());
 
-    ui::SolidFrame *pointer;
-    
-    pointer = new ui::SolidFrame(master, kwargs
-                {{"width", std::to_string(borderLeft)},
-                {"height", std::to_string(borderUp)},
-                {"look", chars("borderLook")}});
-    borders.push_back(pointer);
-    put(0, 0, pointer);
-    
-    pointer = new ui::SolidFrame(master, kwargs
-                {{"width", std::to_string(borderLeft)},
-                {"height", std::to_string(borderDown)},
-                {"look", chars("borderLook")}});
-    borders.push_back(pointer);
-    put(2, 0, pointer);
-    
-    pointer = new ui::SolidFrame(master, kwargs
-                {{"width", std::to_string(borderRight)},
-                {"height", std::to_string(borderUp)},
-                {"look", chars("borderLook")}});
-    borders.push_back(pointer);
-    put(0, 2, pointer);
-    
-    pointer = new ui::SolidFrame(master, kwargs
-                {{"width", std::to_string(borderRight)},
-                {"height", std::to_string(borderDown)},
-                {"look", chars("borderLook")}});
-    borders.push_back(pointer);
-    put(2, 2, pointer);
-    
 }
 
 ResizableFrame::~ResizableFrame(){

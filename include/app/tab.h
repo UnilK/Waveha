@@ -8,6 +8,8 @@ namespace app { class Tab; }
 
 namespace app {
 
+using ui::Kwargs;
+
 class Tab : public ResizableFrame {
     
     /*
@@ -19,7 +21,7 @@ class Tab : public ResizableFrame {
 
 public:
 
-    Tab(ui::Window *master_, std::string title_, kwargs values = {});
+    Tab(ui::Window *master_, std::string title_, Kwargs = {});
 
     bool swap_box(int32_t index, int32_t direction);
 
@@ -29,7 +31,7 @@ public:
 
     int32_t box_index(Box *box);
 
-    int32_t on_event(sf::Event event, int32_t priority);
+    Capture on_event(sf::Event event, int32_t priority);
 
     void rename(std::string name);
     std::string get_title();

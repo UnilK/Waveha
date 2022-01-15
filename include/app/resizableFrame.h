@@ -7,6 +7,8 @@
 
 namespace app {
 
+using ui::Kwargs;
+
 class ResizerFrame : public ui::Frame {
 
     /*
@@ -25,23 +27,21 @@ class ResizerFrame : public ui::Frame {
 
 public:
     
-    ResizerFrame(ui::Window *master_, kwargs values = {});
+    ResizerFrame(ui::Window *master_, float dX, float dY, Kwargs = {});
 
-    int32_t set_look(std::string look_);
+    void set_look(std::string look_);
+    Capture on_event(sf::Event event, int32_t priority);
+    void on_reconfig();
+    void on_refresh();
 
-    int32_t draw();
-    int32_t on_event(sf::Event event, int32_t priority);
+    void set_scrolled(ui::Frame *scrolled_);
 
-    void set_scrollable(bool scrollable_, ui::Frame *scrolled_ = nullptr);
-    
-    int32_t on_reconfig();
-
-protected:
+private:
 
     sf::RectangleShape background;
     sf::CircleShape dot;
 
-    int32_t directionX = 0, directionY = 0;
+    float directionX = 0, directionY = 0;
 
     float dragX = 0, dragY = 0;
     float dragWidth = 0, dragHeight = 0;
@@ -72,12 +72,16 @@ class ResizableFrame : public ui::Frame {
 
 public:
 
-    ResizableFrame(ui::Window *parent_, kwargs values = {});
+    ResizableFrame(
+            ui::Window *parent_,
+            std::array<float, 4> border,
+            std::array<bool, 4> resize,
+            Kwargs = {});
     ~ResizableFrame();
 
     void set_inner(ui::Frame *frame);
 
-protected:
+private:
 
     std::vector<ResizerFrame*> resizers;
     std::vector<ui::SolidFrame*> borders;

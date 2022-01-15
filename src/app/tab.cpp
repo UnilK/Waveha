@@ -5,17 +5,11 @@
 
 namespace app {
 
-Tab::Tab(ui::Window *master_, std::string title_, kwargs values) :
-    ResizableFrame(
-            master_, kwargs
-            {{"look", "Tab"},
-            {"width", "500"},
-            {"border", "0 15 0 0"},
-            {"resize", "0 1 0 0"},
-            {"pad", "0 0 0 0"}}),
+Tab::Tab(ui::Window *master_, std::string title_, Kwargs kwargs) :
+    ResizableFrame(master_, {0, 15, 0, 0}, {0, 1, 0, 0}, {.look = "Tab", .width = 500}),
     inner(master_),
-    boxFrame(master_, kwargs{{"look", "TabBackground"}}),
-    titleFrame(master_, kwargs{{"look", "TabTitle"}, {"height", "20"}, {"text", title_}})
+    boxFrame(master_, {.look = "TabBackground"}),
+    titleFrame(master_, title_, {.look = "TabTitle", .height = 20})
 {
 
     title = title_;
@@ -29,11 +23,11 @@ Tab::Tab(ui::Window *master_, std::string title_, kwargs values) :
     inner.put(0, 0, &titleFrame);
     inner.put(1, 0, &boxFrame);
 
-    boxFrame.autoContain = 0;
+    boxFrame.auto_contain(0);
     boxFrame.setup_grid(boxMax, 1);
     boxFrame.fill_width(0, 1);
 
-    ((ResizerFrame*)get(1, 2))->set_scrollable(1, &boxFrame);
+    ((ResizerFrame*)get(1, 2))->set_scrolled(&boxFrame);
 
 }
 
@@ -84,16 +78,16 @@ int32_t Tab::box_index(Box *box){
     return -1;
 }
 
-int32_t Tab::on_event(sf::Event event, int32_t priority){
+ui::Frame::Capture Tab::on_event(sf::Event event, int32_t priority){
 
     if(event.type == sf::Event::MouseButtonPressed){
        
         ((MainFrame*)get_top())->chosenTab = this;
 
-        return 0;
+        return Capture::use;
     }
 
-    return -1;
+    return Capture::pass;
 }
 
 void Tab::rename(std::string name){

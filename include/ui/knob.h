@@ -12,18 +12,15 @@ class Knob : public Frame {
     
 public:
 
-    Knob(Window *master_, void *commander_, kwargs values = {});
+    Knob(Window *master_, void *commander_, Kwargs = {});
     virtual ~Knob();
 
-    int32_t set_look(std::string look_);
-    
-    int32_t on_reconfig();
-
-    int32_t on_event(sf::Event event, int32_t priority);
+    void set_look(std::string look_);
+    void on_reconfig();
+    Capture on_event(sf::Event event, int32_t priority);
+    void on_refresh();
 
     void set_angle(float);
-
-    int32_t draw();
 
 protected:
 

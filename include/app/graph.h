@@ -34,12 +34,12 @@ class Graph : public ui::Frame {
 
 public:
 
-    Graph(ui::Window *master_, kwargs values = {});
+    Graph(ui::Window *master_, ui::Kwargs = {});
 
-    int32_t set_look(std::string look_);
-    int32_t on_event(sf::Event event, int32_t priority);
-    int32_t on_reconfig();
-    int32_t draw();
+    void set_look(std::string look_);
+    Capture on_event(sf::Event event, int32_t priority);
+    void on_reconfig();
+    void on_refresh();
 
     // NOTE: since most of these operations are rather heavy,
     // they don't update the plot automatically. The plot is updated

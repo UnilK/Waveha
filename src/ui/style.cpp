@@ -9,6 +9,8 @@
 
 namespace ui {
 
+typedef std::map<std::string, std::string> kvpairs;
+
 namespace Style {
 
 std::map<std::string, sf::Font> fonts;
@@ -123,9 +125,8 @@ Styled::Styled(){}
 
 Styled::~Styled(){}
 
-int32_t Styled::set_look(std::string look_){
+void Styled::set_look(std::string look_){
     look = look_;
-    return 0;
 }
 
 std::string Styled::chars(std::string key){

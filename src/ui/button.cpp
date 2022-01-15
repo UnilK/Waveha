@@ -7,8 +7,8 @@
 
 namespace ui {
     
-Button::Button(Window *master_, void *commander_, kwargs values) :
-    Text(master_, values),
+Button::Button(Window *master_, void *commander_, std::string text_, Kwargs kwargs) :
+    Text(master_, text_, kwargs),
     commander(commander_)
 {
     set_look(look);
@@ -16,7 +16,7 @@ Button::Button(Window *master_, void *commander_, kwargs values) :
 
 Button::~Button(){}
 
-int32_t Button::set_look(std::string look_){
+void Button::set_look(std::string look_){
     
     look = look_;
 
@@ -34,27 +34,27 @@ int32_t Button::set_look(std::string look_){
     look = look_;
 
     on_reconfig();
-
-    return 0;
 }
 
-int32_t Button::on_event(sf::Event event, int32_t priority){
+Frame::Capture Button::on_event(sf::Event event, int32_t priority){
    
-    if(priority > 0) return -1;
+    if(priority > 0) return Capture::pass;
 
     if(event.type == sf::Event::MouseButtonPressed){
         buttonPressed = 1;
         set_refresh();
         set_look(look);
+        return Capture::capture;
     }
     else if(event.type == sf::Event::MouseButtonReleased){
         buttonPressed = 0;
         set_refresh();
         set_look(look);
         if(master->get_soft_focus() == this) function();
+        return Capture::capture;
     }
 
-    return 0;
+    return Capture::pass;
 }
 
 }

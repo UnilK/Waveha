@@ -8,7 +8,7 @@ namespace ui {
 
 Borders::~Borders(){}
 
-int32_t Borders::set_look(std::string look_){
+void Borders::set_look(std::string look_){
 
     look = look_;
 
@@ -31,8 +31,6 @@ int32_t Borders::set_look(std::string look_){
     } else if(total == 4){
         borders >> l >> r >> u >> d;
     }
-
-    return 0;
 }
 
 void Borders::set_size(float width, float height){

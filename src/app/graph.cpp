@@ -8,8 +8,8 @@
 
 namespace app {
 
-Graph::Graph(ui::Window *master_, kwargs values) :
-    Frame(master_, values),
+Graph::Graph(ui::Window *master_, ui::Kwargs kwargs) :
+    Frame(master_, kwargs),
     vertices(sf::LineStrip, 0),
     xAxis(sf::LineStrip, 2),
     yAxis(sf::LineStrip, 2),
@@ -19,7 +19,7 @@ Graph::Graph(ui::Window *master_, kwargs values) :
     set_look(look);
 }
 
-int32_t Graph::set_look(std::string look_){
+void Graph::set_look(std::string look_){
    
     look = look_;
 
@@ -64,13 +64,11 @@ int32_t Graph::set_look(std::string look_){
 
     refresh_vertices();
     refresh_indicator();
-
-    return 0;
 }
 
-int32_t Graph::on_event(sf::Event event, int32_t priority){
+ui::Frame::Capture Graph::on_event(sf::Event event, int32_t priority){
 
-    if(priority > 0) return -1;
+    if(priority > 0) return Capture::pass;
 
     if(event.type == sf::Event::MouseButtonPressed){
         
@@ -84,7 +82,7 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
             
             graphPressed = 1;
 
-            return 1;
+            return Capture::capture;
         }
 
     }
@@ -92,7 +90,7 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
 
         if(event.mouseButton.button == sf::Mouse::Left){
             graphPressed = 0;
-            return 1;
+            return Capture::capture;
         }
 
     }
@@ -116,12 +114,12 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
 
         refresh_indicator();
 
-        return 1;
+        return Capture::capture;
 
     }
     else if(event.type == sf::Event::MouseWheelScrolled){
        
-        if(priority < 0) return -1;
+        if(priority < 0) return Capture::pass;
 
         float scrollSpeed = 1.1f;
         if(event.mouseWheelScroll.delta < 0) scrollSpeed = 1 / scrollSpeed;
@@ -146,24 +144,24 @@ int32_t Graph::on_event(sf::Event event, int32_t priority){
 
         refresh_all();
 
-        return 1;
+        return Capture::capture;
     }
     else if(event.type == sf::Event::KeyReleased){
         
         if(event.key.code == sf::Keyboard::X){
             fit_x();
             refresh_all();
-            return 1;
+            return Capture::capture;
         }
         else if(event.key.code == sf::Keyboard::Y){
             fit_y();
             refresh_all();
-            return 1;
+            return Capture::capture;
         }
 
     }
 
-    return -1;
+    return Capture::pass;
 }
 
 void Graph::set_origo(float x, float y){
@@ -279,12 +277,9 @@ void Graph::set_scalar_y(double y){
     scalarY = y;
 }
 
-int32_t Graph::on_reconfig(){
-
+void Graph::on_reconfig(){
     border.set_size(canvasWidth, canvasHeight);
     refresh_all();  
-
-    return 0;
 }
 
 void Graph::refresh_vertices(){
@@ -355,7 +350,7 @@ void Graph::refresh_all(){
     refresh_indicator();
 }
 
-int32_t Graph::draw(){
+void Graph::on_refresh(){
 
     border.draw(*master);
 
@@ -373,8 +368,6 @@ int32_t Graph::draw(){
         master->draw(indicatorTextA);
 
     }
-
-    return 0;
 }
 
 }

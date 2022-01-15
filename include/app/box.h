@@ -21,7 +21,7 @@ class Box : public ResizableFrame {
 
 public:
 
-    Box(ui::Window *master_, std::string title_, kwargs values = {});
+    Box(ui::Window *master_, std::string title_, Kwargs = {});
 
     bool place_to_tab(Tab *newTab);
     void detach_from_tab();

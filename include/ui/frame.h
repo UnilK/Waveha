@@ -20,9 +20,23 @@ namespace ui { class Frame; }
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/Font.hpp>
 
-typedef const std::map<std::string, std::string>& kwargs;
-
 namespace ui {
+
+struct FrameArgs {
+
+    // proxy class for kwargs-like initialization.
+
+    std::string look = "";
+    float width = 0;
+    float height = 0;
+    uint32_t spanx = 1;
+    uint32_t spany = 1;
+    std::array<float, 4> pad = {0, 0, 0, 0}; // left, right, up, down
+    std::array<float, 6> fill = {0, 1, 0, 0, 1, 0}; // left, mid, right, up, mid, down.
+
+};
+
+typedef const FrameArgs& Kwargs;
 
 class Frame : public Styled {
 
@@ -50,7 +64,7 @@ class Frame : public Styled {
        2. Easy drawing of content frames (2)
        3. Efficiency (1, 3)
 
-       The space allocation to child frames:
+       Child frame space allocation protocol:
 
        1. Find the size of the window
        2. Find the size of the canvas, max(canvas size, window size)
@@ -76,12 +90,12 @@ class Frame : public Styled {
        #                                    #
        ######################################
 
-       In content frames [Content] = [Canvas]
+       In content frames (frames that actually draw stuff) [Content] = [Canvas]
        
        If the Frame needs to stretch to fit
        the window, then [Window] = [Canvas]
        
-       If nothing needs to be squished or out of sight, then
+       If nothing needs to be squished or pushed out of sight, then
        [Window] = [Canvas] = [Content]
 
 
@@ -94,132 +108,125 @@ class Frame : public Styled {
        +
     */
 
-    /*
-       style:
-       -
-
-       kwargs:
-       
-       look (chars)
-       width (num)
-       height (num)
-       columnSpan (num)
-       rowSpan (num)
-       pad (num(left) num(right) num(up) num(down))
-       fill (num(l) num(m) num(r) num(u) num(m) num(d))
-
-    */
-
 public:
 
-    Frame(Window *master_, kwargs values = {});
+    Frame(Window *master_, Kwargs = {});
     virtual ~Frame();
 
-    void set_parent(Frame *parent_);
+    // events and actions.
 
-    // is the window size 0?
-    bool degenerate();
-
-    // events.
     // priority 0 is for the inner most focused frame. the second
     // inner most frame will get priority 1 and so on...
     // hard focus event gets priority -1.
-    std::vector<Frame*> find_focus();
-    void find_focus_inner(std::vector<Frame*> &focus);
-
-    // on_event returns capture value.
-    // -1 frame didn't use event
-    // 0 frame used event but didn't capture it
-    // 1 frame used event and captured it.
-    virtual int32_t on_event(sf::Event event, int32_t priority);
+    enum Capture { pass, use, capture };
+    virtual Capture on_event(sf::Event event, int32_t priority);
     
-    // can this frame assume hard focus?
-    bool focusable = 1;
+    // override void set_look(std::string) inherited from Styled for look updates
 
-    // tick and actions related to a tick. 1 tick = 1 frame displayed.
-    int32_t tick();
-    virtual int32_t on_tick();
+    // tick and actions related to a tick. 1 tick = 1 frame displayed. IsIs raan before refresh.
+    void tick();
+    virtual void on_tick();
 
-    // draw contents and display them on the window
-    virtual int32_t draw();
+    // actions run when window is resized/moved. Is ran before rerefresh.
+    virtual void on_reconfig();
+    
+    // draw contents on the master window.
+    void refresh();
+    virtual void on_refresh();
+    
+    // inform the frame that it should refresh itself.
+    void set_refresh();
 
-    // actions run when window is resized/moved
-    virtual int32_t on_reconfig();
-
-    // determine mouse position
+    // mouse utility functions.
     std::array<float, 2> global_mouse();
     std::array<float, 2> local_mouse();
     bool contains_mouse();
     
-    // Redraw & render.
-    int32_t refresh();
+    // find focus chain. the outer most frame comes first,
+    std::vector<Frame*> find_focus();
 
-    // inform the frame that it should refresh itself.
-    void set_refresh();
+
+
+    // window management
 
     // set the window size & positions
-    int32_t set_window_size(float windowWidth_, float windowHeight_);
-    int32_t set_window_position(float windowX_, float windowY_);
-    int32_t set_global_position(float globalX_, float globalY_);
+    void set_window_size(float windowWidth_, float windowHeight_);
+    void set_window_position(float windowX_, float windowY_);
+    void set_global_position(float globalX_, float globalY_);
 
     // set canvas size and position.
-    int32_t set_canvas_size(float targetWidth_, float targetHeight_);
-    int32_t set_canvas_position(float canvasX_, float canvasY_);
-    int32_t move_canvas(float deltaX, float deltaY);
+    void set_canvas_size(float targetWidth_, float targetHeight_);
+    void set_canvas_position(float canvasX_, float canvasY_);
+    void move_canvas(float deltaX, float deltaY);
 
     // set target canvas size
-    int32_t set_target_size(float targetWidth_, float targetHeight_);
-    std::array<float, 2> get_target_canvas_size();
+    void set_target_size(float targetWidth_, float targetHeight_);
 
-    // padding & border included
+    // get Frame size with padding included
     float target_width();
     float target_height();
+
+    // automatically contain window in canvas. doesn't update grid.
+    void auto_contain(bool);
     
+
+
+    // grid management
+
     // setup a nullptr grid of size {rows_, columns_}
-    int32_t setup_grid(int32_t rows_, int32_t columns_);
+    void setup_grid(uint32_t rows_, uint32_t columns_);
 
     // resize grid
-    int32_t resize_grid(int32_t rows_, int32_t columns_);
+    void resize_grid(uint32_t rows_, uint32_t columns_);
 
-    // update window and canvas sizes in the grid.
-    // Needs to be called if window, target or canvas position
+    // update window and canvas sizes in the grid. If the frame has a grid
+    // this needs to be called if window, target or canvas position
     // or size is changed. Sets refreshFlag.
-    int32_t update_grid();
+    void update_grid();
+    
+    // parent management
+    void set_parent(Frame *parent_);
+    Frame *get_parent(int32_t steps = 1);
+    Frame *get_top();
 
-    // place frames to the grid.
-    int32_t place_frame(int32_t row, int32_t column, Frame *frame);
-    int32_t remove_frame(int32_t row, int32_t column);
+    // place frames to the grid. Use these outside initialization.
+    int32_t place_frame(uint32_t row, uint32_t column, Frame *frame);
+    int32_t remove_frame(uint32_t row, uint32_t column);
     int32_t remove_frame(Frame *frame);
     
     // method for placing frames to the grid without updating the grid.
     // use this for initialization.
-    int32_t put(int32_t row, int32_t column, Frame *frame);
+    int32_t put(uint32_t row, uint32_t column, Frame *frame);
     
     // access the grid
-    Frame *&get(int32_t row, int32_t column);
+    Frame *&get(uint32_t row, uint32_t column);
     Frame *&get(Frame *frame);
 
     // configure extra space allocation among rows & columns.
     // each row gets value[row]/values_sum extra space allocated to it.
     // if none of the rows or columns use the extra then
     // frames stick to the top left corner.
-    int32_t fill_height(std::vector<float> heightFill_);
-    int32_t fill_width(std::vector<float> widthFill_);
-    int32_t fill_height(int32_t row, float value);
-    int32_t fill_width(int32_t column, float value);
+    void fill_height(std::vector<float> heightFill_);
+    void fill_width(std::vector<float> widthFill_);
+    void fill_height(uint32_t row, float value);
+    void fill_width(uint32_t column, float value);
 
-    // alignment and bordering
-    int32_t set_span(int32_t rowSpan_, int32_t columnSpan_);
-    int32_t align(float left, float right, float up, float down);
-    int32_t align_fill(float left, float right, float up, float down);
-    int32_t frame_fill(float width, float height);
+    void set_span(uint32_t rowSpan_, uint32_t columnSpan_);
 
-    // get parent some steps up
-    Frame *get_parent(int32_t steps = 1);
-    Frame *get_top();
 
-    // giving each of these variables getters would be stupid.
-    // use only for access.
+
+    // cosmetics
+    
+    void pad(float left, float right, float up, float down);
+    void fill(float left, float midh, float right, float up, float midv, float down);
+
+    // update all looks
+    void update_style();
+
+
+
+    // getters...
+    // giving each variable below a getter wouldn't have much benefits. Use only for access.
 
     // canvas target dimensions.
     float targetWidth = 0, targetHeight = 0;
@@ -237,52 +244,41 @@ public:
     float windowX = 0, windowY = 0;
     float globalX = 0, globalY = 0;
     
-    // grid dimensions
-    int32_t columns = 0, rows = 0;
-    
-    // automatic view containment
-    bool autoContain = 1;
-
-    // update all looks
-    void update_style();
-
 protected:
-
-    Core *core = nullptr;
-    Frame *parent = nullptr;
+    
     Window *master = nullptr;
+    Frame *parent = nullptr;
+    Core *core = nullptr;
+    
+private:
 
     // grid and fill configuration
     std::vector<float> widthFill, heightFill;
     std::vector<std::vector<Frame*> > grid;
+    uint32_t columns = 0, rows = 0;
 
     // grid content layout management
     std::vector<float> widthMax = {0}, heightMax = {0};
 
     // The frame's size on it's parent's grid.
-    int32_t rowSpan = 1, columnSpan = 1; 
+    uint32_t rowSpan = 1, columnSpan = 1; 
     
-    // Alignment and bordering.
+    // Alignment and padding.
     float frameFillWidth = 1, frameFillHeight = 1;
     float alignPadLeft = 0, alignPadRight = 0, alignPadDown = 0, alignPadUp = 0;
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
 
-    // parser for poor man's **kwargs
-    bool read_value(std::string key, std::stringstream &value, kwargs values);
-
     // flags
     bool refreshFlag = 1;
-    bool windowMoved = 0;
-    bool windowResized = 0;
-    bool canvasMoved = 0;
-    bool canvasResized = 0;
+    bool reconfigFlag = 0;
+
+    // is the window size 0?
+    bool degenerate();
     
-    bool reconfig_check();
-    void unset_reconfig();
-
-private:
-
-    int32_t setup(kwargs values);
+    // find focus
+    void find_focus_inner(std::vector<Frame*> &focus);
+    
+    bool autoContain = 1;
 
 };
 
@@ -299,15 +295,14 @@ class SolidFrame : public Frame {
 
 public:
 
-    SolidFrame(Window *master_, kwargs values = {});
+    SolidFrame(Window *master_, Kwargs = {});
     virtual ~SolidFrame();
 
-    int32_t draw();
-    int32_t on_reconfig();
+    void set_look(std::string look_);
+    void on_reconfig();
+    void on_refresh();
 
-    int32_t set_look(std::string look_);
-
-protected:
+private:
 
     Borders border;
 

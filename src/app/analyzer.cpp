@@ -10,29 +10,15 @@ Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     Box(master_, title_),
     Commandable(title_),
     frame(master_),
-    analyzerButtons(master_, kwargs{{"height", "20"}}),
+    analyzerButtons(master_, {.height = 20}),
     analyzerWidgets(master_),
-    graph(master_, kwargs{{"look", "AnalyzerGraph"}}),
-    fileNameBox(master_, kwargs
-            {{"text", "no linked audio"},
-            {"look", "BoxTitle"}}),
-    switchRegular(master_, this, kwargs
-            {{"text", "time"},
-            {"width", "50"},
-            {"look", "BoxLeftButton"}}),
-    switchFrequency(master_, this, kwargs
-            {{"text", "frequency"},
-            {"height", "20"},
-            {"width", "100"},
-            {"look", "BoxLeftButton"}}),
-    switchPeak(master_, this, kwargs
-            {{"text", "peak"},
-            {"width", "50"},
-            {"look", "BoxLeftButton"}}),
-    switchCorrelation(master_, this, kwargs
-            {{"text", "correlation"},
-            {"width", "120"},
-            {"look", "BoxLeftButton"}})
+    graph(master_, {.look = "AnalyzerGraph"}),
+    fileNameBox(master_, title_, {.look = "BoxTitle"}),
+    switchRegular(master_, this, "time", {.look = "BoxLeftButton", .width = 50, .height = 20}),
+    switchFrequency(master_, this, "frequency", {.look = "BoxLeftButton", .width = 50, .height = 20}),
+    switchPeak(master_, this, "peak", {.look = "BoxLeftButton", .width = 50, .height = 20}),
+    switchCorrelation(master_, this, "correlation",
+            {.look = "BoxLeftButton", .width = 50, .height = 20})
 {
 
     inner.put(1, 0, &frame);
@@ -196,8 +182,8 @@ int32_t Analyzer::execute_command(ui::Command cmd){
     return 0;
 }
 
-int32_t Analyzer::on_event(sf::Event event, int32_t priority){
-   
+ui::Frame::Capture Analyzer::on_event(sf::Event event, int32_t priority){
+
     if(event.type == sf::Event::KeyPressed){
         
         if(event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::D){
@@ -217,7 +203,7 @@ int32_t Analyzer::on_event(sf::Event event, int32_t priority){
 
             update_data();
 
-            return 1;
+            return Capture::capture;
 
         } else if(event.key.code == sf::Keyboard::W || event.key.code == sf::Keyboard::S){
 
@@ -228,12 +214,12 @@ int32_t Analyzer::on_event(sf::Event event, int32_t priority){
 
             update_data();
 
-            return 1;
+            return Capture::capture;
         }
     
     }
 
-    return -1;
+    return Capture::pass;
 }
 
 int32_t Analyzer::link_audio(std::string fileName){

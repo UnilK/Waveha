@@ -25,13 +25,12 @@ class Text : public Frame {
 
 public:
 
-    Text(Window *master_, kwargs values = {});
+    Text(Window *master_, std::string text_ = "", Kwargs = {});
     virtual ~Text();
     
-    virtual int32_t set_look(std::string look_);
-
-    int32_t draw();
-    int32_t on_reconfig();
+    virtual void set_look(std::string look_);
+    void on_reconfig();
+    void on_refresh();
 
     void set_text(std::string text_);
 

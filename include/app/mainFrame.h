@@ -6,20 +6,20 @@
 
 namespace app {
 
+using ui::Kwargs;
+
 class TabBar : public ui::SolidFrame {
 
     /*
        style:
        -
-       kwargs:
-       -
      */
 
 public:
 
-    TabBar(ui::Window *master_, ui::Frame *tabFrame_, kwargs values = {});
+    TabBar(ui::Window *master_, ui::Frame *tabFrame_, Kwargs = {});
 
-    int32_t on_event(sf::Event event, int32_t priority = 0);
+    Capture on_event(sf::Event event, int32_t priority = 0);
 
     ui::Frame *tabFrame;
 
@@ -32,13 +32,11 @@ class MainFrame : public ui::Frame {
     /*
        style:
        -
-       kwargs:
-       -
      */
 
 public:
 
-    MainFrame(ui::Window *master_, kwargs values = {});
+    MainFrame(ui::Window *master_, Kwargs = {});
 
     bool add_tab(Tab *tab);
     bool delete_tab(std::string name);

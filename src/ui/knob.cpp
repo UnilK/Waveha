@@ -4,8 +4,8 @@
 
 namespace ui {
 
-Knob::Knob(Window *master_, void *commander_, kwargs values) :
-    Frame(master_, values),
+Knob::Knob(Window *master_, void *commander_, Kwargs kwargs) :
+    Frame(master_, kwargs),
     commander(commander_),
     needle(sf::LineStrip, 2)
 {
@@ -14,7 +14,7 @@ Knob::Knob(Window *master_, void *commander_, kwargs values) :
 
 Knob::~Knob(){}
 
-int32_t Knob::set_look(std::string look_){
+void Knob::set_look(std::string look_){
 
     look = look_;
 
@@ -30,17 +30,9 @@ int32_t Knob::set_look(std::string look_){
     border.set_look(look);
 
     on_reconfig();
-    
-    return 0;
 }
 
-void Knob::set_angle(float rad){
-    angle = rad;
-    on_reconfig();
-    set_refresh();
-}
-
-int32_t Knob::on_reconfig(){
+void Knob::on_reconfig(){
 
     float midX = (canvasWidth - border.r + border.l) / 2;
     float midY = (canvasHeight - border.d + border.u) / 2;
@@ -49,31 +41,33 @@ int32_t Knob::on_reconfig(){
     
     needle[0].position = {midX, midY};
     needle[1].position = {midX + std::cos(angle) * radius, midY + std::sin(angle) * radius}; 
-
-    return 0;
 }
 
-int32_t Knob::on_event(sf::Event event, int32_t priority){
+Frame::Capture Knob::on_event(sf::Event event, int32_t priority){
 
-    if(priority > 0) return -1;
+    if(priority > 0) return Capture::pass;
 
     if(event.type == sf::Event::MouseWheelScrolled){
         
         function(event.mouseWheelScroll.delta);
 
-        return 1;
+        return Capture::capture;
     }
 
-    return -1;
+    return Capture::pass;
 }
 
-int32_t Knob::draw(){
-
+void Knob::on_refresh(){
     border.draw(*master);
     master->draw(circle);
     master->draw(needle);
-    
-    return 0;
 }
+
+void Knob::set_angle(float rad){
+    angle = rad;
+    on_reconfig();
+    set_refresh();
+}
+
 
 }

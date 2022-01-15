@@ -7,8 +7,6 @@
 
 namespace ui {
 
-typedef std::map<std::string, std::string> kvpairs;
-
 namespace Style {
 
     // poor man's css.
@@ -59,7 +57,7 @@ namespace Style {
 
     void load(std::string styleFile);
 
-    kvpairs &look(std::string key);
+    std::map<std::string, std::string> &look(std::string key);
     sf::Font &font(std::string key);
 }
 
@@ -72,15 +70,18 @@ public:
     Styled();
     virtual ~Styled();
 
-    virtual int32_t set_look(std::string look_);
-    
-    std::string look;
+    virtual void set_look(std::string look_);
     
     std::string chars(std::string key);
     sf::Color color(std::string key);
     sf::Font &font(std::string key);
     uint32_t textStyle(std::string key);
     long double num(std::string key);
+
+protected:
+
+    std::string look;
+
 };
 
 }

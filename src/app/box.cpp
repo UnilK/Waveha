@@ -4,37 +4,14 @@
 
 namespace app {
 
-Box::Box(ui::Window *master_, std::string title_, kwargs values) :
-    ResizableFrame(master_, kwargs
-            {{"look", "Box"},
-            {"height", "200"},
-            {"border", "0 0 0 15"},
-            {"resize", "0 0 0 1"},
-            {"pad", "0 0 0 0"}}),
+Box::Box(ui::Window *master_, std::string title_, Kwargs kwargs) :
+    ResizableFrame(master_, {0, 0, 0, 15}, {0, 0, 0, 1}, {.look = "Box", .height = 200}),
     inner(master_),
-    titleText(master_, kwargs
-            {{"look", "BoxTitle"},
-            {"height", "20"},
-            {"text", title_}}),
-    buttonFrame(master_, kwargs{{"look", "ButtonBox"}, {"height", "24"}}),
-    upSwitch(master_, this, kwargs
-            {{"text", "up"},
-            {"height", "20"},
-            {"width", "50"},
-            {"look", "BoxLeftButton"},
-            {"pad", "0 0 0 0"}}),
-    downSwitch(master_, this, kwargs
-            {{"text", "down"},
-            {"height", "20"},
-            {"width", "50"},
-            {"look", "BoxLeftButton"},
-            {"pad", "0 0 0 0"}}),
-    detachButton(master_, this, kwargs
-            {{"text", "detach"},
-            {"height", "20"},
-            {"width", "70"},
-            {"look", "BoxRightButton"},
-            {"pad", "0 0 0 0"}})
+    titleText(master_, title_, {.look = "BoxTitle", .height = 20}),
+    buttonFrame(master_, {.look = "ButtonBox", .height = 24}),
+    upSwitch(master_, this, "up", {.look = "BoxLeftButton", .width = 50, .height = 20}),
+    downSwitch(master_, this, "down", {.look = "BoxLeftButton", .width = 50, .height = 20}),
+    detachButton(master_, this, "detach", {.look = "BoxRightButton", .width = 70, .height = 20})
 {
    
     title = title_;

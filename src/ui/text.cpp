@@ -6,24 +6,16 @@
 
 namespace ui {
 
-Text::Text(Window *master_, kwargs values) :
-    Frame(master_, values)
+Text::Text(Window *master_, std::string text_, Kwargs kwargs) :
+    Frame(master_, kwargs)
 {
-    std::stringstream value;
-    
-    if(read_value("text", value, values)){
-        text = "";
-        std::string word;
-        while(std::getline(value, word)) text += word+"\n";
-        if(!text.empty()) text.pop_back();
-    }
-
+    text = text_;
     set_look(look);
 }
 
 Text::~Text(){}
 
-int32_t Text::set_look(std::string look_){
+void Text::set_look(std::string look_){
     
     look = look_;
 
@@ -36,11 +28,9 @@ int32_t Text::set_look(std::string look_){
     border.set_look(look);
 
     on_reconfig();
-
-    return 0;
 }
 
-int32_t Text::on_reconfig(){
+void Text::on_reconfig(){
     
     sf::FloatRect rect = textBox.getLocalBounds();
     
@@ -51,22 +41,18 @@ int32_t Text::on_reconfig(){
     textBox.setPosition(textX, textY);
 
     border.set_size(canvasWidth, canvasHeight);
-    
-    return 0;
 }
 
-int32_t Text::draw(){
-   
+void Text::on_refresh(){
     border.draw(*master);
     master->draw(textBox);
-
-    return 0;
 }
 
 void Text::set_text(std::string text_){
     
     text = text_;
     textBox.setString(text);
+    on_reconfig();
     set_refresh();
 
 }

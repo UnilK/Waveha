@@ -4,14 +4,14 @@
 
 namespace app {
 
-TabBar::TabBar(ui::Window *master_, ui::Frame *tabFrame_, kwargs values) :
-    ui::SolidFrame(master_, values),
+TabBar::TabBar(ui::Window *master_, ui::Frame *tabFrame_, Kwargs kwargs) :
+    ui::SolidFrame(master_, kwargs),
     tabFrame(tabFrame_)
 {}
 
-int32_t TabBar::on_event(sf::Event event, int32_t priority){
+ui::Frame::Capture TabBar::on_event(sf::Event event, int32_t priority){
     
-    if(priority > 0) return -1;
+    if(priority > 0) return Capture::pass;
 
     if(event.type == sf::Event::MouseWheelScrolled){
             
@@ -28,17 +28,17 @@ int32_t TabBar::on_event(sf::Event event, int32_t priority){
                 tabFrame->canvasY);
         tabFrame->update_grid();
 
-        return 1;
+        return Capture::capture;
     }
 
-    return -1;
+    return Capture::pass;
 }
 
 
-MainFrame::MainFrame(ui::Window *master_, kwargs values) :
-    ui::Frame(master_, values),
-    tabFrame(master_, kwargs{{"look", "MainFrame"}}),
-    tabBar(master_, &tabFrame, kwargs{{"look", "TabBar"}, {"height", "15"}}),
+MainFrame::MainFrame(ui::Window *master_, Kwargs kwargs) :
+    ui::Frame(master_, kwargs),
+    tabFrame(master_, {.look = "MainFrame"}),
+    tabBar(master_, &tabFrame, {.look = "TabBar", .height = 15}),
     infoTab(master_, "info")
 {
     look = "MainFrame";
@@ -50,7 +50,7 @@ MainFrame::MainFrame(ui::Window *master_, kwargs values) :
     put(0, 0, &tabBar);
     put(1, 0, &tabFrame);
 
-    tabFrame.autoContain = 0;
+    tabFrame.auto_contain(0);
     tabFrame.setup_grid(1, tabMax + 1);
     tabFrame.fill_height(0, 1);
 
@@ -142,7 +142,7 @@ Box *MainFrame::find_box(std::string name){
 
 MainWindow::MainWindow(ui::Core *core_) : 
     ui::Window(core_, 1200, 800, "Waveha", 120),
-    main(this)
+    main(this, {.width = 1200, .height = 800})
 {
     mainframe = &main;
 }
