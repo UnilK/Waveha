@@ -26,7 +26,6 @@ public:
     // singleton
     static Core *object;
     
-    Style style;
     Clock clock;
 
     Core(std::string styleFile, long double tickRate = 1000);

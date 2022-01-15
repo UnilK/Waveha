@@ -23,9 +23,9 @@ void listen_terminal(Core *core){
 }
 
 Core::Core(std::string styleFile, long double tickRate) :
-    style(styleFile),
     clock(1.0l/tickRate)
 {
+    Style::load(styleFile);
     commandId = "";
     commandRoot = this;
     commandFocus = this;
@@ -95,7 +95,7 @@ int32_t Core::set_style(std::string styleFile){
     std::ifstream I(styleFile);
 
     if(I.good()){
-        style.load(styleFile);
+        Style::load(styleFile);
         update_style();
         return 0;
     } else {

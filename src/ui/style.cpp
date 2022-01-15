@@ -1,5 +1,4 @@
 #include <ui/style.h>
-#include <ui/core.h>
 
 #include <SFML/Graphics/Text.hpp>
 
@@ -10,11 +9,13 @@
 
 namespace ui {
 
-Style::Style(std::string styleFile){
-    load(styleFile);
-}
+namespace Style {
 
-void Style::load(std::string styleFile){
+std::map<std::string, sf::Font> fonts;
+std::map<std::string, kvpairs > looks;
+kvpairs macros;
+
+void load(std::string styleFile){
    
     if(styleFile.empty()) return;
 
@@ -106,13 +107,16 @@ void Style::load(std::string styleFile){
     I.close();
 }
 
-kvpairs &Style::operator[](std::string key){
+kvpairs &look(std::string key){
     return looks[key];
 }
 
-sf::Font &Style::font(std::string key){
+sf::Font &font(std::string key){
     return fonts[key];
 }
+
+}
+
 
 
 Styled::Styled(){}
@@ -125,7 +129,7 @@ int32_t Styled::set_look(std::string look_){
 }
 
 std::string Styled::chars(std::string key){
-    return Core::object->style[look][key];
+    return Style::look(look)[key];
 }
 
 sf::Color Styled::color(std::string key){
@@ -142,7 +146,7 @@ sf::Color Styled::color(std::string key){
 }
 
 sf::Font &Styled::font(std::string key){
-    return Core::object->style.font(chars(key));
+    return Style::font(chars(key));
 }
 
 long double Styled::num(std::string key){
@@ -173,4 +177,3 @@ uint32_t Styled::textStyle(std::string key){
 }
 
 }
-

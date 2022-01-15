@@ -9,12 +9,12 @@ namespace ui {
 
 typedef std::map<std::string, std::string> kvpairs;
 
-class Style {
+namespace Style {
 
-    // class for managing outlooks.
+    // poor man's css.
 
     /*
-        .style file template:
+        .style file example:
 
         font
            default res/fonts/arial.ttf
@@ -57,22 +57,11 @@ class Style {
 
      */
 
-public:
-
-    Style(std::string styleFile);
-    
     void load(std::string styleFile);
 
-    kvpairs &operator[](std::string key);
+    kvpairs &look(std::string key);
     sf::Font &font(std::string key);
-
-protected:
-
-    std::map<std::string, sf::Font> fonts;
-    std::map<std::string, kvpairs > looks;
-    kvpairs macros;
-
-};
+}
 
 class Styled {
 
