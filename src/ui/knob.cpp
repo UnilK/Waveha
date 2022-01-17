@@ -4,9 +4,9 @@
 
 namespace ui {
 
-Knob::Knob(Window *master_, void *commander_, Kwargs kwargs) :
+Knob::Knob(Window *master_,std::function<void(float)> func, Kwargs kwargs) :
     Frame(master_, kwargs),
-    commander(commander_),
+    function(func),
     needle(sf::LineStrip, 2)
 {
     set_look(look);
@@ -18,11 +18,11 @@ void Knob::set_look(std::string look_){
 
     look = look_;
 
-    radius = num("size");
+    radius = num("dotSize");
     circle.setRadius(radius);
-    circle.setFillColor(color("circleColor"));
-    circle.setOutlineColor(color("circleBorderColor"));
-    circle.setOutlineThickness(-num("circleBorderThickness"));
+    circle.setFillColor(color("dotColor"));
+    circle.setOutlineColor(color("dotBorderColor"));
+    circle.setOutlineThickness(-num("dotBorderThickness"));
     
     needle[0].color = color("needleColor");
     needle[1].color = color("needleColor");

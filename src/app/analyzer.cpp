@@ -6,6 +6,8 @@
 
 namespace app {
 
+/*
+
 Analyzer::Analyzer(ui::Window *master_, std::string title_) :
     Box(master_, title_),
     frame(master_),
@@ -197,7 +199,6 @@ int32_t Analyzer::link_audio(std::string fileName){
     
     return 0;
 
-    /*
     App &app = *(App*)master;
     delete source;
     
@@ -211,7 +212,8 @@ int32_t Analyzer::link_audio(std::string fileName){
     switch_mode(dataMode);
 
     return source != nullptr;
-    */
 }
+
+*/
 
 }

@@ -7,7 +7,7 @@ font
 
 define
     terminal 2e0a24
-    darkterminal 2e0a24
+    lightterminal 380c2a
     green 87ffaf
     darkgreen 4e9a06
     yellow fce94f
@@ -25,132 +25,26 @@ define
 
 look
 
-MainFrame
-    background $terminal
-;
-
-TabBar
+tools
     borderColor $blue
-    borderThickness 0 0 0 1
+    borderThickness 1
     background $terminal
-;
 
+    barSize 20
 
-
-Tab
-    resizerLook TabResizer
-    borderLook TabBorder
-;
-
-TabResizer
-    borderColor $blue
-    borderThickness 1 1 0 0
-    background $terminal
     dotSize 5
     dotBorderThickness 1
     dotBorderColor $blue
-;
 
-TabBorder
-    borderColor $blue
-    borderThickness 2
-    background $terminal
-;
-
-TabBackground
-    background $terminal
-;
-
-TabTitle
-    background $terminal
-    borderColor $blue
-    borderThickness 0 0 0 1
     textSize 18
     textColor $blue
+    textStyle default
     font default
 ;
 
-
-
-Box
-    resizerLook BoxResizer
-    borderLook BoxBorder
+temp
+    background $purple
 ;
-
-BoxResizer
-    borderColor $purple
-    borderThickness 0 0 1 1
-    background $terminal
-    dotSize 5
-    dotBorderThickness 1
-    dotBorderColor $purple
-;
-
-BoxBorder
-    borderColor $purple
-    borderThickness 2
-    background $terminal
-;
-
-ButtonBox
-    background $terminal
-;
-
-BoxTitle
-    background $terminal
-    borderColor $purple
-    borderThickness 0 0 0 1
-    textSize 18
-    textColor $purple
-    font default
-;
-
-BoxLeftButton
-    normal BoxLeftButtonN
-    pressed BoxLeftButtonP
-;
-
-BoxLeftButtonN
-    background $terminal
-    borderColor $purple
-    borderThickness 0 1 0 1
-    textSize 18
-    textColor $purple
-    font default
-;
-
-BoxLeftButtonP
-    background $darkterminal
-    borderColor $darkpurple
-    borderThickness 0 1 0 1
-    textSize 18
-    textColor $darkpurple
-    font default
-;
-
-BoxRightButton
-    normal BoxRightButtonN
-    pressed BoxRightButtonP
-;
-
-BoxRightButtonN
-    background $terminal
-    borderColor $purple
-    borderThickness 1 0 0 1
-    textSize 18
-    textColor $purple
-    font default
-;
-
-BoxRightButtonP
-    background $darkterminal
-    borderColor $darkpurple
-    borderThickness 1 0 0 1
-    textSize 18
-    textColor $darkpurple
-    font default
-;
-
 
 
 AnalyzerGraph
@@ -164,4 +58,4 @@ AnalyzerGraph
     font default
 ;
 
-
+;

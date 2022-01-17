@@ -7,9 +7,9 @@
 
 namespace ui {
     
-Button::Button(Window *master_, void *commander_, std::string text_, Kwargs kwargs) :
+Button::Button(Window *master_, std::function<void(void)> func, std::string text_, Kwargs kwargs) :
     Text(master_, text_, kwargs),
-    commander(commander_)
+    function(func)
 {
     set_look(look);
 }
@@ -20,20 +20,9 @@ void Button::set_look(std::string look_){
     
     look = look_;
 
-    if(buttonPressed) look = chars("pressed");
-    else look = chars("normal");
+    if(buttonPressed) Text::set_look(chars("pressed"));
+    else Text::set_look(chars("normal"));
 
-    textBox.setString(text);
-    textBox.setFont(font("font"));
-    textBox.setStyle(textStyle("textStyle"));
-    textBox.setCharacterSize(num("textSize"));
-    textBox.setFillColor(color("textColor"));
-
-    border.set_look(look);
-
-    look = look_;
-
-    on_reconfig();
 }
 
 Frame::Capture Button::on_event(sf::Event event, int32_t priority){

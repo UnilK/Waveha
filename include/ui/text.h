@@ -3,9 +3,9 @@
 #include "ui/frame.h"
 
 #include <SFML/Graphics/Text.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
 
 namespace ui {
+
 
 class Text : public Frame {
 
@@ -18,9 +18,6 @@ class Text : public Frame {
        textColor (color)
        textStyle (textStyle)
        font (font)
-
-       kwargs:
-       text (chars)
     */
 
 public:
@@ -33,11 +30,25 @@ public:
     void on_refresh();
 
     void set_text(std::string text_);
+    std::string get_text();
+    
+    enum Position { left, down, middle};
 
-protected:
+    // use these for initialization.
+    void text_stick(Position);
+    void text_direction(Position);
+    void text_offset(float x, float y);
+    // offset is relative to character size: x -> x * characterSize.
 
-    Borders border;
-    std::string text = "";
+
+private:
+
+    std::string text;
+    
+    Position stick = Position::middle, direction = Position::left;
+
+    float offsetX = 0, offsetY = 0;
+
     sf::Text textBox;
 
 };

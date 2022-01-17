@@ -20,10 +20,12 @@ struct FrameArgs {
     std::string look = "";
     float width = 0;
     float height = 0;
+    std::array<float, 4> range = {0, 1e9, 0, 1e9}; // w min, w max, h min, h max
     uint32_t spanx = 1;
     uint32_t spany = 1;
     std::array<float, 4> pad = {0, 0, 0, 0}; // left, right, up, down
     std::array<float, 6> fill = {0, 1, 0, 0, 1, 0}; // left, mid, right, up, mid, down.
+    std::array<bool, 4> border = {1, 1, 1, 1}; // left, right, up, down
 
 };
 
@@ -114,7 +116,7 @@ public:
     enum Capture { pass, use, capture };
     virtual Capture on_event(sf::Event event, int32_t priority);
     
-    // override void set_look(std::string) inherited from Styled for look updates
+    virtual void set_look(std::string look_);
 
     // tick and actions related to a tick. 1 tick = 1 frame displayed. IsIs raan before refresh.
     void tick();
@@ -138,6 +140,9 @@ public:
     // find focus chain. the outer most frame comes first,
     std::vector<Frame*> find_focus();
 
+    // can this frame assume hard focus?
+    bool focusable = 1;
+
 
 
     // window management
@@ -154,6 +159,7 @@ public:
 
     // set target canvas size
     void set_target_size(float targetWidth_, float targetHeight_);
+    void set_range(float wMin, float wMax, float hMin, float hMax);
 
     // get Frame size with padding included
     float target_width();
@@ -174,7 +180,8 @@ public:
 
     // update window and canvas sizes in the grid. If the frame has a grid
     // this needs to be called if window, target or canvas position
-    // or size is changed. Sets refreshFlag.
+    // or size is changed. Sets refreshFlag. Master frame's constructor
+    // should call this after everything has been put to place.
     void update_grid();
     
     // parent management
@@ -212,6 +219,7 @@ public:
     
     void pad(float left, float right, float up, float down);
     void fill(float left, float midh, float right, float up, float midv, float down);
+    void set_border(bool left, bool right, bool up, bool down);
 
     // update all looks
     void update_style();
@@ -223,6 +231,7 @@ public:
 
     // canvas target dimensions.
     float targetWidth = 0, targetHeight = 0;
+    float widthMin = 0, widthMax = 1e9, heightMin = 0, heightMax = 1e9;
     
     // canvas dimensions
     float canvasWidth = 0, canvasHeight = 0;
@@ -243,15 +252,14 @@ protected:
     Frame *parent = nullptr;
     bool refreshFlag = 1;
     
+    Borders border;
+    
 private:
 
     // grid and fill configuration
     std::vector<float> widthFill, heightFill;
     std::vector<std::vector<Frame*> > grid;
     uint32_t columns = 0, rows = 0;
-
-    // grid content layout management
-    std::vector<float> widthMax = {0}, heightMax = {0};
 
     // The frame's size on it's parent's grid.
     uint32_t rowSpan = 1, columnSpan = 1; 
@@ -261,43 +269,12 @@ private:
     float alignPadLeft = 0, alignPadRight = 0, alignPadDown = 0, alignPadUp = 0;
     float alignFillLeft = 0, alignFillRight = 0, alignFillDown = 0, alignFillUp = 0;
 
-    // flags
-    bool reconfigFlag = 0;
-
-    // is the window size 0?
     bool degenerate();
-    
-    // find focus
     void find_focus_inner(std::vector<Frame*> &focus);
     
     bool autoContain = 1;
-
-};
-
-
-
-class SolidFrame : public Frame {
- 
-    /*
-       style parameters:
-       borderColor (color)
-       borderThickness (num) or (num(left) num(right) num(up) num(down))
-       background (color)
-    */
-
-public:
-
-    SolidFrame(Window *master_, Kwargs = {});
-    virtual ~SolidFrame();
-
-    void set_look(std::string look_);
-    void on_reconfig();
-    void on_refresh();
-
-private:
-
-    Borders border;
-
+    bool reconfigFlag = 0;
+    
 };
 
 }

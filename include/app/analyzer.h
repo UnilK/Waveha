@@ -1,13 +1,14 @@
 #pragma once
 
-#include "app/box.h"
 #include "app/graph.h"
 #include "wave/source.h"
 #include "changer/pitch.h"
 
 namespace app {
 
-class Analyzer : public Box{
+/*
+
+class Analyzer : public Box {
 
 public:
 
@@ -55,5 +56,7 @@ protected:
     wave::Pitch pitch;
 
 };
+
+*/
 
 }

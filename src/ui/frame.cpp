@@ -4,7 +4,6 @@
 #include <SFML/Graphics/Text.hpp>
 
 #include <iostream>
-#include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include <math.h>
@@ -16,10 +15,16 @@ Frame::Frame(Window *master_, Kwargs kwargs){
     
     master = master_;
     parent = nullptr;
-    
+
     look = kwargs.look;
+
     targetWidth = kwargs.width;
     targetHeight = kwargs.height;
+    widthMin = kwargs.range[0];
+    widthMax = kwargs.range[1];
+    heightMin = kwargs.range[2];
+    heightMax = kwargs.range[3];
+    
     columnSpan = std::max(1u, kwargs.spanx);
     rowSpan = std::max(1u, kwargs.spany);
     
@@ -33,12 +38,19 @@ Frame::Frame(Window *master_, Kwargs kwargs){
     alignFillRight = kwargs.fill[2];
     alignFillUp = kwargs.fill[3];
     frameFillHeight = kwargs.fill[4];
-    alignFillDown = kwargs.fill[5]; 
+    alignFillDown = kwargs.fill[5];
+    
+    set_look(look);
 }
 
 Frame::~Frame(){}
 
 // events and actions /////////////////////////////////////////////////////////
+
+void Frame::set_look(std::string look_){
+    look = look_;
+    border.set_look(look);
+}
 
 Frame::Capture Frame::on_event(sf::Event event, int32_t priority){ return Capture::pass; }
 
@@ -56,7 +68,9 @@ void Frame::tick(){
 
 void Frame::on_tick(){}
 
-void Frame::on_reconfig(){}
+void Frame::on_reconfig(){
+    border.set_size(canvasWidth, canvasHeight);
+}
 
 bool Frame::degenerate(){
     return windowWidth < 0.5f || windowHeight < 0.5f;
@@ -107,7 +121,9 @@ void Frame::refresh(){
     }
 }
 
-void Frame::on_refresh(){}
+void Frame::on_refresh(){
+    border.draw(*master);
+}
 
 void Frame::set_refresh(){
     refreshFlag = 1;
@@ -212,11 +228,6 @@ void Frame::set_canvas_position(float canvasX_, float canvasY_){
     canvasX = canvasX_;
     canvasY = canvasY_;
 
-    if(autoContain){
-        canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX));
-        canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY));
-    }
-
     if(canvasX != previousX || canvasY != previousY)
         reconfigFlag = 1;
 }
@@ -226,8 +237,16 @@ void Frame::move_canvas(float deltaX, float deltaY){
 }
 
 void Frame::set_target_size(float targetWidth_, float targetHeight_){
-    targetWidth = std::max(0.0f, targetWidth_);
-    targetHeight = std::max(0.0f, targetHeight_);
+    targetWidth = std::max(widthMin, std::min(widthMax, targetWidth_));
+    targetHeight = std::max(widthMin, std::min(widthMax, targetHeight_));
+}
+
+void Frame::set_range(float wMin, float wMax, float hMin, float hMax){
+    assert(wMin < wMax && hMin < hMax && wMin >= 0 && hMin >= 0);
+    widthMin = wMin;
+    widthMax = wMax;
+    heightMin = hMin;
+    heightMax = hMax;
 }
 
 float Frame::target_width(){
@@ -250,9 +269,6 @@ void Frame::setup_grid(uint32_t rows_, uint32_t columns_){
     grid = std::vector<std::vector<Frame*> >(rows, std::vector<Frame*>(columns, nullptr));
     heightFill = std::vector<float>(rows, 0);
     widthFill = std::vector<float>(columns, 0);
-    heightMax = std::vector<float>(rows+1, 0);
-    widthMax = std::vector<float>(columns+1, 0);
-
 }
 
 void Frame::resize_grid(uint32_t rows_, uint32_t columns_){
@@ -265,53 +281,50 @@ void Frame::resize_grid(uint32_t rows_, uint32_t columns_){
 
     heightFill.resize(rows, 0);
     widthFill.resize(columns, 0);
-    heightMax.resize(rows+1, 0);
-    widthMax.resize(columns+1, 0);
 }
 
 void Frame::update_grid(){
 
     set_refresh();
    
-    if(rows == 0 || columns == 0) return;
+    if(rows == 0 || columns == 0 || degenerate()) return;
 
-    std::fill(heightMax.begin(), heightMax.end(), 0);
-    std::fill(widthMax.begin(), widthMax.end(), 0);
+    std::vector<float> widthGrid(columns + 1, 0), heightGrid(rows + 1, 0);
    
     // calculate grid dimensions. Each row & column size is determined by the most
     // space consuming frame that ends there.
     for(uint32_t i=0; i<rows; i++){
-        if(i > 0) heightMax[i] = std::max(heightMax[i], heightMax[i-1]);
+        if(i > 0) heightGrid[i] = std::max(heightGrid[i], heightGrid[i-1]);
         for(uint32_t j=0; j<columns; j++){
             if(grid[i][j] != nullptr){
                 uint32_t end = std::min(rows, i+grid[i][j]->rowSpan);
-                heightMax[end] = std::max(heightMax[end], heightMax[i]+grid[i][j]->target_height());
+                heightGrid[end] = std::max(heightGrid[end], heightGrid[i]+grid[i][j]->target_height());
             }
         }
     }
     
-    if(rows > 0) heightMax[rows] = std::max(heightMax[rows], heightMax[rows-1]);
+    if(rows > 0) heightGrid[rows] = std::max(heightGrid[rows], heightGrid[rows-1]);
     
     for(uint32_t j=0; j<columns; j++){
-        if(j > 0) widthMax[j] = std::max(widthMax[j], widthMax[j-1]);
+        if(j > 0) widthGrid[j] = std::max(widthGrid[j], widthGrid[j-1]);
         for(uint32_t i=0; i<rows; i++){
             if(grid[i][j] != nullptr){
                 uint32_t end = std::min(columns, j+grid[i][j]->columnSpan);
-                widthMax[end] = std::max(widthMax[end], widthMax[j]+grid[i][j]->target_width());
+                widthGrid[end] = std::max(widthGrid[end], widthGrid[j]+grid[i][j]->target_width());
             }
         }
     }
     
-    if(columns > 0) widthMax[columns] = std::max(widthMax[columns], widthMax[columns-1]);
+    if(columns > 0) widthGrid[columns] = std::max(widthGrid[columns], widthGrid[columns-1]);
     
     // calculate extra space that needs to be used.
-    float widthExtra = std::max(0.0f, canvasWidth-widthMax[columns]);
-    float heightExtra = std::max(0.0f, canvasHeight-heightMax[rows]);
+    float widthExtra = std::max(0.0f, canvasWidth-widthGrid[columns]);
+    float heightExtra = std::max(0.0f, canvasHeight-heightGrid[rows]);
 
     // move canvas displacement if necessary
     if(autoContain){
-        canvasX = std::max(0.0f, std::min(widthMax[columns] - windowWidth, canvasX));
-        canvasY = std::max(0.0f, std::min(heightMax[rows] - windowHeight, canvasY));
+        canvasX = std::max(0.0f, std::min(widthGrid[columns] - windowWidth, canvasX));
+        canvasY = std::max(0.0f, std::min(heightGrid[rows] - windowHeight, canvasY));
     }
 
     float heightTotal = 0, widthTotal = 0;
@@ -324,14 +337,14 @@ void Frame::update_grid(){
 
     // allocate extra space
     for(uint32_t i=0; i<rows; i++){
-        heightMax[i] += heightSum;
+        heightGrid[i] += heightSum;
         heightSum += heightExtra*(heightFill[i]/heightTotal);
-    } heightMax[rows] += heightSum;
+    } heightGrid[rows] += heightSum;
     
     for(uint32_t i=0; i<columns; i++){
-        widthMax[i] += widthSum;
+        widthGrid[i] += widthSum;
         widthSum += widthExtra*(widthFill[i]/widthTotal);
-    } widthMax[columns] += widthSum;
+    } widthGrid[columns] += widthSum;
    
     // do the windowing
     for(uint32_t i=0; i<rows; i++){
@@ -340,10 +353,10 @@ void Frame::update_grid(){
             
             Frame *child = grid[i][j];
 
-            float gridLeft = widthMax[j];
-            float gridUp = heightMax[i];
-            float gridRight = widthMax[std::min(columns, j+child->columnSpan)];
-            float gridDown = heightMax[std::min(rows, i+child->rowSpan)];
+            float gridLeft = widthGrid[j];
+            float gridUp = heightGrid[i];
+            float gridRight = widthGrid[std::min(columns, j+child->columnSpan)];
+            float gridDown = heightGrid[std::min(rows, i+child->rowSpan)];
             
             float extraX = std::round(gridRight - gridLeft) - child->target_width();
             float extraY = std::round(gridDown - gridUp) - child->target_height();
@@ -456,6 +469,7 @@ int32_t Frame::remove_frame(Frame *frame){
 int32_t Frame::put(uint32_t row, uint32_t column, Frame *frame){
     
     assert(row < rows && column < columns);
+    assert(frame != nullptr);
     
     if(grid[row][column] == nullptr){
         frame->set_parent(this);
@@ -554,27 +568,10 @@ void Frame::update_style(){
     set_refresh();
 }
 
-
-
-SolidFrame::SolidFrame(Window *master_, Kwargs kwargs) :
-    Frame(master_, kwargs)
-{
-    set_look(look);
+void Frame::set_border(bool left, bool right, bool up, bool down){
+    border.set_border(left, right, up, down);
+    border.update();
 }
 
-SolidFrame::~SolidFrame(){}
-
-void SolidFrame::set_look(std::string look_){
-    look = look_;
-    border.set_look(look);
-}
-
-void SolidFrame::on_reconfig(){
-    border.set_size(canvasWidth, canvasHeight);
-}
-
-void SolidFrame::on_refresh(){
-    border.draw(*master);
-}
 
 }

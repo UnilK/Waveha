@@ -159,6 +159,17 @@ long double Styled::num(std::string key){
     return x;
 }
 
+std::vector<long double> Styled::nums(std::string key){
+    
+    std::vector<long double> v;
+    std::stringstream cin(chars(key));
+
+    long double x;
+    while(cin >> x) v.push_back(x);
+
+    return v;
+}
+
 uint32_t Styled::textStyle(std::string key){
     
     std::string styles = chars(key), style;

@@ -92,7 +92,7 @@ public:
     float origoX = 0, origoY = 0;
     float scaleX = 1, scaleY = 1;
 
-protected:
+private:
 
     std::vector<Point> points;
     sf::VertexArray vertices;

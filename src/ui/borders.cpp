@@ -2,7 +2,7 @@
 #include "ui/frame.h"
 
 #include <iostream>
-#include <sstream>
+#include <algorithm>
 
 namespace ui {
 
@@ -18,19 +18,27 @@ void Borders::set_look(std::string look_){
     up.setFillColor(color("borderColor"));
     down.setFillColor(color("borderColor"));
 
-    std::stringstream probe(chars("borderThickness"));
-    std::stringstream borders(chars("borderThickness"));
-    std::string thickness;
-    int32_t total = 0;
-
-    while(probe >> thickness) total++;
-
-    if(total == 1){
-        borders >> d;
-        l = r = u = d;
-    } else if(total == 4){
-        borders >> l >> r >> u >> d;
+    auto borders = nums("borderThickness");
+    if(borders.size() == 1){
+        l = isl ? borders[0] : 0;
+        r = isr ? borders[0] : 0;
+        u = isu ? borders[0] : 0;
+        d = isd ? borders[0] : 0;
+    } else if(borders.size() == 4){
+        l = isl ? borders[0] : 0;
+        r = isr ? borders[1] : 0;
+        u = isu ? borders[2] : 0;
+        d = isd ? borders[3] : 0;
+    } else {
+        l = r = u = d = 0;
     }
+}
+
+void Borders::set_border(bool il, bool ir, bool iu, bool id){
+    isl = il;
+    isr = ir;
+    isu = iu;
+    isd = id;
 }
 
 void Borders::set_size(float width, float height){
@@ -39,10 +47,10 @@ void Borders::set_size(float width, float height){
     h = height;
 
     back.setSize({w, h});
-    left.setSize({l, h});
-    right.setSize({r, h});
-    up.setSize({w, u});
-    down.setSize({w, d});
+    left.setSize({std::min(l, w), h});
+    right.setSize({std::min(r, w), h});
+    up.setSize({w, std::min(u, h)});
+    down.setSize({w, std::min(d, h)});
     
     back.setPosition(0, 0);
     left.setPosition(0, 0);
@@ -64,12 +72,19 @@ void Borders::set_position(float x, float y){
 
 void Borders::draw(sf::RenderTarget &target){
 
-    target.draw(back);
-    target.draw(left);
-    target.draw(right);
-    target.draw(up);
-    target.draw(down);
+    bool okBack = back.getFillColor().a != 0;
+    bool okBorder= left.getFillColor().a != 0;
+    
+    if(w > 0 && h > 0 && okBack) target.draw(back);
+    if(l > 0 && h > 0 && okBorder) target.draw(left);
+    if(r > 0 && h > 0 && okBorder) target.draw(right);
+    if(w > 0 && u > 0 && okBorder) target.draw(up);
+    if(w > 0 && d > 0 && okBorder) target.draw(down);
 
+}
+
+void Borders::update(){
+    set_look(look);
 }
 
 }

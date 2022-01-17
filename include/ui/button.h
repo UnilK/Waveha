@@ -2,33 +2,30 @@
 
 #include "ui/text.h"
 
+#include <functional>
+
 namespace ui {
 
 class Button : public ui::Text {
 
     /*
        style:
-       normal (look)
-       pressed (look)
-
-       kwargs:
-       -
+       normal (ui::text look)
+       pressed (ui::text look)
      */
 
 public:
 
-    Button(Window *master_, void *commander_, std::string text_ = "", Kwargs = {});
+    Button(Window *master_, std::function<void(void)> func, std::string text_ = "", Kwargs = {});
     virtual ~Button();
 
     void set_look(std::string look_);
     
     Capture on_event(sf::Event event, int32_t priority);
 
-protected:
+private:
 
-    void *commander = nullptr;
-
-    virtual void function() = 0;
+    std::function<void(void)> function;
 
     bool buttonPressed = 0;
 

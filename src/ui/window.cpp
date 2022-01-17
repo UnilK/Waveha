@@ -24,48 +24,52 @@ void Window::event_update(){
 
         if(event.type == sf::Event::Closed){
                 
-                close();
-                on_close();
-                
-                destroyed = 1;
+            close();
+            on_close();
+            
+            destroyed = 1;
 
         } else if(event.type == sf::Event::Resized){
                 
-                float width = event.size.width;
-                float height = event.size.height;
+            float width = event.size.width;
+            float height = event.size.height;
 
-                setView(sf::View(sf::FloatRect(0, 0, width, height)));
-                previousFrame.create(width, height);
+            setView(sf::View(sf::FloatRect(0, 0, width, height)));
+            previousFrame.create(width, height);
 
-                set_window_size(width, height);
-                set_canvas_size(width, height);
-                update_grid();
+            set_window_size(width, height);
+            set_canvas_size(width, height);
+            update_grid();
 
-                resizeFlag = 1;
-                
-                on_resize();
+            resizeFlag = 1;
+            
+            on_resize();
                 
         } else if(event.type == sf::Event::MouseMoved){
                 
-                mouseX = event.mouseMove.x;
-                mouseY = event.mouseMove.y;
+            mouseX = event.mouseMove.x;
+            mouseY = event.mouseMove.y;
 
-                focus = find_focus();
-                softFocus = focus.back();
+            focus = find_focus();
+            softFocus = focus.back();
                 
         } else {
 
-                if(event.type == sf::Event::MouseButtonPressed){
-                    focus = find_focus();
-                    softFocus = focus.back();
-                    hardFocus = softFocus;
-                }
+            if(event.type == sf::Event::MouseButtonPressed){
                 
-                if(event.type == sf::Event::MouseWheelScrolled){
-                    focus = find_focus();
-                    softFocus = focus.back();
-                    hardFocus = softFocus;
-                }
+                mouseX = event.mouseButton.x;
+                mouseY = event.mouseButton.y;
+                
+                set_hard();
+            }
+            
+            if(event.type == sf::Event::MouseWheelScrolled){
+                
+                mouseX = event.mouseWheelScroll.x;
+                mouseY = event.mouseWheelScroll.y;
+                
+                set_hard();
+            }
         }
         
         int32_t priority = focus.size() - 1;
@@ -147,6 +151,20 @@ void Window::kill_children(){
 void Window::style(){
     update_style();
     for(auto child : children) child->style();
+}
+
+void Window::set_hard(){
+
+    focus = find_focus();
+    softFocus = focus.back();
+    
+    hardFocus = nullptr;
+    for(int32_t i=focus.size() - 1; i > 0; i--){
+        if(focus[i]->focusable){
+            hardFocus = focus[i];
+            break;
+        }
+    }
 }
 
 }

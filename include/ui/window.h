@@ -59,7 +59,9 @@ private:
     sf::Texture previousFrame;
     sf::Sprite previousFrameSprite;
     bool resizeFlag = 1;
-    
+   
+    void set_hard();
+
     float mouseX = 0, mouseY = 0;
     bool destroyed = 0;
 
