@@ -25,23 +25,27 @@ namespace Style {
 
         look
 
+        basebutton
+            borderThickness 2
+            borderColor efefef
+            textColor .red
+            font default
+        ;
+
         myButton
             pressed pressedButton
             normal normalButton
         ;
         
-        pressedButton
-            background $green
-            borderThickness 2
-            borderColor efefef
-            font default
+        normalButton
+            .basebutton
+            background .green
             textSize 20
         ;
         
         pressedButton
-            background $red
+            .normalButton
             borderThickness 1
-            borderColor aaaaaa
             font mono
             textSize 19
         ;

@@ -25,36 +25,45 @@ define
 
 look
 
-tools
-    borderColor $blue
+border
     borderThickness 1
-    background $terminal
+    background .terminal
+;
+
+blueborder
+    .border
+    borderColor .blue
+;
+
+tools
+
+    .blueborder
 
     barSize 20
 
     dotSize 5
     dotBorderThickness 1
-    dotBorderColor $blue
+    dotBorderColor .blue
 
     textSize 18
-    textColor $blue
+    textColor .blue
     textStyle default
     font default
 ;
 
 temp
-    background $purple
+    background .purple
 ;
 
 
 AnalyzerGraph
-    background $terminal
-    borderColor $purple
+    background .terminal
+    borderColor .purple
     borderThickness 0 0 0 1
-    vertexColor $yellow
-    axisColor $lightgray
+    vertexColor .yellow
+    axisColor .lightgray
     indicatorSize 18
-    indicatorColor $green
+    indicatorColor .green
     font default
 ;
 

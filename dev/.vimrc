@@ -15,3 +15,9 @@ imap <C-S-M-e> :pc<CR>
 nmap <C-S-M-q> :ptag <C-r><C-w><CR>
 nmap <C-S-M-e> :pc<CR>
 
+let undo_path = expand('./dev/.undo')
+if !isdirectory(undo_path)
+    call system('mkdir -p ' undo_path)
+endif
+let &undodir = undo_path
+set undofile

@@ -32,64 +32,87 @@ void load(std::string styleFile){
     std::string line;
     std::vector<std::string> lines;
     while(std::getline(I, line)) lines.push_back(line);
-    
+
     int32_t n = lines.size();
+
+    std::map<std::string, std::vector<std::string> > edges_out, edges_in;
     
     for(int32_t i=0; i<n; i++){
 
         if(lines[i] == "font"){
+            
             i++;
+            
             for(;i<n && lines[i][0] != ';'; i++){
-                if(!lines[i].empty()){
+                
+                if(lines[i].empty()) continue;
+                
+                std::string key, value;
+                std::stringstream in(lines[i]);
+                in >> key;
+                std::getline(in, value);
+
+                uint32_t j = 0;
+                while(j < value.size() && value[j] == ' ') j++;                    
+                if(j != value.size()) value = value.substr(j, value.size()-j);
+
+                fonts[key].loadFromFile(value);
+            }
+        }
+        else if(lines[i] == "look"){
+            
+            i++;
+            
+            for(;i<n && lines[i][0] != ';'; i++){
+                
+                if(lines[i].empty()) continue;
+                
+                std::string look = lines[i++];
+                edges_in[look] = {};
+
+                for(;i<n && lines[i][0] != ';'; i++){
+                    
+                    if(lines[i].empty()) continue;
+                    
                     std::string key, value;
                     std::stringstream in(lines[i]);
                     in >> key;
                     std::getline(in, value);
 
-                    uint32_t j = 0;
-                    while(j < value.size() && value[j] == ' ') j++;                    
-                    if(j != value.size()) value = value.substr(j, value.size()-j);
+                    if(key[0] == '.'){
+                        
+                        edges_out[key.substr(1, key.size() - 1)].push_back(look);
+                        edges_in[look].push_back(key.substr(1, key.size() - 1));
 
-                    fonts[key].loadFromFile(value);
-                }
-            }
-        }
-        else if(lines[i] == "look"){
-            i++;
-            for(;i<n && lines[i][0] != ';'; i++){
-                if(!lines[i].empty()){
-                    std::string look = lines[i++];
-                    for(;i<n && lines[i][0] != ';'; i++){
-                        if(!lines[i].empty()){
-                            std::string key, value;
-                            std::stringstream in(lines[i]);
-                            in >> key;
-                            std::getline(in, value);
+                    }
+                    else {
 
-                            uint32_t j = 0;
-                            while(j < value.size() && value[j] == ' ') j++;                    
-                            if(j != value.size()) value = value.substr(j, value.size()-j);
+                        uint32_t j = 0;
+                        while(j < value.size() && value[j] == ' ') j++;                    
+                        if(j != value.size()) value = value.substr(j, value.size()-j);
 
-                            looks[look][key] = value;
-                        }
+                        looks[look][key] = value;
                     }
                 }
             }
         } else if(lines[i] == "define"){
+            
             i++;
+            
             for(;i<n && lines[i][0] != ';'; i++){
-                if(!lines[i].empty()){
-                    std::string key, value;
-                    std::stringstream in(lines[i]);
-                    in >> key;
-                    std::getline(in, value);
-                            
-                    uint32_t j = 0;
-                    while(j < value.size() && value[j] == ' ') j++;                    
-                    if(j != value.size()) value = value.substr(j, value.size()-j);
+                
+                if(lines[i].empty()) continue;
+                
+                std::string key, value;
+                std::stringstream in(lines[i]);
+                in >> key;
+                std::getline(in, value);
+                        
+                uint32_t j = 0;
+                while(j < value.size() && value[j] == ' ') j++;                    
+                if(j != value.size()) value = value.substr(j, value.size()-j);
 
-                    macros["$"+key] = value;
-                }
+                macros["."+key] = value;
             }
         } else if(!lines[i].empty()){
             std::cout << "style parameter \"" + lines[i] + "\"not recognized.\n"
@@ -99,8 +122,41 @@ void load(std::string styleFile){
     
     for(auto &look : looks){
         for(auto &i : look.second){
-            if(!i.second.empty() && i.second[0] == '$'){
+            if(!i.second.empty() && i.second[0] == '.'){
                 i.second = macros[i.second];
+            }
+        }
+    }
+
+    // serach for "topological sorting" for some algorithm reference.
+
+    std::vector<std::string> order;
+    std::map<std::string, int32_t> count;
+
+    for(auto i : edges_in){
+        count[i.first] = i.second.size();
+        if(i.second.size() == 0) order.push_back(i.first);
+    }
+
+    for(uint32_t i=0; i<order.size(); i++){
+        
+        std::string look = order[i];
+        
+        kvpairs original = looks[look];
+
+        for(auto inherited : edges_in[look]){
+            for(auto kv : looks[inherited]){
+                looks[look][kv.first] = kv.second;
+            }
+        }
+        
+        for(auto kv : original){
+            looks[look][kv.first] = kv.second;
+        }
+
+        for(auto derived : edges_out[look]){
+            if(--count[derived] == 0){
+                order.push_back(derived);
             }
         }
     }
