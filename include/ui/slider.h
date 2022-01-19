@@ -37,7 +37,7 @@ public:
     virtual void set_look(std::string look_);
 
     // action when slider is resized by dragging the bar.
-    virtual void on_resize(float width, float height);
+    virtual void on_resize(sf::Mouse::Button, float width, float height);
 
     void set_label(std::string);
     std::string get_label();
@@ -45,6 +45,9 @@ public:
     Stack stack;
 
 protected:
+    
+    // overload the stack with some other content. use only on initialization.
+    void overload_inner(Frame *content);
     
     class Bar : public Frame {
 
@@ -61,10 +64,10 @@ protected:
 
         float directionX = 0, directionY = 0;
 
-        float dragX = 0, dragY = 0;
-        float dragWidth = 0, dragHeight = 0;
+        std::array<float, 2> leftBegin, rightBegin;
+        std::array<float, 2> leftDrag, rightDrag;
+        bool leftPressed = 0, rightPressed = 0;
 
-        bool pressed = 0;
         bool scrollable = 0;
         
         Slider *slider;
@@ -87,7 +90,7 @@ protected:
 
     };
 
-    Frame buttons;
+    Stack buttons;
     Frame functions;
     
     Bar bar;

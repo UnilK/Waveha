@@ -20,4 +20,6 @@ if !isdirectory(undo_path)
     call system('mkdir -p ' undo_path)
 endif
 let &undodir = undo_path
-set undofile
+
+autocmd BufEnter * set undofile
+

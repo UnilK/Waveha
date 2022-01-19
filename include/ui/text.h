@@ -11,9 +11,11 @@ class Text : public Frame {
 
     /*
        style:
+
        background (color)
        borderColor (color)
        borderThickness (num) or (num(left) num(right) num(up) num(down))
+       
        textSize (num)
        textColor (color)
        textStyle (textStyle)

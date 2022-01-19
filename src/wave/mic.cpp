@@ -11,7 +11,7 @@ Mic::~Mic(){}
 bool Mic::onStart(){
     
     reset();
-    
+
     return 1;
 }
 

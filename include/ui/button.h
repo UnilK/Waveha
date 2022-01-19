@@ -10,8 +10,8 @@ class Button : public ui::Text {
 
     /*
        style:
-       normal (ui::text look)
-       pressed (ui::text look)
+       normal (ui::Text look)
+       pressed (ui::Text look)
      */
 
 public:

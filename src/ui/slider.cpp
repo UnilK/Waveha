@@ -8,7 +8,7 @@ namespace ui {
 Slider::Slider(Window *master_, Side barSide, Side stackStick, bool scrollable, Kwargs kwargs) : 
     Frame(master_, kwargs),
     stack(master_, stackStick),
-    buttons(master_),
+    buttons(master_, (barSide == Side::left || barSide == Side::right) ? Side::up : Side::left),
     functions(master_),
     bar(master_, this, &stack, barSide, scrollable),
     dot(master_),
@@ -37,7 +37,7 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, bool scrollable, 
         label.text_stick(Text::down);
         label.text_direction(Text::down);
         label.text_offset(0, 0);
-        label.set_border(1, 1, 0, 1);
+        label.set_border(1, 1, 0, 0);
     }
     else {
 
@@ -58,7 +58,7 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, bool scrollable, 
         label.text_stick(Text::left);
         label.text_direction(Text::left);
         label.text_offset(0, -0.1);
-        label.set_border(0, 1, 1, 1);
+        label.set_border(0, 0, 1, 1);
     }
 
     switch(side){
@@ -135,7 +135,7 @@ void Slider::set_look(std::string look_){
     on_reconfig();
 }
 
-void Slider::on_resize(float width, float height){
+void Slider::on_resize(sf::Mouse::Button button, float width, float height){
     
     set_target_size(width, height);
 
@@ -149,6 +149,24 @@ void Slider::set_label(std::string s){
 
 std::string Slider::get_label(){
     return label.get_text();
+}
+
+void Slider::overload_inner(Frame *content){
+    
+    switch(side){
+        case Side::left:
+            put(0, 1, content);
+            break;
+        case Side::right:
+            put(0, 0, content);
+            break;
+        case Side::up:
+            put(1, 0, content);
+            break;
+        case Side::down:
+            put(0, 0, content);
+            break;
+    }
 }
 
 
@@ -202,37 +220,57 @@ Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
 
     if(event.type == sf::Event::MouseButtonPressed){
         
+        auto [x, y] = global_mouse();
+        
         if(event.mouseButton.button == sf::Mouse::Left){
             
-            auto [x, y] = global_mouse();
-            dragX = x;
-            dragY = y;
-            
-            dragWidth = slider->targetWidth;
-            dragHeight = slider->targetHeight;
-            
-            pressed = 1;
+            leftDrag = {x, y};
+            leftBegin = {slider->targetWidth, slider->targetHeight};
+            leftPressed = 1;
 
             return Capture::capture;
         }
+        else if(event.mouseButton.button == sf::Mouse::Right){
+            
+            rightDrag = {x, y};
+            rightBegin = {slider->targetWidth, slider->targetHeight};
+            rightPressed = 1;
+            
+            return Capture::capture;
+        }
+        
     }
     else if(event.type == sf::Event::MouseButtonReleased){
         if(event.mouseButton.button == sf::Mouse::Left){
-            pressed = 0;
+            leftPressed = 0;
+            return Capture::capture;
+        }
+        else if(event.mouseButton.button == sf::Mouse::Right){
+            rightPressed = 0;
             return Capture::capture;
         }
     }
     else if(event.type == sf::Event::MouseMoved){
-        if(pressed){
+        
+        auto [x, y] = global_mouse();
+
+        if(leftPressed){
             
-            auto [x, y] = global_mouse();
-            
-            slider->on_resize(
-                    dragWidth + directionX * (x - dragX),
-                    dragHeight + directionY * (y - dragY));
+            slider->on_resize(sf::Mouse::Left,
+                    leftBegin[0] + directionX * (x - leftDrag[0]),
+                    leftBegin[1] + directionY * (y - leftDrag[1]));
 
             return Capture::capture;
         }
+        else if(rightPressed){
+            
+            slider->on_resize(sf::Mouse::Right,
+                    rightBegin[0] + directionX * (x - rightDrag[0]),
+                    rightBegin[1] + directionY * (y - rightDrag[1]));
+
+            return Capture::capture;
+        }
+
     } else if(event.type == sf::Event::MouseWheelScrolled){
         
         if(scrollable){

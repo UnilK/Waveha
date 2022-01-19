@@ -23,6 +23,7 @@ void Button::set_look(std::string look_){
     if(buttonPressed) Text::set_look(chars("pressed"));
     else Text::set_look(chars("normal"));
 
+    look = look_;
 }
 
 Frame::Capture Button::on_event(sf::Event event, int32_t priority){

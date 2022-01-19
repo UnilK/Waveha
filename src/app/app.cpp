@@ -9,6 +9,7 @@ App::App() :
     tools(this),
     temp(this, {.look = "temp"})
 {
+
     setup_grid(1, 2);
     fill_width(1, 1);
     fill_height(0, 1);

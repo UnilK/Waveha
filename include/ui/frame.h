@@ -161,6 +161,9 @@ public:
     void set_target_size(float targetWidth_, float targetHeight_);
     void set_range(float wMin, float wMax, float hMin, float hMax);
 
+    // set target size to content size
+    void fit_content();
+
     // get Frame size with padding included
     float target_width();
     float target_height();
@@ -188,6 +191,7 @@ public:
     void set_parent(Frame *parent_);
     Frame *get_parent(int32_t steps = 1);
     Frame *get_top();
+    Window *get_master();
 
     // place frames to the grid. Use these outside initialization.
     int32_t place_frame(uint32_t row, uint32_t column, Frame *frame);
@@ -235,7 +239,10 @@ public:
     
     // canvas dimensions
     float canvasWidth = 0, canvasHeight = 0;
-    
+   
+    // canvas content dimensions
+    float contentWidth = 0, contentHeight = 0;
+
     // frame content displacement: if the children of the frame require
     // more space than it has to offer, then this is the canvas' position
     // on the contents.

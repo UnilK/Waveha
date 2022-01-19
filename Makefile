@@ -95,19 +95,21 @@ build/wave/util.o: include/wave/util.h
 build/app/app.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/app/app.o: include/ui/borders.h include/ui/style.h include/ui/clock.h
 build/app/app.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
-build/app/app.o: include/ui/text.h
+build/app/app.o: include/ui/text.h include/ui/box.h include/ui/button.h
 build/app/analyzer.o: include/app/analyzer.h include/app/graph.h
 build/app/analyzer.o: include/ui/frame.h include/ui/borders.h
 build/app/analyzer.o: include/ui/style.h include/ui/window.h include/ui/clock.h
 build/app/analyzer.o: include/wave/source.h include/changer/pitch.h
 build/app/analyzer.o: include/app/app.h include/app/tools.h include/ui/slider.h
-build/app/analyzer.o: include/ui/stack.h include/ui/text.h include/math/fft.h
+build/app/analyzer.o: include/ui/stack.h include/ui/text.h include/ui/box.h
+build/app/analyzer.o: include/ui/button.h include/math/fft.h
 build/app/graph.o: include/app/graph.h include/ui/frame.h include/ui/borders.h
 build/app/graph.o: include/ui/style.h include/ui/window.h include/ui/clock.h
 build/app/graph.o: include/math/constants.hpp
 build/app/tools.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
 build/app/tools.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/app/tools.o: include/ui/window.h include/ui/clock.h include/ui/text.h
+build/app/tools.o: include/ui/box.h include/ui/button.h
 build/math/ft.o: include/math/ft.h include/math/constants.hpp
 build/math/fft.o: include/math/fft.h include/math/constants.hpp
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/borders.h
@@ -133,9 +135,12 @@ build/ui/slider.o: include/ui/clock.h include/ui/text.h
 build/ui/stack.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
 build/ui/stack.o: include/ui/style.h include/ui/window.h include/ui/clock.h
 build/ui/terminal.o: include/ui/terminal.h
-build/ui/box.o: include/ui/box.h
+build/ui/box.o: include/ui/box.h include/ui/slider.h include/ui/stack.h
+build/ui/box.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
+build/ui/box.o: include/ui/window.h include/ui/clock.h include/ui/text.h
+build/ui/box.o: include/ui/button.h
 build/changer/pitch.o: include/changer/pitch.h include/math/fft.h
 build/main.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/main.o: include/ui/borders.h include/ui/style.h include/ui/clock.h
 build/main.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
-build/main.o: include/ui/text.h
+build/main.o: include/ui/text.h include/ui/box.h include/ui/button.h

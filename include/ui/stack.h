@@ -14,6 +14,7 @@ class Stack : public Frame {
 
 public:
 
+    // side points "the direction of gravity" for the stack
     Stack(Window *master_, Side, Kwargs = {});
 
     // adding / removing stuff from the stack
@@ -23,6 +24,8 @@ public:
     void insert(Frame *frame, uint32_t index);
     void erase(uint32_t index);
     void erase(Frame *frame);
+
+    void clear();
 
     // resizing frames in the stack
     void push_resize(uint32_t index, float size);

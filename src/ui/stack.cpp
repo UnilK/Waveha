@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <assert.h> 
+#include <iostream>
 
 namespace ui {
 
@@ -57,6 +58,20 @@ void Stack::erase(Frame *frame){
         }
     }
     assert(found);
+}
+
+void Stack::clear(){
+   
+    stack.clear();
+
+    stack.push_back(&dummy);
+
+    setup_grid(1, 1);
+    Frame::put(0, 0, &dummy);
+
+    fill_width(0, 1);
+    fill_height(0, 1);
+
 }
 
 void Stack::push_resize(uint32_t index, float csize){
@@ -118,7 +133,7 @@ void Stack::sticky_resize(uint32_t index, float csize){
     } else {
         
         float begin = frame->targetHeight;
-        frame->set_target_size(frame->targetHeight, csize);
+        frame->set_target_size(frame->targetWidth, csize);
         float end = frame->targetHeight;
 
         float delta, total = begin - end;
@@ -182,12 +197,15 @@ void Stack::scroll_to(uint32_t index){
 
     Frame *frame = stack[index];
 
-    if(side == Side::left || side == Side::right){
-        canvasX += frame->globalX - frame->windowX - globalX;
-    } else {
-        canvasY += frame->globalY - frame->windowY - globalY;
-    }
+    float deltaX = 0, deltaY = 0; 
 
+    if(side == Side::left || side == Side::right){
+        deltaX = frame->globalX - frame->windowX - globalX;
+    } else {
+        deltaY = frame->globalY - frame->windowY - globalY;
+    }
+   
+    move_canvas(deltaX, deltaY);
     update_grid();
 }
 
@@ -195,7 +213,7 @@ void Stack::scroll_to(Frame *frame){
     bool found = 0;
     for(uint32_t i=0; i<size(); i++){
         if(stack[i] == frame){
-            max_size(i);
+            scroll_to(i);
             found = 1;
             break;
         }

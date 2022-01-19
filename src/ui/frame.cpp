@@ -238,7 +238,11 @@ void Frame::move_canvas(float deltaX, float deltaY){
 
 void Frame::set_target_size(float targetWidth_, float targetHeight_){
     targetWidth = std::max(widthMin, std::min(widthMax, targetWidth_));
-    targetHeight = std::max(widthMin, std::min(widthMax, targetHeight_));
+    targetHeight = std::max(heightMin, std::min(heightMax, targetHeight_));
+}
+
+void Frame::fit_content(){
+    set_target_size(contentWidth, contentHeight);
 }
 
 void Frame::set_range(float wMin, float wMax, float hMin, float hMax){
@@ -287,7 +291,7 @@ void Frame::update_grid(){
 
     set_refresh();
    
-    if(rows == 0 || columns == 0 || degenerate()) return;
+    if(rows == 0 || columns == 0) return;
 
     std::vector<float> widthGrid(columns + 1, 0), heightGrid(rows + 1, 0);
    
@@ -345,7 +349,10 @@ void Frame::update_grid(){
         widthGrid[i] += widthSum;
         widthSum += widthExtra*(widthFill[i]/widthTotal);
     } widthGrid[columns] += widthSum;
-   
+  
+    contentWidth = widthGrid[columns];
+    contentHeight = heightGrid[rows];
+
     // do the windowing
     for(uint32_t i=0; i<rows; i++){
         for(uint32_t j=0; j<columns; j++){
@@ -432,6 +439,8 @@ Frame *Frame::get_top(){
     if(parent == nullptr || parent == this) return this;
     return parent->get_top();
 }
+
+Window *Frame::get_master(){ return master; }
 
 int32_t Frame::place_frame(uint32_t row, uint32_t column, Frame *frame){
     int32_t ret = put(row, column, frame);
@@ -565,7 +574,7 @@ void Frame::update_style(){
         }
     }
 
-    set_refresh();
+    if(this == master) update_grid();
 }
 
 void Frame::set_border(bool left, bool right, bool up, bool down){

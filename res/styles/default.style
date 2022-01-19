@@ -6,8 +6,7 @@ font
 
 
 define
-    terminal 2e0a24
-    lightterminal 380c2a
+    terminal 201918
     green 87ffaf
     darkgreen 4e9a06
     yellow fce94f
@@ -15,13 +14,8 @@ define
     darkpurple 825f7e
     blue 5ed7ff
     darkblue 3465a4
-    lightgray d7d7d7
-    gray 6c6c6c
-    darkgray 3e3e3e
     orange df4a16
 ;
-
-
 
 look
 
@@ -35,9 +29,33 @@ blueborder
     borderColor .blue
 ;
 
+bluetext
+    
+    .blueborder
+
+    textSize 18
+    textColor .blue
+    textStyle default
+    font default
+;
+
+darkbluetext
+    .bluetext
+    borderColor .darkblue
+    textColor .darkblue
+;
+
+bluebutton
+    normal bluetext
+    pressed darkbluetext
+;
+
 tools
 
     .blueborder
+    .bluetext
+
+    buttons bluebutton
 
     barSize 20
 
@@ -45,10 +63,6 @@ tools
     dotBorderThickness 1
     dotBorderColor .blue
 
-    textSize 18
-    textColor .blue
-    textStyle default
-    font default
 ;
 
 temp

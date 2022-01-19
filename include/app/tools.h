@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ui/slider.h"
+#include "ui/box.h"
 
 namespace app {
 
@@ -12,7 +13,7 @@ public:
 
 private:
 
-    ui::Slider dummy;
+    ui::Box dummy0, dummy1, dummy2;
 
 };
 
