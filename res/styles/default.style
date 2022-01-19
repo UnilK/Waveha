@@ -6,15 +6,28 @@ font
 
 
 define
+
     terminal 201918
-    green 87ffaf
-    darkgreen 4e9a06
+    
+    gray 555753
+    red ef2929
+    green 8ae234
     yellow fce94f
-    purple ad7fa8
-    darkpurple 825f7e
-    blue 5ed7ff
-    darkblue 3465a4
-    orange df4a16
+    blue 729fcf
+    violet ad7fa8
+    cyan 34e2e2
+    white eeeeec
+    
+    dgray 2e3436
+    dred cc0000
+    dgreen 4e9a06
+    dyellow c4a000
+    dblue 3465a4
+    dviolet 75507b
+    dcyan 0689a
+    dwhite d3d7cf
+
+    greencyan 87ffaf
 ;
 
 look
@@ -24,49 +37,48 @@ border
     background .terminal
 ;
 
-blueborder
+whiteborder
     .border
-    borderColor .blue
+    borderColor .dwhite
 ;
 
-bluetext
+greentext
     
-    .blueborder
+    .whiteborder
 
     textSize 18
-    textColor .blue
+    textColor .green
     textStyle default
     font default
 ;
 
-darkbluetext
-    .bluetext
-    borderColor .darkblue
-    textColor .darkblue
+darkgreentext
+    .greentext
+    borderColor .gray
+    textColor .dgreen
 ;
 
-bluebutton
-    normal bluetext
-    pressed darkbluetext
+greenbutton
+    normal greentext
+    pressed darkgreentext
 ;
 
 tools
 
-    .blueborder
-    .bluetext
+    .greentext
 
-    buttons bluebutton
+    buttons greenbutton
 
     barSize 20
 
     dotSize 5
     dotBorderThickness 1
-    dotBorderColor .blue
+    dotBorderColor .green
 
 ;
 
 temp
-    background .purple
+    background .gray
 ;
 
 
@@ -75,7 +87,7 @@ AnalyzerGraph
     borderColor .purple
     borderThickness 0 0 0 1
     vertexColor .yellow
-    axisColor .lightgray
+    axisColor .dwhite
     indicatorSize 18
     indicatorColor .green
     font default

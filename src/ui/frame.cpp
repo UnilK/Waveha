@@ -92,7 +92,7 @@ void Frame::refresh(){
 
             // set drawing area to a subrectangle on the window.
             
-            sf::View w(sf::FloatRect(0, 0, windowWidth, windowHeight));
+            sf::View w(sf::FloatRect(windowX, windowY, windowWidth, windowHeight));
             
             w.setViewport(sf::FloatRect(
                         globalX / masterWidth,
@@ -103,8 +103,6 @@ void Frame::refresh(){
             master->setView(w);
 
             on_refresh();
-
-            master->setView(sf::View(sf::FloatRect(0, 0, masterWidth, masterHeight)));
 
         }
         refreshFlag = 0;

@@ -1,6 +1,7 @@
 #include "ui/slider.h"
 
 #include <iostream>
+#include <algorithm>
 #include <assert.h>
 
 namespace ui {
@@ -137,9 +138,12 @@ void Slider::set_look(std::string look_){
 
 void Slider::on_resize(sf::Mouse::Button button, float width, float height){
     
-    set_target_size(width, height);
+    assert(parent != nullptr);
 
-    assert(get_parent(1) != nullptr);
+    width = std::min(width, parent->globalX - globalX + windowX + parent->windowWidth);
+    height = std::min(height, parent->globalY - globalY + windowY + parent->windowHeight);
+    set_target_size(width, height);
+    
     get_parent(1)->update_grid();
 }
 

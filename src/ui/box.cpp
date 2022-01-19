@@ -74,8 +74,9 @@ void Box::set_look(std::string look_){
 
 void Box::on_resize(sf::Mouse::Button button, float width, float height){
     
-    float size = height;
-    if(side == Side::left || side == Side::right) size = width;
+    float size = std::min(height, parent->globalY - globalY + windowY + parent->windowHeight);
+    if(side == Side::left || side == Side::right)
+        size = std::min(width, parent->globalX - globalX + windowX + parent->windowWidth);
 
     if(button == sf::Mouse::Left){
         manager->push_resize(this, size);

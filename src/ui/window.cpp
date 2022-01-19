@@ -102,7 +102,9 @@ void Window::loop(){
 
 void Window::window_refresh(){
     
-    // if(!refreshFlag) return;
+    if(!refreshFlag) return;
+
+    master->setView(sf::View(sf::FloatRect(0, 0, getSize().x, getSize().y)));
     
     if(!resizeFlag){
         previousFrame.update(*this);
