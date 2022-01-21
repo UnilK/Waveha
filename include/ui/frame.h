@@ -116,19 +116,24 @@ public:
     enum Capture { pass, use, capture };
     virtual Capture on_event(sf::Event event, int32_t priority);
     
+    // load styles from the style sheet. Should mainly be called on frame construction.
     virtual void set_look(std::string look_);
 
-    // tick and actions related to a tick. 1 tick = 1 frame displayed. IsIs raan before refresh.
+    // tick and actions related to a tick. 1 tick = 1 frame displayed. Is ran before refresh.
     void tick();
     virtual void on_tick();
 
     // actions run when window is resized/moved. Is ran before rerefresh.
+    // creating/modifying sprites etc. is optimallly done here.
     virtual void on_reconfig();
-    
+    // inform the frame that it should reconfigure itself
+    void set_reconfig();
+
     // draw contents on the master window.
     void refresh();
+    // draw sprites to the window. optimally only draw calls should be here.
+    // alternatively, this function can be used to do all the work.
     virtual void on_refresh();
-    
     // inform the frame that it should refresh itself.
     void set_refresh();
 
@@ -257,6 +262,7 @@ protected:
     
     Window *master = nullptr;
     Frame *parent = nullptr;
+    
     bool refreshFlag = 1;
     
     Borders border;

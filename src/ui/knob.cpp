@@ -29,7 +29,7 @@ void Knob::set_look(std::string look_){
 
     border.set_look(look);
 
-    on_reconfig();
+    set_reconfig();
 }
 
 void Knob::on_reconfig(){

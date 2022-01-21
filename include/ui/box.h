@@ -33,14 +33,14 @@ class Box : public Slider {
 
 public:
 
-    Box(Window *master_, Side barSide, Side stackStick, bool scrollable, Kwargs = {});
+    Box(Window *master_, Side barSide, Side stackStick, Kwargs = {});
 
     virtual void set_look(std::string look_);
     
-    void on_resize(sf::Mouse::Button, float width, float height);
+    void on_slide(sf::Mouse::Button, float width, float height);
     
     // set the manager stack
-    Box *set_stack(Stack *);
+    Box *set_manager(Stack*);
 
 protected:
 

@@ -5,8 +5,8 @@
 
 namespace ui {
 
-Box::Box(Window *master_, Side barSide, Side stackStick, bool scrollable, Kwargs kwargs) :
-    Slider(master_, barSide, stackStick, scrollable, kwargs),
+Box::Box(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
+    Slider(master_, barSide, stackStick, kwargs),
     pushUp(master_, [&](){ func_up(); }, "U"),
     pushDown(master_, [&](){ func_down(); }, "D"),
     click(master_, [&](){ func_click(); }, "C"),
@@ -72,7 +72,7 @@ void Box::set_look(std::string look_){
 
 }
 
-void Box::on_resize(sf::Mouse::Button button, float width, float height){
+void Box::on_slide(sf::Mouse::Button button, float width, float height){
     
     float size = std::min(height, parent->globalY - globalY + windowY + parent->windowHeight);
     if(side == Side::left || side == Side::right)
@@ -87,7 +87,7 @@ void Box::on_resize(sf::Mouse::Button button, float width, float height){
     }
 }
 
-Box *Box::set_stack(Stack *m){
+Box *Box::set_manager(Stack *m){
     manager = m;
     return this;
 }

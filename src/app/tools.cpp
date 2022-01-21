@@ -3,10 +3,10 @@
 namespace app {
 
 Tools::Tools(ui::Window *master_) :
-    ui::Slider(master_, ui::Side::right, ui::Side::up, 1, {.look = "tools", .width = 400}),
-    dummy0(master_, ui::Side::down, ui::Side::up, 0, {.look = "tools", .height = 200}),
-    dummy1(master_, ui::Side::down, ui::Side::up, 0, {.look = "tools", .height = 200}),
-    dummy2(master_, ui::Side::down, ui::Side::up, 0, {.look = "tools", .height = 200})
+    ui::Slider(master_, ui::Side::right, ui::Side::up, {.look = "tools", .width = 400}),
+    dummy0(master_, ui::Side::down, ui::Side::up, {.look = "tools", .height = 200}),
+    dummy1(master_, ui::Side::down, ui::Side::up, {.look = "tools", .height = 200}),
+    dummy2(master_, ui::Side::down, ui::Side::up, {.look = "tools", .height = 200})
 {
     set_label("tools");
     
@@ -18,9 +18,9 @@ Tools::Tools(ui::Window *master_) :
     dummy1.set_label("dummy1");
     dummy2.set_label("dummy2");
 
-    stack.push_back(dummy0.set_stack(&stack));
-    stack.push_back(dummy1.set_stack(&stack));
-    stack.push_back(dummy2.set_stack(&stack));
+    stack.push_back(dummy0.set_manager(&stack));
+    stack.push_back(dummy1.set_manager(&stack));
+    stack.push_back(dummy2.set_manager(&stack));
 }
 
 }

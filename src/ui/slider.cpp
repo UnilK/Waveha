@@ -6,12 +6,12 @@
 
 namespace ui {
 
-Slider::Slider(Window *master_, Side barSide, Side stackStick, bool scrollable, Kwargs kwargs) : 
+Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) : 
     Frame(master_, kwargs),
     stack(master_, stackStick),
     buttons(master_, (barSide == Side::left || barSide == Side::right) ? Side::up : Side::left),
     functions(master_),
-    bar(master_, this, &stack, barSide, scrollable),
+    bar(master_, this, barSide),
     dot(master_),
     label(master_),
     side(barSide)
@@ -133,10 +133,10 @@ void Slider::set_look(std::string look_){
 
     set_target_size(targetWidth, targetHeight);
 
-    on_reconfig();
+    set_reconfig();
 }
 
-void Slider::on_resize(sf::Mouse::Button button, float width, float height){
+void Slider::on_slide(sf::Mouse::Button button, float width, float height){
     
     assert(parent != nullptr);
 
@@ -145,6 +145,26 @@ void Slider::on_resize(sf::Mouse::Button button, float width, float height){
     set_target_size(width, height);
     
     get_parent(1)->update_grid();
+}
+
+void Slider::on_scroll(float delta){
+
+    float scrollSpeed = 50;
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+        scrollSpeed = 1;
+    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+        scrollSpeed = 100;
+
+    float deltaX = 0, deltaY = 0;
+    
+    if(side == Side::left || side == Side::right) deltaX = scrollSpeed * delta;
+    else deltaY = - scrollSpeed * delta;
+
+    stack.set_canvas_position(
+            std::max(0.0f, stack.canvasX + deltaX),
+            std::max(0.0f, stack.canvasY + deltaY));
+
+    stack.update_grid();
 }
 
 void Slider::set_label(std::string s){
@@ -173,6 +193,10 @@ void Slider::overload_inner(Frame *content){
     }
 }
 
+void Slider::set_scrollable(bool b){ bar.set_scrollable(b); }
+
+void Slider::set_slidable(bool b){ bar.set_slidable(b); }
+
 
 
 Slider::Dot::Dot(Window *master_, Kwargs kwargs) : Frame(master_, kwargs) {}
@@ -198,11 +222,9 @@ void Slider::Dot::on_refresh(){
 
 
 
-Slider::Bar::Bar(Window *master_, Slider *slider_, Stack *stack, Side side, bool scrollable_) :
+Slider::Bar::Bar(Window *master_, Slider *slider_, Side side) :
     Frame(master_),
-    scrollable(scrollable_),
-    slider(slider_),
-    scrolled(stack)
+    slider(slider_)
 {
     switch(side){
         case Side::left:
@@ -255,52 +277,48 @@ Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
         }
     }
     else if(event.type == sf::Event::MouseMoved){
-        
-        auto [x, y] = global_mouse();
+       
+        if(slidable){
 
-        if(leftPressed){
-            
-            slider->on_resize(sf::Mouse::Left,
-                    leftBegin[0] + directionX * (x - leftDrag[0]),
-                    leftBegin[1] + directionY * (y - leftDrag[1]));
+            auto [x, y] = global_mouse();
 
-            return Capture::capture;
-        }
-        else if(rightPressed){
-            
-            slider->on_resize(sf::Mouse::Right,
-                    rightBegin[0] + directionX * (x - rightDrag[0]),
-                    rightBegin[1] + directionY * (y - rightDrag[1]));
+            if(leftPressed){
+                
+                slider->on_slide(sf::Mouse::Left,
+                        leftBegin[0] + directionX * (x - leftDrag[0]),
+                        leftBegin[1] + directionY * (y - leftDrag[1]));
 
-            return Capture::capture;
+                return Capture::capture;
+            }
+            else if(rightPressed){
+                
+                slider->on_slide(sf::Mouse::Right,
+                        rightBegin[0] + directionX * (x - rightDrag[0]),
+                        rightBegin[1] + directionY * (y - rightDrag[1]));
+
+                return Capture::capture;
+            }
         }
 
     } else if(event.type == sf::Event::MouseWheelScrolled){
         
         if(scrollable){
 
-            float scrollSpeed = 50;
-            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-                scrollSpeed = 1;
-            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                scrollSpeed = 100;
-
-            
-            float deltaX = 0, deltaY = 0;
-            
-            if(directionX != 0) deltaY = - scrollSpeed * event.mouseWheelScroll.delta;
-            if(directionY != 0) deltaX = scrollSpeed * event.mouseWheelScroll.delta;
-
-            scrolled->set_canvas_position(
-                    std::max(0.0f, scrolled->canvasX + deltaX),
-                    std::max(0.0f, scrolled->canvasY + deltaY));
-            scrolled->update_grid();
+            slider->on_scroll(event.mouseWheelScroll.delta);
 
             return Capture::capture;
         }
     }
 
     return Capture::pass;
+}
+
+void Slider::Bar::set_scrollable(bool b){
+    scrollable = b;
+}
+
+void Slider::Bar::set_slidable(bool b){
+    slidable = b;
 }
 
 }

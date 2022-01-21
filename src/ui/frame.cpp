@@ -72,6 +72,11 @@ void Frame::on_reconfig(){
     border.set_size(canvasWidth, canvasHeight);
 }
 
+void Frame::set_reconfig(){
+    reconfigFlag = 1;
+    set_refresh();
+}
+
 bool Frame::degenerate(){
     return windowWidth < 0.5f || windowHeight < 0.5f;
 }
@@ -185,7 +190,7 @@ void Frame::set_window_size(float windowWidth_, float windowHeight_){
     windowHeight = std::max(0.0f, windowHeight_);
     
     if(windowWidth != previousWidth || windowHeight != previousHeight)
-        reconfigFlag = 1;
+        set_reconfig();
 }
 
 void Frame::set_window_position(float windowX_, float windowY_){
@@ -197,7 +202,7 @@ void Frame::set_window_position(float windowX_, float windowY_){
     windowY = windowY_;
     
     if(windowX != previousX || windowY != previousY)
-        reconfigFlag = 1;
+        set_reconfig();
 }
 
 void Frame::set_global_position(float globalX_, float globalY_){
@@ -215,7 +220,7 @@ void Frame::set_canvas_size(float canvasWidth_, float canvasHeight_){
     canvasHeight = std::max(0.0f, canvasHeight_);
     
     if(canvasWidth != previousWidth || canvasHeight != previousHeight)
-        reconfigFlag = 1;
+        set_reconfig();
 }
 
 void Frame::set_canvas_position(float canvasX_, float canvasY_){
@@ -227,7 +232,7 @@ void Frame::set_canvas_position(float canvasX_, float canvasY_){
     canvasY = canvasY_;
 
     if(canvasX != previousX || canvasY != previousY)
-        reconfigFlag = 1;
+        set_reconfig();
 }
 
 void Frame::move_canvas(float deltaX, float deltaY){
