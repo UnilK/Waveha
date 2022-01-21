@@ -72,6 +72,14 @@ class Terminal : public Frame, public Directory {
 
     /*
        style:
+       
+       background (color)
+       borderColor (color)
+       borderThickness (num) or (num(left) num(right) num(up) num(down))
+       
+       textSize (num)
+       font (font)
+       
        commandColor (color)
        outputColor (color)
        errorColor (color)
@@ -109,7 +117,7 @@ private:
     std::string wrap(std::string, uint32_t);
 
     // editing
-    std::deque<std::string> edits;
+    std::deque<std::string> edits, originals;
     std::set<uint32_t> edited;
     std::string prefix = "$ ";
     uint32_t editX = 0, editY = 0;

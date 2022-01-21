@@ -1,8 +1,12 @@
 #pragma once
 
 #include "ui/window.h"
-#include "ui/frame.h"
+#include "ui/box.h"
+#include "ui/terminal.h"
 #include "app/tools.h"
+#include "app/audio.h"
+#include "app/content.h"
+#include "app/creations.h"
 
 namespace app {
 
@@ -13,10 +17,15 @@ public:
     App();
     ~App();
 
-private:
+    ContentManager layout;
+    AudioManager audio;
+    CreationManager creation;
 
     Tools tools;
-    ui::Frame temp;
+    ui::Terminal terminal;
+
+    ui::Box terminalBox;
+    ui::Slider layoutSlider;
 
 };
 

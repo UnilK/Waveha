@@ -157,8 +157,8 @@ void Slider::on_scroll(float delta){
 
     float deltaX = 0, deltaY = 0;
     
-    if(side == Side::left || side == Side::right) deltaX = scrollSpeed * delta;
-    else deltaY = - scrollSpeed * delta;
+    if(side == Side::left || side == Side::right) deltaY = - scrollSpeed * delta;
+    else deltaX = scrollSpeed * delta;
 
     stack.set_canvas_position(
             std::max(0.0f, stack.canvasX + deltaX),
@@ -300,7 +300,8 @@ Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
             }
         }
 
-    } else if(event.type == sf::Event::MouseWheelScrolled){
+    }
+    else if(event.type == sf::Event::MouseWheelScrolled){
         
         if(scrollable){
 

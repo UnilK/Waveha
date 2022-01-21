@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/app.h"
 #include "app/graph.h"
 #include "wave/source.h"
 #include "changer/pitch.h"

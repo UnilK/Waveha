@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <math.h>
 #include <assert.h>
+#include <ctype.h>
+#include <iostream>
 
 namespace ui {
 
@@ -160,12 +162,111 @@ Terminal::Terminal(Window *master_, Kwargs kwargs) :
     document("clear", "clear terminal window.");
 
     blinker.setString("|");
+
+    edits.push_front("");
+    originals.push_front("");
+    
+    set_look(look);
 }
 
 Terminal::~Terminal(){}
 
 Frame::Capture Terminal::on_event(sf::Event event, int32_t priority){
     
+    if(priority > 0) return Capture::pass;
+
+    if(event.type == sf::Event::TextEntered){
+        
+        if(priority >= 0) return Capture::pass;
+        
+        if(std::isprint(event.text.unicode)){
+            edits[editY].insert(editX, 1, static_cast<char>(event.text.unicode));
+            edited.insert(editY);
+            editX++;
+            set_refresh();
+        }
+    }
+    else if(event.type == sf::Event::KeyPressed){
+       
+        if(priority >= 0) return Capture::pass;
+
+        if(event.key.code == sf::Keyboard::Up){
+            if(editY > 0){
+                editY--;
+                set_refresh();
+            }
+        }
+        else if(event.key.code == sf::Keyboard::Down){
+            if(editY + 1 < edits.size()){
+                editY++;
+                editX = edits[editY].size();
+                set_refresh();
+            }
+        }
+        else if(event.key.code == sf::Keyboard::Left){
+            if(editX > 0){
+                editX--;
+                editX = edits[editY].size();
+                set_refresh();
+            }
+        }
+        else if(event.key.code == sf::Keyboard::Right){
+            if(editX + 1 <= edits[editY].size()){
+                editX++;
+                set_refresh();
+            }
+        }
+        else if(event.key.code == sf::Keyboard::Enter){
+            
+            std::string cmd = edits[editY];
+            
+            edited.erase(0);
+            for(auto i : edited) edits[i] = originals[i];
+            
+            editY = 0;
+            editX = 0;
+            originals[0] = edits[0];
+            edits.push_front("");
+            originals.push_front("");
+
+            while(edits.size() > bufferMax) edits.pop_back();
+            while(originals.size() > bufferMax) originals.pop_back();
+
+            push_command(prefix + cmd);
+            
+            bool ok = execute({*this, create_command(cmd)});
+            
+            if(!ok) push_error("command not found: " + cmd);
+
+        }
+        else if(event.key.code == sf::Keyboard::Backspace){
+            if(editX > 0){
+                edits[editY].erase(editX - 1, 1);
+                edited.insert(editY);
+                editX--;
+                set_refresh();
+            }
+        }
+
+        return Capture::capture;
+    }
+    else if(event.type == sf::Event::MouseWheelScrolled){
+        
+        if(event.mouseWheelScroll.delta < 0){
+            if(bufferIndex < buffer.size()){
+                bufferIndex++;
+                set_refresh();
+            }
+        }
+        else if(event.mouseWheelScroll.delta > 0){
+            if(bufferIndex > 0){
+                bufferIndex--;
+                set_refresh();
+            }
+        }
+
+        return Capture::capture;
+    }
     return Capture::pass;
 }
 
@@ -186,37 +287,42 @@ void Terminal::set_look(std::string look_){
 }
 
 void Terminal::on_refresh(){
-    
+  
+    Frame::on_reconfig();
+    Frame::on_refresh();
+
     float charWidth = font("font").getGlyph(0x0020, num("textSize"), 0).advance; // space size
     uint32_t maxChars = std::floor((canvasWidth - offsetX - charWidth) / charWidth);
-    
+
     text.setString(wrap(prefix + edits[editY], maxChars));
     text.setFillColor(color("commandColor"));
-    text.setPosition(offsetX, offsetY);
+    text.setPosition(std::round(offsetX), std::round(offsetY));
     
     master->draw(text);
 
-    if(edits[editY].empty()) blinker.setPosition(offsetX - charWidth / 2, offsetY);
-    else {
-        auto [x, y] = text.findCharacterPos(editX + prefix.size());
-        blinker.setPosition(x - charWidth / 2, y);
-    }
+    auto [x, y] = text.findCharacterPos(editX + prefix.size() - 1);
+
+    blinker.setPosition(std::round(x + charWidth / 2), std::round(y));
 
     master->draw(blinker);
 
-    float x = offsetX;
-    float y = offsetY + text.getLocalBounds().height;
+    auto rect = text.getLocalBounds();
+    
+    x = std::round(offsetX);
+    y = std::round(offsetY + rect.height + rect.top);
 
     uint32_t iter = bufferIndex;
     while(y < canvasHeight && iter < buffer.size()){
         
         text.setString(wrap(buffer[iter].text, maxChars));
         text.setFillColor(color(buffer[iter].color));
+        
         text.setPosition(x, y);
 
         master->draw(text);
 
-        y += text.getLocalBounds().height;
+        rect = text.getLocalBounds();
+        y = std::round(y + rect.height + rect.top);
 
         iter++;
     }
@@ -239,7 +345,6 @@ void Terminal::push_command(std::string s){
 
 void Terminal::clean_buffer(){
     while(buffer.size() > bufferMax) buffer.pop_back();
-    while(edits.size() > bufferMax) edits.pop_back();
     set_refresh();
 }
 
@@ -262,7 +367,7 @@ std::vector<std::string> Terminal::create_command(std::string s){
             parsed.push_back(s.substr(left + 1, right - left - 1));
             right++;
         }
-        else if(left != ' '){
+        else if(s[left] != ' '){
             while(right < s.size() && s[right] != ' ') right++;
             parsed.push_back(s.substr(left, right - left));
         }
@@ -288,18 +393,36 @@ std::string Terminal::wrap(std::string s, uint32_t max){
     uint32_t length = 0, left = 0, right = 1;
     while(left < s.size()){
         
-        while(right < s.size() && s[right] != ' ') right++;
+        while(right < s.size() && s[right] != ' ' && s[right] != '\n'){
+            right++;
+        }
         
-        length += right - left;
         
-        if(length > max && !wrapped.empty()){
-            wrapped += "\n";
-            length = right - left;
+        if(s[right] == '\n'){
+        
+            length = 0;
+
+            wrapped += s.substr(left, right - left + 1);
+        
+            right++;
+            
+            left = right++;
+
+        }
+        else {
+            
+            length += right - left;
+            
+            if(length > max && !wrapped.empty()){
+                wrapped += "\n";
+                length = right - left;
+            }
+
+            wrapped += s.substr(left, right - left);
+
+            left = right++;
         }
 
-        wrapped += s.substr(left, right - left);
-
-        left = right++;
     }
 
     return wrapped;
@@ -321,6 +444,8 @@ void Terminal::cd(Command c){
     auto original = address;
 
     while(!c.empty()){
+
+        dir = c.pop();
 
         if(dir == "-"){
             address = previous;

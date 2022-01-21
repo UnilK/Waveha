@@ -324,6 +324,9 @@ void Frame::update_grid(){
     
     if(columns > 0) widthGrid[columns] = std::max(widthGrid[columns], widthGrid[columns-1]);
     
+    contentWidth = widthGrid[columns];
+    contentHeight = heightGrid[rows];
+
     // calculate extra space that needs to be used.
     float widthExtra = std::max(0.0f, canvasWidth-widthGrid[columns]);
     float heightExtra = std::max(0.0f, canvasHeight-heightGrid[rows]);
@@ -353,9 +356,6 @@ void Frame::update_grid(){
         widthSum += widthExtra*(widthFill[i]/widthTotal);
     } widthGrid[columns] += widthSum;
   
-    contentWidth = widthGrid[columns];
-    contentHeight = heightGrid[rows];
-
     // do the windowing
     for(uint32_t i=0; i<rows; i++){
         for(uint32_t j=0; j<columns; j++){

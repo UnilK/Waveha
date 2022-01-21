@@ -47,11 +47,11 @@ public:
     std::string get_label();
 
     Stack stack;
+    
+    // overload the stack with some other content.
+    void overload_inner(Frame *content);
 
 protected:
-    
-    // overload the stack with some other content. use only on initialization.
-    void overload_inner(Frame *content);
     
     class Bar : public Frame {
 

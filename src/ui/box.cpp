@@ -10,41 +10,12 @@ Box::Box(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
     pushUp(master_, [&](){ func_up(); }, "U"),
     pushDown(master_, [&](){ func_down(); }, "D"),
     click(master_, [&](){ func_click(); }, "C"),
-    maximize(master_, [&](){ func_maximize(); }, "O"),
-    minimize(master_, [&](){ func_minimize(); }, "."),
+    maximize(master_, [&](){ func_maximize(); }, "M"),
+    minimize(master_, [&](){ func_minimize(); }, "m"),
     detach(master_, [&](){ func_detach(); }, "X")
 {
     stack.set_border(0, 0, 0, 0);
-
-    buttons.push_back(&pushUp);
-    buttons.push_back(&pushDown);
-    buttons.push_back(&click);
-    buttons.push_back(&maximize);
-    buttons.push_back(&minimize);
-    buttons.push_back(&detach);
-
-    std::array<Button*, 6> all{&pushUp, &pushDown, &click, &maximize, &minimize, &detach};
-
-    if(side == Side::left || side == Side::right){
-        label.set_border(1, 1, 0, 0);
-        functions.set_border(1, 1, 0, 0);
-        for(auto button : all){
-            button->set_border(1, 1, 1, 0);
-            button->text_direction(Text::down);
-            button->text_offset(0, 0);
-        }
-    }
-    else {
-        label.set_border(0, 0, 1, 1);
-        functions.set_border(0, 0, 1, 1);
-        for(auto button : all){
-            button->set_border(1, 0, 1, 1);
-            button->text_direction(Text::left);
-            button->text_offset(0, -0.1);
-        }
-    }
-
-    set_look(look);
+    set_buttons(1, 1, 1, 1, 1, 1);
 }
 
 void Box::set_look(std::string look_){
@@ -69,11 +40,12 @@ void Box::set_look(std::string look_){
 
     buttons.update_grid();
     buttons.fit_content();
-
 }
 
 void Box::on_slide(sf::Mouse::Button button, float width, float height){
     
+    assert(manager != nullptr);
+
     float size = std::min(height, parent->globalY - globalY + windowY + parent->windowHeight);
     if(side == Side::left || side == Side::right)
         size = std::min(width, parent->globalX - globalX + windowX + parent->windowWidth);
@@ -90,6 +62,41 @@ void Box::on_slide(sf::Mouse::Button button, float width, float height){
 Box *Box::set_manager(Stack *m){
     manager = m;
     return this;
+}
+
+void Box::set_buttons(bool up, bool dw, bool cl, bool mi, bool ma, bool de){
+    
+    buttons.clear();
+
+    if(up) buttons.push_back(&pushUp);
+    if(dw) buttons.push_back(&pushDown);
+    if(cl) buttons.push_back(&click);
+    if(mi) buttons.push_back(&maximize);
+    if(ma) buttons.push_back(&minimize);
+    if(de) buttons.push_back(&detach);
+
+    std::array<Button*, 6> all{&pushUp, &pushDown, &click, &maximize, &minimize, &detach};
+
+    if(side == Side::left || side == Side::right){
+        label.set_border(1, 1, 0, 0);
+        functions.set_border(1, 1, 0, 0);
+        for(auto button : all){
+            button->set_border(1, 1, 1, 0);
+            button->text_stick(Text::middle);
+            button->text_offset(0, -0.3);
+        }
+    }
+    else {
+        label.set_border(0, 0, 1, 1);
+        functions.set_border(0, 0, 1, 1);
+        for(auto button : all){
+            button->set_border(1, 0, 1, 1);
+            button->text_stick(Text::middle);
+            button->text_offset(0, -0.3);
+        }
+    }
+
+    set_look(look);
 }
 
 void Box::func_up(){

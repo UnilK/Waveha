@@ -41,6 +41,9 @@ public:
     
     // set the manager stack
     Box *set_manager(Stack*);
+    
+    // select buttons that are used
+    void set_buttons(bool up, bool down, bool click, bool minimize, bool maximize, bool detach);
 
 protected:
 

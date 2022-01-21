@@ -24,7 +24,7 @@ define
     dyellow c4a000
     dblue 3465a4
     dviolet 75507b
-    dcyan 0689a
+    dcyan 06989a
     dwhite d3d7cf
 
     greencyan 87ffaf
@@ -32,57 +32,61 @@ define
 
 look
 
-border
+baseback
     borderThickness 1
     background .terminal
 ;
 
-whiteborder
-    .border
+baseborder
+    .baseback
     borderColor .dwhite
 ;
 
-greentext
+basetext
     
-    .whiteborder
+    .baseborder
 
     textSize 18
-    textColor .green
+    textColor .dwhite
     textStyle default
     font default
 ;
 
-darkgreentext
-    .greentext
+basedarktext
+    .basetext
     borderColor .gray
-    textColor .dgreen
+    textColor .gray
 ;
 
-greenbutton
-    normal greentext
-    pressed darkgreentext
+basebutton
+    normal basetext
+    pressed basedarktext
 ;
 
 tools
 
-    .greentext
+    .basetext
 
-    buttons greenbutton
+    buttons basebutton
 
     barSize 20
 
     dotSize 5
     dotBorderThickness 1
-    dotBorderColor .green
+    dotBorderColor .dwhite
 
 ;
 
-temp
-    background .gray
+toolterminal
+    .basetext
+    commandColor .dwhite
+    errorColor .red
+    outputColor .dcyan
 ;
 
 
-AnalyzerGraph
+
+analyzergraph
     background .terminal
     borderColor .purple
     borderThickness 0 0 0 1
