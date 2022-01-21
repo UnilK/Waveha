@@ -3,6 +3,7 @@ build
 tags
 audio
 sessions
+waveha
 dev/.undo
 *.swp
 *.wav

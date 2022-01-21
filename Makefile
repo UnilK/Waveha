@@ -5,7 +5,7 @@ TESTDIR := test
 BUILDDIR := build
 BINDIR := bin
 
-EXEC := $(BINDIR)/waveha
+EXEC := waveha
 MAINAPP := main
 TEST := test
 
@@ -35,10 +35,12 @@ LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lpthread
 
 
 # link the executable
-$(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MAINAPP).o
-	$(CXX) $(BUILDDIR)/$(MAINAPP).o $(OBJECTS) $(LLIB) $(LIB) -o $(EXEC)
+$(BINDIR)/$(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MAINAPP).o
+	$(CXX) $(BUILDDIR)/$(MAINAPP).o $(OBJECTS) $(LLIB) $(LIB) -o $(BINDIR)/$(EXEC)
 	@mkdir -p audio
 	@mkdir -p sessions
+	@ln -f $(BINDIR)/$(EXEC) $(EXEC)
+
 
 # compile the source files
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
