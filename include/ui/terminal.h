@@ -114,7 +114,7 @@ protected:
 private:
     
     std::vector<std::string> create_command(std::string);
-    std::string wrap(std::string, uint32_t);
+    std::vector<std::string> wrap(std::string, uint32_t);
 
     // editing
     std::deque<std::string> edits, originals;
@@ -126,7 +126,7 @@ private:
     // command history
     std::deque<Line> buffer;
     uint32_t bufferMax = 1000;
-    uint32_t bufferIndex = 0;
+    uint32_t bufferOffset = 0;
 
     void clean_buffer();
 

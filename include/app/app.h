@@ -5,7 +5,7 @@
 #include "ui/terminal.h"
 #include "app/tools.h"
 #include "app/audio.h"
-#include "app/content.h"
+#include "app/layout.h"
 #include "app/creations.h"
 
 namespace app {
@@ -17,15 +17,12 @@ public:
     App();
     ~App();
 
-    ContentManager layout;
-    AudioManager audio;
-    CreationManager creation;
+    Layout layout;
 
     Tools tools;
     ui::Terminal terminal;
 
     ui::Box terminalBox;
-    ui::Slider layoutSlider;
 
 };
 

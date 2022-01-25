@@ -2,7 +2,7 @@
 
 namespace app {
 
-class CreationManager {
+class Creations {
 
 };
 

@@ -2,7 +2,7 @@
 
 namespace app {
 
-class AudioManager {
+class Audio {
 
 };
 

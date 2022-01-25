@@ -63,7 +63,7 @@ basebutton
     pressed basedarktext
 ;
 
-tools
+basebox
 
     .basetext
 
@@ -77,7 +77,7 @@ tools
 
 ;
 
-toolterminal
+baseterminal
     .basetext
     commandColor .dwhite
     errorColor .red

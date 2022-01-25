@@ -4,7 +4,7 @@
 namespace app {
 
 Tools::Tools(App *master_) :
-    ui::Slider(master_, ui::Side::right, ui::Side::up, {.look = "tools", .width = 400}),
+    ui::Slider(master_, ui::Side::right, ui::Side::up, {.look = "basebox", .width = 400}),
     app(*master_)
 {
     set_label("tools");
