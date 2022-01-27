@@ -220,6 +220,15 @@ void Slider::Dot::on_refresh(){
     master->draw(dot);
 }
 
+void Slider::Dot::fill_by_border(bool b){
+    if(b){
+        dot.setFillColor(color("dotColor"));
+    }
+    else {
+        dot.setFillColor(color("dotBorderColor"));
+    }
+}
+
 
 
 Slider::Bar::Bar(Window *master_, Slider *slider_, Side side) :

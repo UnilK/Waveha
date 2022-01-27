@@ -6,8 +6,9 @@ openwave="gnome-terminal --tab -t wave -- vim -S dev/.vimrc -p src/wave/*.cpp"
 openui="gnome-terminal --tab -t ui -- vim -S dev/.vimrc -p src/ui/*.cpp"
 openapp="gnome-terminal --tab -t app -- vim -S dev/.vimrc -p src/app/*.cpp"
 openstyle="gnome-terminal --tab -t style -- vim -S dev/.vimrc -p res/styles/*.style"
-openmain="gnome-terminal --tab -t main -- vim -S dev/.vimrc src/main.cpp"
-openchanger="gnome-terminal --tab -t changer -- vim -S dev/.vimrc src/changer/*.cpp"
+openmain="gnome-terminal --tab -t main -- vim -S dev/.vimrc -p src/main.cpp"
+openchange="gnome-terminal --tab -t changer -- vim -S dev/.vimrc -p src/change/*.cpp"
+opentools="gnome-terminal --tab -t tools -- vim -S dev/.vimrc -p src/tools/*.cpp"
 
 if [ $# -eq 0 ]
 then
@@ -16,6 +17,8 @@ then
     $openwave
     $openui
     $openapp
+    $openchange
+    $opentools
     $openstyle
     $openmain
 fi
@@ -41,8 +44,11 @@ do
         style)
             $openstyle
             ;;
-        changer)
-            $openchanger
+        change)
+            $openchange
+            ;;
+        tools)
+            $opentools
             ;;
         make)
             $openterminal

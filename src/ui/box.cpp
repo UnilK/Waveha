@@ -7,8 +7,8 @@ namespace ui {
 
 Box::Box(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
     Slider(master_, barSide, stackStick, kwargs),
-    pushUp(master_, [&](){ func_up(); }, "U"),
-    pushDown(master_, [&](){ func_down(); }, "D"),
+    pushUp(master_, [&](){ func_up(); }, "a"),
+    pushDown(master_, [&](){ func_down(); }, "b"),
     click(master_, [&](){ func_click(); }, "C"),
     maximize(master_, [&](){ func_maximize(); }, "M"),
     minimize(master_, [&](){ func_minimize(); }, "m"),
@@ -16,6 +16,8 @@ Box::Box(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
 {
     stack.set_border(0, 0, 0, 0);
     set_buttons(1, 1, 1, 1, 1, 1);
+    
+    set_look(look);
 }
 
 void Box::set_look(std::string look_){
@@ -47,6 +49,7 @@ void Box::on_slide(sf::Mouse::Button button, float width, float height){
     assert(manager != nullptr);
 
     float size = std::min(height, parent->globalY - globalY + windowY + parent->windowHeight);
+    
     if(side == Side::left || side == Side::right)
         size = std::min(width, parent->globalX - globalX + windowX + parent->windowWidth);
 
@@ -55,7 +58,6 @@ void Box::on_slide(sf::Mouse::Button button, float width, float height){
     }
     else if(button == sf::Mouse::Right){
         manager->sticky_resize(this, size);
-
     }
 }
 

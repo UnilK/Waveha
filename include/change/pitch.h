@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdint>
 
-namespace wave {
+namespace change {
 
 struct Pitch {
 

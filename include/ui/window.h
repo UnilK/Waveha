@@ -44,6 +44,7 @@ public:
 
     void style();
 
+    void reset_hard_focus();
     std::vector<Frame*> focus;
     Frame *get_soft_focus();
     Frame *get_hard_focus();

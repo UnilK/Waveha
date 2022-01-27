@@ -1,4 +1,4 @@
-#include "app/analyzer.h"
+#include "tools/analyzer.h"
 #include "app/app.h"
 #include "math/fft.h"
 

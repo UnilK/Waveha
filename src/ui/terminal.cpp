@@ -290,7 +290,7 @@ void Terminal::on_refresh(){
     Frame::on_refresh();
 
     float charWidth = font("font").getGlyph(0x0020, num("textSize"), 0).advance; // space size
-    uint32_t maxChars = std::floor((canvasWidth - offsetX - charWidth) / charWidth);
+    uint32_t maxChars = std::max(1.0f, std::floor((canvasWidth - offsetX - charWidth) / charWidth));
 
     uint32_t blinkerPos = editX, editCount = 0;
 
@@ -299,7 +299,7 @@ void Terminal::on_refresh(){
     for(auto line : content){
         packed += line + "\n";
         editCount += line.size();
-        if(editCount - prefix.size() < editX) blinkerPos++;
+        if(editCount < editX + prefix.size()) blinkerPos++;
     }
     if(!packed.empty()) packed.pop_back();
 
@@ -318,7 +318,7 @@ void Terminal::on_refresh(){
     auto rect = text.getLocalBounds();
     
     x = std::round(offsetX);
-    y = std::round(std::max(offsetY + rect.height + rect.top, (float)text.getCharacterSize()));
+    y = std::round((float)text.getCharacterSize() * content.size());
 
     uint32_t count = 0;
     for(uint32_t i = 0; y < canvasHeight && i < buffer.size(); i++){
@@ -340,10 +340,10 @@ void Terminal::on_refresh(){
 
         master->draw(text);
 
-        if(count){
+        if(count > bufferOffset){
             rect = text.getLocalBounds();
-            y = std::round(y + std::max(offsetY + rect.height + rect.top,
-                        (float)text.getCharacterSize()));
+            y = std::round(y + (float)text.getCharacterSize()
+                    * std::min(count - bufferOffset, (uint32_t)content.size()));
         }
     }
 }

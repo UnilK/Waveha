@@ -1,22 +1,50 @@
 #include "app/layout.h"
 #include "app/app.h"
+#include "app/tab.h"
+#include "app/slot.h"
 
 namespace app {
 
 // layout /////////////////////////////////////////////////////////////////////
 
-Layout::Layout(App *app) :
-    ui::Slider(app, ui::Side::up, ui::Side::left, {.look = "basebox"}),
-    addTab(app, [&](){ add_tab(); })
+Layout::Layout(App *a) :
+    ui::Slider(a, ui::Side::up, ui::Side::left, {.look = "basebox"}),
+    app(*a),
+    addTab(a, [&](){ add_tab(); }, "+")
 {
     set_border(0, 0, 0, 0);
     functions.set_border(0, 0, 0, 1);
     label.set_border(0, 0, 0, 1);
     stack.set_border(0, 0, 0, 0);
     set_slidable(0);
+
+    addTab.set_border(1, 0, 0, 1);
+    addTab.text_stick(ui::Text::middle);
+    addTab.text_offset(0, -0.3);
+    buttons.push_back(&addTab);
+
+    set_look(look);
 }
 
-Layout::~Layout(){}
+Layout::~Layout(){
+    for(uint32_t i=0; i<stack.size(); i++)
+        if(stack.get(i) != nullptr)
+            delete stack.get(i);
+}
+
+void Layout::set_look(std::string look_){
+
+    ui::Slider::set_look(look_);
+
+    addTab.set_look(chars("buttons"));
+
+    float size = num("barSize");
+
+    addTab.set_target_size(size, size);
+    
+    buttons.update_grid();
+    buttons.fit_content();
+}
 
 void Layout::save(Saver &saver){
 
@@ -26,107 +54,21 @@ void Layout::load(Loader &loader){
 
 }
 
-void Layout::forget_slot(){
+void Layout::select_slot(Slot *s){
+    if(selected != s) forget_slot();
+    selected = s;
+}
 
+void Layout::forget_slot(){
+    if(selected != nullptr) selected->forget();
+    selected = nullptr;
 }
 
 void Layout::add_tab(){
-    
+    Tab *tab = new Tab(&app);
+    stack.push_back(tab->set_manager(&stack));
 }
 
-// tab ////////////////////////////////////////////////////////////////////////
-
-Tab::Tab(App *app) :
-    Box(app, ui::Side::left, ui::Side::up, {.look = "basebox"}),
-    addSlot(app, [&](){ add_slot(); })
-{
-
-}
-
-Tab::~Tab(){}
-
-void Tab::save(Saver &saver){
-
-}
-
-void Tab::load(Loader &loader){
-
-}
-
-void Tab::func_detach(){
-
-}
-
-void Tab::add_slot(){
-
-}
-
-// slot ///////////////////////////////////////////////////////////////////////
-
-Slot::Slot(App *app) :
-    Box(app, ui::Side::down, ui::Side::left, {.look = "basebox"}),
-    pushLeft(app, [&](){ push_left(); }),
-    pushRight(app, [&](){ push_right(); })
-{
-
-}
-
-Slot::~Slot(){}
-
-void Slot::save(Saver &saver){
-
-}
-
-void Slot::load(Loader &loader){
-
-}
-
-void Slot::set_content(Content*){
-
-}
-
-void Slot::func_detach(){
-
-}
-
-ui::Frame::Capture Slot::on_event(sf::Event event, int32_t priority){
-    return Capture::pass;
-}
-
-void Slot::select(){
-
-}
-
-void Slot::forget(){
-
-}
-
-void Slot::add_content_type(std::string type, std::function<Content*(void)> construct){
-
-}
-
-void Slot::push_left(){
-
-}
-
-void Slot::push_right(){
-
-}
-
-Content *Slot::content_from_type(std::string type){
-    return nullptr;
-}
-
-std::map<std::string, std::function<Content*(void)> > Slot::types;
-
-// content ////////////////////////////////////////////////////////////////////
-
-Content::Content(std::string t) : type(t) {}
-
-Content::~Content(){}
-
-std::string Content::get_type(){
-    return type;
-}
+// directory //////////////////////////////////////////////////////////////////
 
 }

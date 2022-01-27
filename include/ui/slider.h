@@ -90,6 +90,8 @@ protected:
         void on_reconfig();
         void on_refresh();
 
+        void fill_by_border(bool);
+
     private:
 
         sf::CircleShape dot;

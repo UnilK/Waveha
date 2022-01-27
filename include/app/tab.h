@@ -1,39 +1,34 @@
 #pragma once
 
-#include "ui/slider.h"
 #include "ui/box.h"
 #include "app/session.h"
 
 namespace app {
 
 class App;
-class Tab;
 class Slot;
 
-class Layout : public ui::Slider, public Presistent {
+class Tab : public ui::Box, public Presistent {
 
 public:
 
-    Layout(App*);
-    virtual ~Layout();
+    Tab(App*);
+    virtual ~Tab();
 
     virtual void set_look(std::string look_);
 
     void save(Saver&);
     void load(Loader&);
 
-    void select_slot(Slot*);
-    void forget_slot();
+    void func_detach();
 
 private:
     
     App &app;
     
-    Slot *selected;
+    ui::Button addSlot;
 
-    ui::Button addTab;
-    
-    void add_tab();
+    void add_slot();
 
 };
 

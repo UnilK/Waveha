@@ -1,4 +1,4 @@
-#include "app/graph.h"
+#include "tools/graph.h"
 #include "math/constants.hpp"
 
 #include <iostream>
@@ -242,7 +242,7 @@ void Graph::fit_y(){
 
     for(Point &i : points){
         float y = std::abs(i.y);
-        if(!isComplex && std::abs(std::arg(i.y)) > PIF / 2) y = -y;
+        if(!isComplex && std::abs(std::arg(i.y)) > PI / 2) y = -y;
         min = std::min(min, y);
         max = std::max(max, y);
     }

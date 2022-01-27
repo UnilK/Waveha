@@ -1,9 +1,9 @@
 #pragma once
 
 #include "app/app.h"
-#include "app/graph.h"
+#include "tools/graph.h"
 #include "wave/source.h"
-#include "changer/pitch.h"
+#include "change/pitch.h"
 
 namespace app {
 

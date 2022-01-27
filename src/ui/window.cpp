@@ -50,9 +50,6 @@ void Window::event_update(){
             mouseX = event.mouseMove.x;
             mouseY = event.mouseMove.y;
 
-            focus = find_focus();
-            softFocus = focus.back();
-                
         } else {
 
             if(event.type == sf::Event::MouseButtonPressed){
@@ -71,6 +68,9 @@ void Window::event_update(){
                 set_hard();
             }
         }
+        
+        focus = find_focus();
+        softFocus = focus.back();        
         
         int32_t priority = focus.size() - 1;
         Capture captured = Capture::pass;
@@ -123,6 +123,10 @@ void Window::window_refresh(){
 }
 
 std::array<float, 2> Window::mouse(){ return {mouseX, mouseY}; }
+
+void Window::reset_hard_focus(){
+    hardFocus = nullptr;
+}
 
 Frame *Window::get_soft_focus(){ return softFocus; }
 

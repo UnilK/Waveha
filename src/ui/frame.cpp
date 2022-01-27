@@ -43,7 +43,9 @@ Frame::Frame(Window *master_, Kwargs kwargs){
     set_look(look);
 }
 
-Frame::~Frame(){}
+Frame::~Frame(){
+    if(master->get_hard_focus() == this) master->reset_hard_focus();
+}
 
 // events and actions /////////////////////////////////////////////////////////
 
@@ -481,15 +483,14 @@ int32_t Frame::remove_frame(Frame *frame){
 int32_t Frame::put(uint32_t row, uint32_t column, Frame *frame){
     
     assert(row < rows && column < columns);
-    assert(frame != nullptr);
     
     if(grid[row][column] == nullptr){
-        frame->set_parent(this);
+        if(frame != nullptr) frame->set_parent(this);
         grid[row][column] = frame;
         return 1;
     } else {
         grid[row][column]->set_parent(nullptr);
-        frame->set_parent(this);
+        if(frame != nullptr) frame->set_parent(this);
         grid[row][column] = frame;
         return 0;
     }

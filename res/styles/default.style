@@ -71,7 +71,7 @@ basebox
 
     barSize 20
 
-    dotSize 5
+    dotSize 6
     dotBorderThickness 1
     dotBorderColor .dwhite
 

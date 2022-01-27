@@ -26,6 +26,13 @@ public:
     void erase(Frame *frame);
 
     void clear();
+    
+    // find index of a frame. returns size() if frame is not found.
+    uint32_t find(Frame *frame);
+
+    // access a frame in the stack
+    Frame *get(uint32_t index);
+    Frame *get(Frame *frame);
 
     // resizing frames in the stack
     void push_resize(uint32_t index, float size);
@@ -58,14 +65,12 @@ public:
     // use these for initialization
     void create(uint32_t size);
     void put(Frame *frame, uint32_t index);
-    void seal();
 
 private:
     
     void update();
 
     Side side;
-    Frame dummy;
 
     std::vector<Frame*> stack;
 

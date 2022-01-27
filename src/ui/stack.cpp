@@ -8,13 +8,11 @@ namespace ui {
 
 Stack::Stack(Window *master_, Side side_, Kwargs kwargs) :
     Frame(master_, kwargs),
-    side(side_),
-    dummy(master_)
+    side(side_)
 { 
-    stack.push_back(&dummy);
+    stack.push_back(nullptr);
 
     setup_grid(1, 1);
-    Frame::put(0, 0, &dummy);
 
     fill_width(0, 1);
     fill_height(0, 1);
@@ -49,29 +47,35 @@ void Stack::erase(uint32_t index){
 }
 
 void Stack::erase(Frame *frame){
-    bool found = 0;
-    for(uint32_t i=0; i<size(); i++){
-        if(stack[i] == frame){
-            erase(i);
-            found = 1;
-            break;
-        }
-    }
-    assert(found);
+    erase(find(frame));
 }
 
 void Stack::clear(){
    
     stack.clear();
 
-    stack.push_back(&dummy);
+    stack.push_back(nullptr);
 
     setup_grid(1, 1);
-    Frame::put(0, 0, &dummy);
 
     fill_width(0, 1);
     fill_height(0, 1);
 
+}
+
+uint32_t Stack::find(Frame *frame){
+    uint32_t index = 0;
+    while(index < size() && stack[index] != frame) index++;
+    return index;
+}
+
+Frame *Stack::get(uint32_t index){
+    assert(index < size());
+    return stack[index];
+}
+
+Frame *Stack::get(Frame *frame){
+    return get(find(frame));
 }
 
 void Stack::push_resize(uint32_t index, float csize){
@@ -90,15 +94,7 @@ void Stack::push_resize(uint32_t index, float csize){
 }
 
 void Stack::push_resize(Frame *frame, float csize){
-    bool found = 0;
-    for(uint32_t i=0; i<size(); i++){
-        if(stack[i] == frame){
-            push_resize(i, csize);
-            found = 1;
-            break;
-        }
-    }
-    assert(found);
+    push_resize(find(frame), csize);
 }
 
 void Stack::sticky_resize(uint32_t index, float csize){
@@ -158,15 +154,7 @@ void Stack::sticky_resize(uint32_t index, float csize){
 }
 
 void Stack::sticky_resize(Frame *frame, float csize){
-    bool found = 0;
-    for(uint32_t i=0; i<size(); i++){
-        if(stack[i] == frame){
-            sticky_resize(i, csize);
-            found = 1;
-            break;
-        }
-    }
-    assert(found);
+    sticky_resize(find(frame), csize);
 }
 
 float Stack::max_size(uint32_t index){
@@ -183,12 +171,7 @@ float Stack::max_size(uint32_t index){
 }
 
 float Stack::max_size(Frame *frame){
-    for(uint32_t i=0; i<size(); i++){
-        if(stack[i] == frame){
-            return max_size(i);
-        }
-    }
-    return 0;
+    return max_size(find(frame));
 }
 
 void Stack::scroll_to(uint32_t index){
@@ -210,15 +193,7 @@ void Stack::scroll_to(uint32_t index){
 }
 
 void Stack::scroll_to(Frame *frame){
-    bool found = 0;
-    for(uint32_t i=0; i<size(); i++){
-        if(stack[i] == frame){
-            scroll_to(i);
-            found = 1;
-            break;
-        }
-    }
-    assert(found);
+    scroll_to(find(frame));
 }
 
 void Stack::swap(uint32_t a, uint32_t b){
@@ -231,15 +206,7 @@ void Stack::swap(uint32_t a, uint32_t b){
 }
 
 void Stack::swap(Frame *a, Frame *b){
-
-    uint32_t ia = size(), ib = size();
-
-    for(uint32_t i=0; i<size(); i++){
-        if(stack[i] == a) ia = i;
-        if(stack[i] == b) ib = i;
-    }
-
-    swap(ia, ib);
+    swap(find(a), find(b));
 }
 
 void Stack::move(uint32_t index, int32_t direction){
@@ -269,15 +236,7 @@ void Stack::move(uint32_t index, int32_t direction){
 }
 
 void Stack::move(Frame *frame, int32_t direction){
-    bool found = 0;
-    for(uint32_t i=0; i<size(); i++){
-        if(stack[i] == frame){
-            move(i, direction);
-            found = 1;
-            break;
-        }
-    }
-    assert(found);
+    move(find(frame), direction);
 }
 
 float Stack::length(){
@@ -299,16 +258,11 @@ uint32_t Stack::size(){
 
 void Stack::create(uint32_t size){
     stack = std::vector<Frame*>(size + 1, nullptr);
-    stack[size] = &dummy;
 }
 
 void Stack::put(Frame *frame, uint32_t index){
     assert(index < size());
     stack[index] = frame;
-}
-
-void Stack::seal(){
-    for(Frame *frame : stack) assert(frame != nullptr);
 }
 
 void Stack::update(){

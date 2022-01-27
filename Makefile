@@ -94,41 +94,61 @@ build/wave/source.o: include/wave/source.h
 build/wave/sound.o: include/wave/sound.h include/wave/buffer.h
 build/wave/sound.o: include/wave/source.h include/wave/util.h
 build/wave/util.o: include/wave/util.h
+build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/app/audio.o: include/app/audio.h
+build/app/slot.o: include/app/slot.h include/ui/box.h include/ui/slider.h
+build/app/slot.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
+build/app/slot.o: include/ui/style.h include/ui/window.h include/ui/clock.h
+build/app/slot.o: include/ui/text.h include/ui/button.h include/app/session.h
+build/app/slot.o: include/app/layout.h include/app/app.h include/ui/terminal.h
+build/app/slot.o: include/app/tools.h include/app/audio.h
+build/app/slot.o: include/app/creations.h
 build/app/app.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/app/app.o: include/ui/borders.h include/ui/style.h include/ui/clock.h
 build/app/app.o: include/ui/box.h include/ui/slider.h include/ui/stack.h
 build/app/app.o: include/ui/text.h include/ui/button.h include/ui/terminal.h
 build/app/app.o: include/app/tools.h include/app/audio.h include/app/layout.h
-build/app/app.o: include/app/creations.h
-build/app/analyzer.o: include/app/analyzer.h include/app/app.h
-build/app/analyzer.o: include/ui/window.h include/ui/frame.h
-build/app/analyzer.o: include/ui/borders.h include/ui/style.h
-build/app/analyzer.o: include/ui/clock.h include/ui/box.h include/ui/slider.h
-build/app/analyzer.o: include/ui/stack.h include/ui/text.h include/ui/button.h
-build/app/analyzer.o: include/ui/terminal.h include/app/tools.h
-build/app/analyzer.o: include/app/audio.h include/app/layout.h
-build/app/analyzer.o: include/app/creations.h include/app/graph.h
-build/app/analyzer.o: include/wave/source.h include/changer/pitch.h
-build/app/analyzer.o: include/math/fft.h
+build/app/app.o: include/app/session.h include/app/creations.h
 build/app/layout.o: include/app/layout.h include/ui/slider.h include/ui/stack.h
 build/app/layout.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/app/layout.o: include/ui/window.h include/ui/clock.h include/ui/text.h
-build/app/layout.o: include/ui/box.h include/ui/button.h include/app/app.h
-build/app/layout.o: include/ui/terminal.h include/app/tools.h
+build/app/layout.o: include/ui/box.h include/ui/button.h include/app/session.h
+build/app/layout.o: include/app/app.h include/ui/terminal.h include/app/tools.h
 build/app/layout.o: include/app/audio.h include/app/creations.h
-build/app/graph.o: include/app/graph.h include/ui/frame.h include/ui/borders.h
-build/app/graph.o: include/ui/style.h include/ui/window.h include/ui/clock.h
-build/app/graph.o: include/math/constants.hpp
+build/app/layout.o: include/app/tab.h include/app/slot.h
+build/app/tab.o: include/app/tab.h include/ui/box.h include/ui/slider.h
+build/app/tab.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
+build/app/tab.o: include/ui/style.h include/ui/window.h include/ui/clock.h
+build/app/tab.o: include/ui/text.h include/ui/button.h include/app/session.h
+build/app/tab.o: include/app/slot.h include/app/layout.h include/app/app.h
+build/app/tab.o: include/ui/terminal.h include/app/tools.h include/app/audio.h
+build/app/tab.o: include/app/creations.h
+build/app/session.o: include/app/session.h
 build/app/tools.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
 build/app/tools.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/app/tools.o: include/ui/window.h include/ui/clock.h include/ui/text.h
 build/app/tools.o: include/app/app.h include/ui/box.h include/ui/button.h
 build/app/tools.o: include/ui/terminal.h include/app/audio.h
-build/app/tools.o: include/app/layout.h include/app/creations.h
+build/app/tools.o: include/app/layout.h include/app/session.h
+build/app/tools.o: include/app/creations.h
 build/app/creations.o: include/app/creations.h
 build/math/ft.o: include/math/ft.h include/math/constants.hpp
 build/math/fft.o: include/math/fft.h include/math/constants.hpp
+build/tools/analyzer.o: include/tools/analyzer.h include/app/app.h
+build/tools/analyzer.o: include/ui/window.h include/ui/frame.h
+build/tools/analyzer.o: include/ui/borders.h include/ui/style.h
+build/tools/analyzer.o: include/ui/clock.h include/ui/box.h include/ui/slider.h
+build/tools/analyzer.o: include/ui/stack.h include/ui/text.h
+build/tools/analyzer.o: include/ui/button.h include/ui/terminal.h
+build/tools/analyzer.o: include/app/tools.h include/app/audio.h
+build/tools/analyzer.o: include/app/layout.h include/app/session.h
+build/tools/analyzer.o: include/app/creations.h include/tools/graph.h
+build/tools/analyzer.o: include/wave/source.h include/change/pitch.h
+build/tools/analyzer.o: include/math/fft.h
+build/tools/graph.o: include/tools/graph.h include/ui/frame.h
+build/tools/graph.o: include/ui/borders.h include/ui/style.h
+build/tools/graph.o: include/ui/window.h include/ui/clock.h
+build/tools/graph.o: include/math/constants.hpp
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/borders.h
 build/ui/text.o: include/ui/style.h include/ui/window.h include/ui/clock.h
 build/ui/borders.o: include/ui/borders.h include/ui/style.h include/ui/frame.h
@@ -158,10 +178,9 @@ build/ui/box.o: include/ui/box.h include/ui/slider.h include/ui/stack.h
 build/ui/box.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/ui/box.o: include/ui/window.h include/ui/clock.h include/ui/text.h
 build/ui/box.o: include/ui/button.h
-build/changer/pitch.o: include/changer/pitch.h include/math/fft.h
 build/main.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/main.o: include/ui/borders.h include/ui/style.h include/ui/clock.h
 build/main.o: include/ui/box.h include/ui/slider.h include/ui/stack.h
 build/main.o: include/ui/text.h include/ui/button.h include/ui/terminal.h
 build/main.o: include/app/tools.h include/app/audio.h include/app/layout.h
-build/main.o: include/app/creations.h
+build/main.o: include/app/session.h include/app/creations.h

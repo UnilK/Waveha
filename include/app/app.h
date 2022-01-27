@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ui/window.h"
-#include "ui/box.h"
 #include "ui/terminal.h"
 #include "app/tools.h"
 #include "app/audio.h"

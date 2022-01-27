@@ -1,9 +1,9 @@
-#include "changer/pitch.h"
+#include "change/pitch.h"
 #include "math/fft.h"
 
 #include <math.h>
 
-namespace wave {
+namespace change {
 
 std::vector<float> Pitch::graph(const std::vector<float> &audio){
 
