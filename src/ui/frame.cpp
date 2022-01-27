@@ -92,38 +92,37 @@ void Frame::refresh(){
     
     auto [masterWidth, masterHeight] = master->getSize();
 
-    if(refreshFlag){
-        if(!degenerate()){
-            
-            assert(master != nullptr);
-
-            // set drawing area to a subrectangle on the window.
-            
-            sf::View w(sf::FloatRect(windowX, windowY, windowWidth, windowHeight));
-            
-            w.setViewport(sf::FloatRect(
-                        globalX / masterWidth,
-                        globalY / masterHeight,
-                        windowWidth / masterWidth,
-                        windowHeight / masterHeight));
-            
-            master->setView(w);
-
-            on_refresh();
-
-        }
-        refreshFlag = 0;
-    }
-
     if(degenerate()) return;
+
+    if(refreshFlag){
+        
+        assert(master != nullptr);
+
+        // set drawing area to a subrectangle on the window.
+        
+        sf::View w(sf::FloatRect(windowX, windowY, windowWidth, windowHeight));
+        
+        w.setViewport(sf::FloatRect(
+                    globalX / masterWidth,
+                    globalY / masterHeight,
+                    windowWidth / masterWidth,
+                    windowHeight / masterHeight));
+        
+        master->setView(w);
+
+        on_refresh();
+    }
     
     for(uint32_t i=0; i<rows; i++){
         for(uint32_t j=0; j<columns; j++){
             if(grid[i][j] != nullptr){
+                if(refreshFlag) grid[i][j]->set_refresh(); 
                 grid[i][j]->refresh();
             }
         }
     }
+    
+    refreshFlag = 0;
 }
 
 void Frame::on_refresh(){

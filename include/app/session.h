@@ -12,6 +12,8 @@ class App;
 
 class Session {
 
+    // session manager class.
+
 public:
 
     Session(App*);

@@ -27,6 +27,8 @@ App::App() :
 
     terminalBox.set_buttons(1, 1, 1, 1, 1, 0);
 
+    terminal.put_directory("la", &layout.dir);
+
     update_grid();
 }
 

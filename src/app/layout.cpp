@@ -9,6 +9,7 @@ namespace app {
 
 Layout::Layout(App *a) :
     ui::Slider(a, ui::Side::up, ui::Side::left, {.look = "basebox"}),
+    dir(*this),
     app(*a),
     addTab(a, [&](){ add_tab(); }, "+")
 {
@@ -64,11 +65,23 @@ void Layout::forget_slot(){
     selected = nullptr;
 }
 
+Slot *Layout::get_selected(){
+    return selected;
+}
+
 void Layout::add_tab(){
     Tab *tab = new Tab(&app);
     stack.push_back(tab->set_manager(&stack));
 }
 
 // directory //////////////////////////////////////////////////////////////////
+
+LayoutDir::LayoutDir(Layout &l) : layout(l) {
+    put_function("set", [&](ui::Command c){ set_content(c); });
+}
+
+void LayoutDir::set_content(ui::Command c){
+    c.source.push_output("not implemented yet.");
+}
 
 }

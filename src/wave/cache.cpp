@@ -6,6 +6,17 @@
 namespace wave {
 
 Audio::Audio(){}
+    
+Audio::Audio(    
+    std::string name_,
+    uint32_t channels_,
+    uint32_t frameRate_,
+    const std::vector<float> &data_) :
+    name(name_),
+    channels(channels_),
+    frameRate(frameRate_),
+    data(data_)
+{}
 
 Audio::Audio(std::string fileName){
     open(fileName);

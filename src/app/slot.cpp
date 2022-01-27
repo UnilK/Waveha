@@ -73,7 +73,6 @@ ui::Frame::Capture Slot::on_event(sf::Event event, int32_t priority){
     
     if(event.type == sf::Event::MouseButtonPressed){
         select();
-        std::cout << "yeetus\n";
         return Capture::use;
     }
 
@@ -87,6 +86,7 @@ void Slot::select(){
 
 void Slot::forget(){
     dot.fill_by_border(0);
+    set_refresh();
 }
 
 void Slot::add_content_type(std::string type, std::function<ui::Frame*(void)> construct){

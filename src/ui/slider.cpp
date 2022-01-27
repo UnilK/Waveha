@@ -222,11 +222,12 @@ void Slider::Dot::on_refresh(){
 
 void Slider::Dot::fill_by_border(bool b){
     if(b){
-        dot.setFillColor(color("dotColor"));
-    }
-    else {
         dot.setFillColor(color("dotBorderColor"));
     }
+    else {
+        dot.setFillColor(color("dotColor"));
+    }
+    set_refresh();
 }
 
 
@@ -252,6 +253,8 @@ Slider::Bar::Bar(Window *master_, Slider *slider_, Side side) :
 }
 
 Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
+
+    if(priority < 0) slider->on_event(event, priority + 1);
 
     if(event.type == sf::Event::MouseButtonPressed){
         

@@ -7,14 +7,22 @@ namespace wave {
 struct Audio {
 
     Audio();
+    
+    Audio(    
+        std::string name_,
+        uint32_t channels_,
+        uint32_t frameRate_,
+        const std::vector<float> &data_);
+
     Audio(std::string fileName);
+    
     virtual ~Audio();
 
     bool open(std::string fileName);
     
     std::string name;
-    std::vector<float> data;
     uint32_t channels, frameRate;
+    std::vector<float> data;
 
 };
 
