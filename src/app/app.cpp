@@ -7,6 +7,7 @@ namespace app {
 App::App() :
     Window(800, 800, "waveha"),
     layout(this),
+    audio(this),
     tools(this),
     terminal(this, {.look = "baseterminal"}),
     terminalBox(this, ui::Side::down, ui::Side::up, {.look = "basebox", .height = 400})
@@ -28,6 +29,7 @@ App::App() :
     terminalBox.set_buttons(1, 1, 1, 1, 1, 0);
 
     terminal.put_directory("la", &layout.dir);
+    terminal.put_directory("au", &audio.dir);
 
     update_grid();
 }

@@ -33,8 +33,10 @@ public:
     void select();
     void forget();
 
+    bool content_from_type(std::string type);
+    
     static bool valid_type(std::string type);
-    static void add_content_type(std::string type, std::function<ui::Frame*(void)>);
+    static void add_content_type(std::string type, std::function<ui::Frame*(App*)>);
 
 private:
 
@@ -48,8 +50,7 @@ private:
     void push_left();
     void push_right();
 
-    static ui::Frame *content_from_type(std::string type);
-    static std::map<std::string, std::function<ui::Frame*(void)> > types;
+    static std::map<std::string, std::function<ui::Frame*(App*)> > types;
 
 };
 

@@ -53,8 +53,9 @@ public:
 
     void write_string(std::string);
     void write_int(int);
+    void write_unsigned(unsigned);
     void write_float(float);
-    void write_block(int bytes, void *data);
+    void write_block(unsigned bytes, void *data);
 
     void close();
 
@@ -76,6 +77,7 @@ public:
 
     std::string read_string();
     int read_int();
+    unsigned read_unsigned();
     float read_float();
     std::vector<char> read_block();
 

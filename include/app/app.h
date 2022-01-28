@@ -17,6 +17,7 @@ public:
     ~App();
 
     Layout layout;
+    Audio audio;
 
     Tools tools;
     ui::Terminal terminal;

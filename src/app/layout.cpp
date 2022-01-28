@@ -81,7 +81,15 @@ LayoutDir::LayoutDir(Layout &l) : layout(l) {
 }
 
 void LayoutDir::set_content(ui::Command c){
-    c.source.push_output("not implemented yet.");
+    
+    if(layout.selected == nullptr){
+        c.source.push_error("select a slot first by clicking on it");
+    }
+    else {
+        if(!layout.selected->content_from_type(c.pop())){
+            c.source.push_error("content type not recognized");
+        }
+    }
 }
 
 }

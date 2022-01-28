@@ -76,24 +76,29 @@ AudioDir::AudioDir(Audio &a) : audio(a) {
 
 void AudioDir::list_sources(ui::Command c){
     
-    c.source.push_output("files:");
+    std::string message = "";
+
+    message += "files:\n";
     
     if(audio.files.empty()){
-        c.source.push_output("(empty)");
+        message += "(empty)\n";
     }
     else {
-        for(auto i : audio.files) c.source.push_output(i.first);
+        for(auto i : audio.files) message += i.first + "\n";
     }
 
-    c.source.push_output("\ncahces:");
+    message += "\ncaches:\n";
 
     if(audio.caches.empty()){
-        c.source.push_output("(empty)");
+        message += "(empty)\n";
     }
     else {
-        for(auto i : audio.caches) c.source.push_output(i.first);
+        for(auto i : audio.caches) message += i.first + "\n";
     }
-    
+
+    message.pop_back();
+
+    c.source.push_output(message);
 }
 
 void AudioDir::link_audio(ui::Command c){

@@ -254,8 +254,6 @@ Slider::Bar::Bar(Window *master_, Slider *slider_, Side side) :
 
 Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
 
-    if(priority < 0) slider->on_event(event, priority + 1);
-
     if(event.type == sf::Event::MouseButtonPressed){
         
         auto [x, y] = global_mouse();
@@ -266,7 +264,7 @@ Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
             leftBegin = {slider->targetWidth, slider->targetHeight};
             leftPressed = 1;
 
-            return Capture::capture;
+            return Capture::use;
         }
         else if(event.mouseButton.button == sf::Mouse::Right){
             
@@ -274,18 +272,18 @@ Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
             rightBegin = {slider->targetWidth, slider->targetHeight};
             rightPressed = 1;
             
-            return Capture::capture;
+            return Capture::use;
         }
         
     }
     else if(event.type == sf::Event::MouseButtonReleased){
         if(event.mouseButton.button == sf::Mouse::Left){
             leftPressed = 0;
-            return Capture::capture;
+            return Capture::use;
         }
         else if(event.mouseButton.button == sf::Mouse::Right){
             rightPressed = 0;
-            return Capture::capture;
+            return Capture::use;
         }
     }
     else if(event.type == sf::Event::MouseMoved){
@@ -308,7 +306,7 @@ Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
                         rightBegin[0] + directionX * (x - rightDrag[0]),
                         rightBegin[1] + directionY * (y - rightDrag[1]));
 
-                return Capture::capture;
+                return Capture::use;
             }
         }
 
@@ -319,7 +317,7 @@ Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
 
             slider->on_scroll(event.mouseWheelScroll.delta);
 
-            return Capture::capture;
+            return Capture::use;
         }
     }
 

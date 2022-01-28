@@ -1,14 +1,18 @@
 #pragma once
 
+#include "ui/button.h"
+#include "ui/slider.h"
+#include "ui/terminal.h"
+#include "app/session.h"
 #include "tools/graph.h"
 #include "wave/source.h"
 #include "change/pitch.h"
 
 namespace app {
 
-/*
+class App;
 
-class Analyzer : public Box {
+class Analyzer : public ui::Frame, public Presistent {
 
 public:
 
@@ -19,18 +23,28 @@ public:
         correlationMode
     };
     
-    Analyzer(ui::Window *parent_, std::string title_);
+    Analyzer(App*);
     ~Analyzer();
+
+    virtual void save(Saver&);
+    virtual void load(Loader&);
     
     Capture on_event(sf::Event event, int32_t priority);
 
-    int32_t link_audio(std::string fileName);
-
-    int32_t switch_mode(Mode mode);
+    void switch_mode(Mode mode);
     
     void update_data();
 
-protected:
+private:
+
+    App &app;
+
+    void switch_regular();
+    void switch_frequency();
+    void switch_peak();
+    void switch_correlation();
+
+    void link_audio(ui::Command);
 
     const int32_t defaultLength = 1<<10;
 
@@ -39,24 +53,19 @@ protected:
 
     Mode dataMode = regularMode;
 
-    ui::Frame frame, analyzerButtons, analyzerWidgets;
-    Graph graph;
+    change::Pitch pitch;
 
-    ui::Text fileNameBox;
+
+
+    ui::Slider slider;
+    ui::Terminal terminal;
     
-    class SR : public ui::Button { using ui::Button::Button; void function(); };
-    SR switchRegular;
-    class SF : public ui::Button { using ui::Button::Button; void function(); };
-    SF switchFrequency;
-    class SP : public ui::Button { using ui::Button::Button; void function(); };
-    SP switchPeak;
-    class AC : public ui::Button { using ui::Button::Button; void function(); };
-    AC switchCorrelation;
-
-    wave::Pitch pitch;
+    Graph graph;
+    
+    ui::Frame buttons;
+    ui::Text fileNameBox;
+    ui::Button switchRegular, switchFrequency, switchPeak, switchCorrelation;
 
 };
-
-*/
 
 }

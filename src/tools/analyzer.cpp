@@ -1,47 +1,68 @@
 #include "tools/analyzer.h"
 #include "app/app.h"
+#include "app/slot.h"
 #include "math/fft.h"
 
 #include <algorithm>
 
 namespace app {
 
-/*
-
-Analyzer::Analyzer(ui::Window *master_, std::string title_) :
-    Box(master_, title_),
-    frame(master_),
-    analyzerButtons(master_, {.height = 20}),
-    analyzerWidgets(master_),
-    graph(master_, {.look = "AnalyzerGraph"}),
-    fileNameBox(master_, title_, {.look = "BoxTitle"}),
-    switchRegular(master_, this, "time", {.look = "BoxLeftButton", .width = 50, .height = 20}),
-    switchFrequency(master_, this, "frequency", {.look = "BoxLeftButton", .width = 50, .height = 20}),
-    switchPeak(master_, this, "peak", {.look = "BoxLeftButton", .width = 50, .height = 20}),
-    switchCorrelation(master_, this, "correlation",
-            {.look = "BoxLeftButton", .width = 50, .height = 20})
+Analyzer::Analyzer(App *a) :
+    ui::Frame(a),
+    app(*a),
+    slider(a, ui::Side::up, ui::Side::down, {.look = "basebox", .height = 100}),
+    terminal(a, {.look = "baseterminal"}),
+    graph(a, {.look = "agraph"}),
+    buttons(a, {.height = 20}),
+    fileNameBox(a, "", {.look = "basetext"}),
+    
+    switchRegular(
+            a,
+            [&](){ switch_regular(); },
+            "time",
+            {.look = "basebutton", .width = 50}),
+    
+    switchFrequency(
+            a,
+            [&](){ switch_frequency(); },
+            "freq",
+            {.look = "basebutton", .width = 50}),
+    
+    switchPeak(
+            a,
+            [&](){ switch_peak(); },
+            "peak",
+            {.look = "basebutton", .width = 50}),
+    
+    switchCorrelation(
+            a,
+            [&](){ switch_correlation(); },
+            "corr",
+            {.look = "basebutton", .width = 50})
 {
 
-    inner.put(1, 0, &frame);
+    setup_grid(2, 1);
+    fill_width({1});
+    fill_height({1, 0});
 
-    frame.setup_grid(3, 1);
-    frame.fill_width({1});
-    frame.fill_height({1, 0, 0});
+    put(0, 0, &graph);
+    put(1, 0, &slider);
 
-    frame.put(0, 0, &graph);
-    frame.put(1, 0, &analyzerButtons);
-    frame.put(2, 0, &analyzerWidgets);
+    slider.stack.push_back(&buttons);
+    slider.stack.push_back(&terminal);
 
-    analyzerButtons.setup_grid(1, 10);
-    analyzerButtons.fill_height({1});
-    analyzerButtons.fill_width(9, 1);
+    buttons.setup_grid(1, 10);
+    buttons.fill_height({1});
+    buttons.fill_width(9, 1);
 
-    analyzerButtons.put(0, 0, &switchRegular);
-    analyzerButtons.put(0, 1, &switchFrequency);
-    analyzerButtons.put(0, 2, &switchPeak);
-    analyzerButtons.put(0, 3, &switchCorrelation);
+    buttons.put(0, 0, &switchRegular);
+    buttons.put(0, 1, &switchFrequency);
+    buttons.put(0, 2, &switchPeak);
+    buttons.put(0, 3, &switchCorrelation);
 
-    analyzerButtons.put(0, 9, &fileNameBox);
+    buttons.put(0, 9, &fileNameBox);
+
+    terminal.put_function("link", [&](ui::Command c){ link_audio(c); });
 }
 
 Analyzer::~Analyzer(){
@@ -50,7 +71,15 @@ Analyzer::~Analyzer(){
     }
 }
 
-int32_t Analyzer::switch_mode(Mode mode){
+void Analyzer::save(Saver&){
+
+}
+
+void Analyzer::load(Loader&){
+
+}
+
+void Analyzer::switch_mode(Mode mode){
     
     dataMode = mode;
     update_data();
@@ -88,8 +117,6 @@ int32_t Analyzer::switch_mode(Mode mode){
         graph.refresh_all();
 
     }
-
-    return 0;
 }
 
 void Analyzer::update_data(){
@@ -135,26 +162,6 @@ void Analyzer::update_data(){
 
 }
 
-void Analyzer::SR::function(){
-    Analyzer &a = *(Analyzer*)commander;
-    a.switch_mode(Analyzer::regularMode);
-}
-
-void Analyzer::SF::function(){
-    Analyzer &a = *(Analyzer*)commander;
-    a.switch_mode(Analyzer::frequencyMode);
-}
-
-void Analyzer::SP::function(){
-    Analyzer &a = *(Analyzer*)commander;
-    a.switch_mode(Analyzer::peakMode);
-}
-
-void Analyzer::AC::function(){
-    Analyzer &a = *(Analyzer*)commander;
-    a.switch_mode(Analyzer::correlationMode);
-}
-
 ui::Frame::Capture Analyzer::on_event(sf::Event event, int32_t priority){
 
     if(event.type == sf::Event::KeyPressed){
@@ -195,25 +202,37 @@ ui::Frame::Capture Analyzer::on_event(sf::Event event, int32_t priority){
     return Capture::pass;
 }
 
-int32_t Analyzer::link_audio(std::string fileName){
-    
-    return 0;
 
-    App &app = *(App*)master;
-    delete source;
-    
-    source = app.create_source(fileName);
-    position = 0;
-    length = defaultLength;
+void Analyzer::switch_regular(){
+    switch_mode(regularMode);
+}
 
-    fileNameBox.set_text(fileName);
+void Analyzer::switch_frequency(){
+    switch_mode(frequencyMode);
+}
+
+void Analyzer::switch_peak(){
+    switch_mode(peakMode);
+}
+
+void Analyzer::switch_correlation(){
+    switch_mode(correlationMode);
+}
+
+void Analyzer::link_audio(ui::Command c){
+    
+    std::string src = c.pop();
+
+    if(source != nullptr) delete source;
+    source = app.audio.get_source(src);
 
     update_data();
     switch_mode(dataMode);
 
-    return source != nullptr;
 }
 
-*/
+struct init {
+    init(){ Slot::add_content_type("analyze", [&](App *a){ return new Analyzer(a); } ); }
+} i;
 
 }

@@ -86,7 +86,7 @@ baseterminal
 
 
 
-analyzergraph
+agraph
     background .terminal
     borderColor .purple
     borderThickness 0 0 0 1

@@ -164,9 +164,9 @@ float Stack::max_size(uint32_t index){
     Frame *frame = stack[index];
 
     if(side == Side::left || side == Side::right){
-        return windowWidth - frame->globalX + globalX;
+        return windowWidth; // - frame->globalX + globalX;
     } else {
-        return windowHeight - frame->globalY - globalY;
+        return windowHeight; // - frame->globalY - globalY;
     }
 }
 

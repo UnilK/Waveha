@@ -412,7 +412,15 @@ std::vector<std::string> Terminal::wrap(std::string s, uint32_t max){
 
     uint32_t length = 0, left = 0, right = 1;
     while(left < s.size()){
-        
+       
+        if(s[left] == '\n'){
+            
+            wrapped.push_back("");
+            left = right++;
+
+            continue;
+        }
+
         while(right < s.size() && s[right] != ' ' && s[right] != '\n'){
             right++;
         }

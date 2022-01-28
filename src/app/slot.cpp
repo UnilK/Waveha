@@ -89,7 +89,16 @@ void Slot::forget(){
     set_refresh();
 }
 
-void Slot::add_content_type(std::string type, std::function<ui::Frame*(void)> construct){
+bool Slot::content_from_type(std::string type){
+    
+    if(!valid_type(type)) return 0;
+
+    set_content(types[type](&app));
+
+    return 1;
+}
+
+void Slot::add_content_type(std::string type, std::function<ui::Frame*(App*)> construct){
     assert(types.count(type) == 0);
     types[type] = construct;
 }
@@ -126,12 +135,7 @@ bool Slot::valid_type(std::string type){
     return types.count(type) != 0;
 }
 
-ui::Frame *Slot::content_from_type(std::string type){
-    assert(types.count(type) != 0);
-    return types[type]();
-}
-
-std::map<std::string, std::function<ui::Frame*(void)> > Slot::types;
+std::map<std::string, std::function<ui::Frame*(App*)> > Slot::types;
 
 }
 

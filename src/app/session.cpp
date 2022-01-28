@@ -36,6 +36,7 @@ void Presistent::load(Loader&){}
 Saver::Saver(std::string file) : out(file) {}
 
 void Saver::write_string(std::string s){
+    for(unsigned i=0; i<s.size(); i++) if(s[i] == '\0') s = s.substr(0, i);
     out.write(s.data(), s.size());
     out.put('\0');
 }
@@ -44,12 +45,16 @@ void Saver::write_int(int i){
     out.write((char*)&i, sizeof(int));
 }
 
+void Saver::write_unsigned(unsigned u){
+    out.write((char*)&u, sizeof(unsigned));
+}
+
 void Saver::write_float(float f){
     out.write((char*)&f, sizeof(float));
 }
 
-void Saver::write_block(int bytes, void *data){
-    write_int(bytes);
+void Saver::write_block(unsigned bytes, void *data){
+    write_unsigned(bytes);
     out.write((char*)data, bytes);
 }
 
@@ -77,6 +82,12 @@ int Loader::read_int(){
     return i;
 }
 
+unsigned Loader::read_unsigned(){
+    unsigned u;
+    in.read((char*)&u, sizeof(unsigned));
+    return u;
+}
+
 float Loader::read_float(){
     float f;
     in.read((char*)&f, sizeof(float));
@@ -84,7 +95,7 @@ float Loader::read_float(){
 }
 
 std::vector<char> Loader::read_block(){
-    int size = read_int();
+    unsigned size = read_unsigned();
     std::vector<char> data(size);
     in.read(data.data(), size);
     return data;
