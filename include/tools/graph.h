@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ui/frame.h"
+#include "app/slot.h"
 
 #include "SFML/Graphics/VertexArray.hpp"
 #include <SFML/Graphics/CircleShape.hpp>
@@ -16,7 +16,7 @@ struct Point {
     std::complex<float> y;
 };
 
-class Graph : public ui::Frame {
+class Graph : public Content {
 
     /*
        style:
@@ -34,7 +34,10 @@ class Graph : public ui::Frame {
 
 public:
 
-    Graph(ui::Window *master_, ui::Kwargs = {});
+    Graph(App*, ui::Kwargs = {});
+    
+    void save(Saver&);
+    void load(Loader&);
 
     void set_look(std::string look_);
     Capture on_event(sf::Event event, int32_t priority);

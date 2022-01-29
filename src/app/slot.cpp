@@ -7,6 +7,10 @@
 
 namespace app {
 
+Content::Content(App *a, ui::Kwargs kwargs) : ui::Frame(a, kwargs) {};
+
+std::string Content::content_type(){ return "none"; }
+
 Slot::Slot(Tab *t) :
     Box(t->get_master(), ui::Side::down, ui::Side::left, {.look = "basebox"}),
     app(*(App*)t->get_master()),
@@ -59,6 +63,8 @@ void Slot::save(Saver &saver){
     }
     else {
         saver.write_unsigned(1);
+        saver.write_string(content->content_type());
+        content->save(saver);
     }
 
 }
@@ -69,7 +75,10 @@ void Slot::load(Loader &loader){
     
     set_target_size(0, loader.read_float());
 
-    bool notEmpty = loader.read_unsigned();
+    if(loader.read_unsigned()){
+        content_from_type(loader.read_string());
+        content->load(loader);
+    }
     
 }
 
@@ -77,7 +86,7 @@ void Slot::reset(){
     if(content != nullptr) delete content;
 }
 
-void Slot::set_content(ui::Frame *c){
+void Slot::set_content(Content *c){
     if(content != nullptr) delete content;
     content = c;
     overload_inner(c);
@@ -118,7 +127,7 @@ bool Slot::content_from_type(std::string type){
     return 1;
 }
 
-void Slot::add_content_type(std::string type, std::function<ui::Frame*(App*)> construct){
+void Slot::add_content_type(std::string type, std::function<Content*(App*)> construct){
     assert(types.count(type) == 0);
     types[type] = construct;
 }
@@ -155,7 +164,7 @@ bool Slot::valid_type(std::string type){
     return types.count(type) != 0;
 }
 
-std::map<std::string, std::function<ui::Frame*(App*)> > Slot::types;
+std::map<std::string, std::function<Content*(App*)> > Slot::types;
 
 }
 

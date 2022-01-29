@@ -77,9 +77,11 @@ public:
     Saver(std::string file);
 
     void write_string(std::string);
+    void write_bool(bool);
     void write_int(int);
     void write_unsigned(unsigned);
     void write_float(float);
+    void write_double(double);
     void write_block(unsigned bytes, void *data);
 
     void close();
@@ -101,9 +103,11 @@ public:
     Loader(std::string file);
 
     std::string read_string();
+    bool read_bool();
     int read_int();
     unsigned read_unsigned();
     float read_float();
+    double read_double();
     std::vector<char> read_block();
 
     void close();

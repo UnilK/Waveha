@@ -130,6 +130,10 @@ void Saver::write_string(std::string s){
     out.put('\0');
 }
 
+void Saver::write_bool(bool b){
+    out.write((char*)&b, sizeof(bool));
+}
+
 void Saver::write_int(int i){
     out.write((char*)&i, sizeof(int));
 }
@@ -140,6 +144,10 @@ void Saver::write_unsigned(unsigned u){
 
 void Saver::write_float(float f){
     out.write((char*)&f, sizeof(float));
+}
+
+void Saver::write_double(double d){
+    out.write((char*)&d, sizeof(double));
 }
 
 void Saver::write_block(unsigned bytes, void *data){
@@ -165,6 +173,12 @@ std::string Loader::read_string(){
     return str;
 }
 
+bool Loader::read_bool(){
+    bool b;
+    in.read((char*)&b, sizeof(bool));
+    return b;
+}
+
 int Loader::read_int(){
     int i;
     in.read((char*)&i, sizeof(int));
@@ -181,6 +195,12 @@ float Loader::read_float(){
     float f;
     in.read((char*)&f, sizeof(float));
     return f;
+}
+
+double Loader::read_double(){
+    double d;
+    in.read((char*)&d, sizeof(double));
+    return d;
 }
 
 std::vector<char> Loader::read_block(){

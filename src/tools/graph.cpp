@@ -1,4 +1,5 @@
 #include "tools/graph.h"
+#include "app/app.h"
 #include "math/constants.hpp"
 
 #include <iostream>
@@ -8,8 +9,8 @@
 
 namespace app {
 
-Graph::Graph(ui::Window *master_, ui::Kwargs kwargs) :
-    Frame(master_, kwargs),
+Graph::Graph(App *app, ui::Kwargs kwargs) :
+    Content(app, kwargs),
     vertices(sf::LineStrip, 0),
     xAxis(sf::LineStrip, 2),
     yAxis(sf::LineStrip, 2),
@@ -17,6 +18,24 @@ Graph::Graph(ui::Window *master_, ui::Kwargs kwargs) :
     indicatorLine(sf::LineStrip, 2)
 {
     set_look(look);
+}
+
+void Graph::save(Saver &saver){
+    
+    saver.write_float(origoX);
+    saver.write_float(origoY);
+    saver.write_float(scaleX);
+    saver.write_float(scaleY);
+}
+
+void Graph::load(Loader &loader){
+    
+    origoX = loader.read_float();
+    origoY = loader.read_float();
+    scaleX = loader.read_float();
+    scaleY = loader.read_float();
+
+    refresh_all();
 }
 
 void Graph::set_look(std::string look_){

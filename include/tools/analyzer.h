@@ -4,6 +4,7 @@
 #include "ui/slider.h"
 #include "ui/terminal.h"
 #include "app/session.h"
+#include "app/slot.h"
 #include "tools/graph.h"
 #include "wave/source.h"
 #include "change/pitch.h"
@@ -12,7 +13,7 @@ namespace app {
 
 class App;
 
-class Analyzer : public ui::Frame, public Presistent {
+class Analyzer : public Content {
 
 public:
 
@@ -26,8 +27,10 @@ public:
     Analyzer(App*);
     ~Analyzer();
 
-    virtual void save(Saver&);
-    virtual void load(Loader&);
+    std::string content_type();
+
+    void save(Saver&);
+    void load(Loader&);
     
     Capture on_event(sf::Event event, int32_t priority);
 

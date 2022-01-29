@@ -220,12 +220,11 @@ Frame::Capture Terminal::on_event(sf::Event event, int32_t priority){
             
             std::string cmd = edits[editY];
             
-            edited.erase(0);
+            edits[0] = originals[0] = edits[editY];
             for(auto i : edited) edits[i] = originals[i];
-            
+
             editY = 0;
             editX = 0;
-            originals[0] = edits[0];
             edits.push_front("");
             originals.push_front("");
 

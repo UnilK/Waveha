@@ -1,6 +1,5 @@
 #include "tools/analyzer.h"
 #include "app/app.h"
-#include "app/slot.h"
 #include "math/fft.h"
 
 #include <algorithm>
@@ -8,7 +7,7 @@
 namespace app {
 
 Analyzer::Analyzer(App *a) :
-    ui::Frame(a),
+    Content(a),
     app(*a),
     slider(a, ui::Side::up, ui::Side::up, {.look = "basebox", .height = 100}),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}}),
@@ -75,12 +74,30 @@ Analyzer::~Analyzer(){
     }
 }
 
-void Analyzer::save(Saver&){
+std::string Analyzer::content_type(){ return "analyze"; }
 
+void Analyzer::save(Saver &saver){
+
+    saver.write_string(sourceName);
+    saver.write_int(position);
+    saver.write_int(length);
+    saver.write_int(dataMode);
+
+    graph.save(saver);
 }
 
-void Analyzer::load(Loader&){
+void Analyzer::load(Loader &loader){
+    
+    sourceName = loader.read_string();
+    position = loader.read_int();
+    length = loader.read_int();
+    dataMode = (Mode)loader.read_int();
 
+    switch_mode(dataMode);
+
+    link_audio({terminal, {sourceName}});
+
+    graph.load(loader);
 }
 
 void Analyzer::switch_mode(Mode mode){
@@ -237,6 +254,6 @@ void Analyzer::link_audio(ui::Command c){
 
 struct init {
     init(){ Slot::add_content_type("analyze", [&](App *a){ return new Analyzer(a); } ); }
-} i;
+} innit;
 
 }
