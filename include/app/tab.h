@@ -19,6 +19,7 @@ public:
 
     void save(Saver&);
     void load(Loader&);
+    void reset();
 
     void func_detach();
 

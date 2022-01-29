@@ -31,7 +31,7 @@ Slot::Slot(Tab *t) :
 }
 
 Slot::~Slot(){
-    if(content != nullptr) delete content;
+    reset();
 }
 
 void Slot::set_look(std::string look_){
@@ -51,11 +51,30 @@ void Slot::set_look(std::string look_){
 }
 
 void Slot::save(Saver &saver){
+    
+    saver.write_float(targetHeight);
+
+    if(content == nullptr){
+        saver.write_unsigned(0);
+    }
+    else {
+        saver.write_unsigned(1);
+    }
 
 }
 
 void Slot::load(Loader &loader){
+    
+    reset();
+    
+    set_target_size(0, loader.read_float());
 
+    bool notEmpty = loader.read_unsigned();
+    
+}
+
+void Slot::reset(){
+    if(content != nullptr) delete content;
 }
 
 void Slot::set_content(ui::Frame *c){

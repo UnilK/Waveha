@@ -28,9 +28,7 @@ Layout::Layout(App *a) :
 }
 
 Layout::~Layout(){
-    for(uint32_t i=0; i<stack.size(); i++)
-        if(stack.get(i) != nullptr)
-            delete stack.get(i);
+    reset();
 }
 
 void Layout::set_look(std::string look_){
@@ -48,10 +46,39 @@ void Layout::set_look(std::string look_){
 }
 
 void Layout::save(Saver &saver){
+    
+    saver.write_float(canvasX);
 
+    saver.write_unsigned(stack.size());
+
+    for(uint32_t i=0; i<stack.size(); i++){
+        Tab *tab = (Tab*)stack.get(i);
+        tab->save(saver);
+    }
 }
 
 void Layout::load(Loader &loader){
+
+    reset();
+
+    set_canvas_position(loader.read_float(), 0);
+
+    unsigned tamount = loader.read_unsigned();
+    
+    for(uint32_t i=0; i<tamount; i++){
+        Tab *tab = new Tab(&app);
+        stack.push_back(tab->set_manager(&stack));
+        tab->load(loader);
+    }
+
+    update_grid();
+}
+
+void Layout::reset(){
+
+    for(uint32_t i=0; i<stack.size(); i++) delete stack.get(i);
+
+    stack.clear();
 
 }
 

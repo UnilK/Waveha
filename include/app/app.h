@@ -6,6 +6,7 @@
 #include "app/audio.h"
 #include "app/layout.h"
 #include "app/creations.h"
+#include "app/session.h"
 
 namespace app {
 
@@ -18,6 +19,7 @@ public:
 
     Layout layout;
     Audio audio;
+    Session session;
 
     Tools tools;
     ui::Terminal terminal;

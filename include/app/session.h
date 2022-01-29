@@ -1,14 +1,34 @@
 #pragma once
 
+#include "ui/terminal.h"
+
 #include <map>
 #include <functional>
 #include <fstream>
 
 namespace app {
 
+class Session;
 class Loader;
 class Saver;
 class App;
+
+class SessionDir : public ui::Directory {
+
+public:
+
+    SessionDir(Session&);
+
+private:
+
+    Session &session;
+
+    void save(ui::Command);
+    void load(ui::Command);
+    void rename(ui::Command);
+    void create_new(ui::Command);
+
+};
 
 class Session {
 
@@ -23,12 +43,17 @@ public:
 
     void rename(std::string name_);
     void create_new(std::string name_);
+    std::string get_name();
+
+    bool valid_file(std::string file);
+
+    SessionDir dir;
     
 private:
 
-    App *app;
+    App &app;
 
-    std::string name;
+    std::string name = "untitled";
 
 };
 

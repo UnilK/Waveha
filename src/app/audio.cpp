@@ -1,6 +1,8 @@
 #include "app/audio.h"
 #include "app/app.h"
 
+#include <string.h>
+
 namespace app {
 
 // audio //////////////////////////////////////////////////////////////////////
@@ -9,6 +11,66 @@ Audio::Audio(App *a) :
     dir(*this),
     app(*a)
 {}
+
+void Audio::save(Saver &saver){
+    
+    saver.write_unsigned(files.size());
+
+    for(auto i : files){
+        saver.write_string(i.first);
+        saver.write_string(i.second);
+    }
+
+    saver.write_unsigned(caches.size());
+
+    for(auto i : caches){
+        saver.write_string(i.first);
+        saver.write_unsigned(i.second->channels);
+        saver.write_unsigned(i.second->frameRate);
+        saver.write_block(i.second->data.size() * sizeof(float), i.second->data.data());
+    }
+}
+
+void Audio::load(Loader &loader){
+
+    reset();
+
+    unsigned famount = loader.read_unsigned();
+
+    for(unsigned i=0; i<famount; i++){
+        auto name = loader.read_string();
+        auto file = loader.read_string();
+        link(name, file);
+    }
+
+    unsigned camount = loader.read_unsigned();
+
+    for(unsigned i=0; i<camount; i++){
+
+
+        wave::Audio *audio = new wave::Audio();
+        audio->name = loader.read_string();
+        audio->channels = loader.read_unsigned();
+        audio->frameRate = loader.read_unsigned();
+        
+        auto data = loader.read_block();
+
+        audio->data.resize(data.size() / sizeof(float));
+
+        memcpy((char*)audio->data.data(), data.data(), data.size());
+
+        caches[audio->name] = audio;
+    }
+}
+
+void Audio::reset(){
+    
+    std::vector<std::string> keys;
+    for(auto i : files) keys.push_back(i.first);
+    for(auto i : caches) keys.push_back(i.first);
+
+    for(auto i : keys) remove_audio(i);
+}
 
 bool Audio::key_exists(std::string key){
     return files.count(key) != 0 || caches.count(key) != 0;

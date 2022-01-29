@@ -19,9 +19,7 @@ Tab::Tab(App *a) :
 }
 
 Tab::~Tab(){
-    for(uint32_t i=0; i<stack.size(); i++)
-        if(stack.get(i) != nullptr)
-            delete stack.get(i);
+    reset();
 }
 
 void Tab::set_look(std::string look_){
@@ -40,10 +38,36 @@ void Tab::set_look(std::string look_){
 
 void Tab::save(Saver &saver){
 
+    saver.write_float(targetWidth);
+    saver.write_float(canvasY);
+
+    saver.write_unsigned(stack.size());
+
+    for(uint32_t i=0; i<stack.size(); i++){
+        Tab *tab = (Tab*)stack.get(i);
+        tab->save(saver);
+    }
 }
 
 void Tab::load(Loader &loader){
 
+    reset();
+
+    set_target_size(loader.read_float(), 0);
+    set_canvas_position(0, loader.read_float());
+
+    unsigned samount = loader.read_unsigned();
+    
+    for(uint32_t i=0; i<samount; i++){
+        Slot *slot = new Slot(this);
+        stack.push_back(slot->set_manager(&stack));
+        slot->load(loader);
+    }
+}
+
+void Tab::reset(){
+    for(uint32_t i=0; i<stack.size(); i++) delete stack.get(i);
+    stack.clear();
 }
 
 void Tab::func_detach(){

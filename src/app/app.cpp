@@ -8,6 +8,7 @@ App::App() :
     Window(800, 800, "waveha"),
     layout(this),
     audio(this),
+    session(this),
     tools(this),
     terminal(this, {.look = "baseterminal"}),
     terminalBox(this, ui::Side::down, ui::Side::up, {.look = "basebox", .height = 400})
@@ -20,6 +21,8 @@ App::App() :
     put(0, 0, &tools);
     put(0, 1, &layout);
 
+    layout.set_label(session.get_name());
+
     tools.stack.push_back(terminalBox.set_manager(&tools.stack));
     terminalBox.overload_inner(&terminal);
     terminalBox.set_label("terminal");
@@ -30,6 +33,7 @@ App::App() :
 
     terminal.put_directory("la", &layout.dir);
     terminal.put_directory("au", &audio.dir);
+    terminal.put_directory("sa", &session.dir);
 
     update_grid();
 }

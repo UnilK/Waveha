@@ -31,11 +31,17 @@ private:
 
 };
 
+
+
 class Audio : public Presistent {
 
 public:
 
     Audio(App*);
+    
+    void save(Saver&);
+    void load(Loader&);
+    void reset();
 
     bool key_exists(std::string key);
 

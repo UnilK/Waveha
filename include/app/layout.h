@@ -41,6 +41,7 @@ public:
 
     void save(Saver&);
     void load(Loader&);
+    void reset();
 
     void select_slot(Slot*);
     void forget_slot();

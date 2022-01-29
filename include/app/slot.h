@@ -23,6 +23,7 @@ public:
     
     void save(Saver&);
     void load(Loader&);
+    void reset();
 
     void set_content(ui::Frame*);
 
