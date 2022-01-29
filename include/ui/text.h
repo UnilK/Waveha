@@ -49,7 +49,7 @@ private:
     
     Position stick = Position::middle, direction = Position::left;
 
-    float offsetX = 0, offsetY = 0;
+    float offsetX = 0, offsetY = -0.3;
 
     sf::Text textBox;
 

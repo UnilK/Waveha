@@ -140,10 +140,17 @@ void Slider::on_slide(sf::Mouse::Button button, float width, float height){
     
     assert(parent != nullptr);
 
-    width = std::min(width, parent->globalX - globalX + windowX + parent->windowWidth);
-    height = std::min(height, parent->globalY - globalY + windowY + parent->windowHeight);
-    set_target_size(width, height);
+    if(side == Side::left || side == Side::down){
+        width = std::min(width, parent->globalX - globalX + windowX + parent->windowWidth);
+        height = std::min(height, parent->globalY - globalY + windowY + parent->windowHeight);
+    }
+    else {
+        width = std::min(width, windowWidth - parent->globalX + globalX - windowX);
+        height = std::min(height, windowHeight - parent->globalY + globalY - windowY);
+    }
     
+    set_target_size(width, height);
+
     get_parent(1)->update_grid();
 }
 

@@ -62,6 +62,7 @@ void Slot::set_content(ui::Frame *c){
     if(content != nullptr) delete content;
     content = c;
     overload_inner(c);
+    update_grid();
 }
 
 void Slot::func_detach(){

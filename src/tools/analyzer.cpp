@@ -10,35 +10,35 @@ namespace app {
 Analyzer::Analyzer(App *a) :
     ui::Frame(a),
     app(*a),
-    slider(a, ui::Side::up, ui::Side::down, {.look = "basebox", .height = 100}),
-    terminal(a, {.look = "baseterminal"}),
-    graph(a, {.look = "agraph"}),
+    slider(a, ui::Side::up, ui::Side::up, {.look = "basebox", .height = 100}),
+    terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}}),
+    graph(a, {.look = "agraph", .border = {0, 0, 0, 0}}),
     buttons(a, {.height = 20}),
-    fileNameBox(a, "", {.look = "basetext"}),
+    fileNameBox(a, "", {.look = "basetext", .border = {0, 0, 0, 1}}),
     
     switchRegular(
             a,
             [&](){ switch_regular(); },
             "time",
-            {.look = "basebutton", .width = 50}),
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
     
     switchFrequency(
             a,
             [&](){ switch_frequency(); },
             "freq",
-            {.look = "basebutton", .width = 50}),
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
     
     switchPeak(
             a,
             [&](){ switch_peak(); },
             "peak",
-            {.look = "basebutton", .width = 50}),
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
     
     switchCorrelation(
             a,
             [&](){ switch_correlation(); },
             "corr",
-            {.look = "basebutton", .width = 50})
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}})
 {
 
     setup_grid(2, 1);
@@ -48,8 +48,12 @@ Analyzer::Analyzer(App *a) :
     put(0, 0, &graph);
     put(1, 0, &slider);
 
-    slider.stack.push_back(&buttons);
-    slider.stack.push_back(&terminal);
+    slider.stack.create(2);
+    slider.stack.put(&buttons, 0);
+    slider.stack.put(&terminal, 1);
+    slider.stack.update();
+    slider.stack.fill_height({0, 1, 0});
+    slider.stack.set_border(0, 0, 0, 0);
 
     buttons.setup_grid(1, 10);
     buttons.fill_height({1});
@@ -221,10 +225,10 @@ void Analyzer::switch_correlation(){
 
 void Analyzer::link_audio(ui::Command c){
     
-    std::string src = c.pop();
+    sourceName = c.pop();
 
     if(source != nullptr) delete source;
-    source = app.audio.get_source(src);
+    source = app.audio.get_source(sourceName);
 
     update_data();
     switch_mode(dataMode);

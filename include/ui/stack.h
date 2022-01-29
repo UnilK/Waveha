@@ -66,10 +66,11 @@ public:
     void create(uint32_t size);
     void put(Frame *frame, uint32_t index);
 
-private:
-    
+    // update stack
     void update();
 
+private:
+    
     Side side;
 
     std::vector<Frame*> stack;

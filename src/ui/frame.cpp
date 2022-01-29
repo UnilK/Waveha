@@ -39,6 +39,9 @@ Frame::Frame(Window *master_, Kwargs kwargs){
     alignFillUp = kwargs.fill[3];
     frameFillHeight = kwargs.fill[4];
     alignFillDown = kwargs.fill[5];
+
+    auto [bl, br, bu, bd] = kwargs.border;
+    set_border(bl, br, bu, bd);
     
     set_look(look);
 }

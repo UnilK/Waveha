@@ -21,9 +21,7 @@ Graph::Graph(ui::Window *master_, ui::Kwargs kwargs) :
 
 void Graph::set_look(std::string look_){
    
-    look = look_;
-
-    border.set_look(look);
+    Frame::set_look(look_);
 
     indicatorSize = num("indicatorSize");
 
@@ -352,7 +350,7 @@ void Graph::refresh_all(){
 
 void Graph::on_refresh(){
 
-    border.draw(*master);
+    Frame::on_refresh();
 
     master->draw(xAxis);
     master->draw(yAxis);

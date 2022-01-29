@@ -108,8 +108,6 @@ private:
     double offsetX = 0, offsetY = 0;
     double scalarX = 1, scalarY = 1;
 
-    ui::Borders border;
-
     // indicator stuff
     bool graphPressed = 0;
     bool hasPhase = 1;

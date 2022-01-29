@@ -48,7 +48,9 @@ private:
 
     const int32_t defaultLength = 1<<10;
 
+    std::string sourceName = "";
     wave::Source *source = nullptr;
+
     int32_t position = 0, length = defaultLength;
 
     Mode dataMode = regularMode;
