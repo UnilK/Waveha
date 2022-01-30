@@ -4,9 +4,9 @@
 
 #include <SFML/Audio/SoundRecorder.hpp>
 
-namespace wave{
+namespace wave {
 
-class Mic : public Buffer, public sf::SoundRecorder {
+class Mic : public sf::SoundRecorder, public Buffer {
 
 public:
 

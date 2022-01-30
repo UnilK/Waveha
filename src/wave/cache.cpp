@@ -46,8 +46,7 @@ bool Audio::open(std::string fileName){
 
 
 Cache::Cache(Audio &audio_) : audio(audio_) {
-    channels = audio.channels;
-    frameRate = audio.frameRate;
+    open(audio_);
 }
 
 Cache::~Cache(){}
@@ -56,6 +55,7 @@ void Cache::open(Audio &audio_){
     audio = audio_;
     channels = audio.channels;
     frameRate = audio.frameRate;
+    seek(0);
 }
 
 void Cache::seek(uint32_t sample){

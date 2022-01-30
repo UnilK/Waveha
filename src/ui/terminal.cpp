@@ -155,10 +155,10 @@ Terminal::Terminal(Window *master_, Kwargs kwargs) :
     add_function("clear", [&](Command c){ clear(c); });
 
     document("ls", "list sub direcories (dir*) and commands (cmd)\n");
-    document("cd", "(path path path ...). change directory.\n"
+    document("cd", "[path path path ...]. change directory.\n"
             " (..) is the parent directory, (-) is previous and (--) is root.\n");
     document("pwd", "print working directory.\n");
-    document("help", "(path to ... subject). print docs.\n");
+    document("help", "[path to ... subject]. print docs.\n");
     document("clear", "clear terminal window.\n");
 
     blinker.setString("|");

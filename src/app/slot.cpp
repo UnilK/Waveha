@@ -9,8 +9,6 @@ namespace app {
 
 Content::Content(App *a, ui::Kwargs kwargs) : ui::Frame(a, kwargs) {};
 
-std::string Content::content_type(){ return "none"; }
-
 Slot::Slot(Tab *t) :
     Box(t->get_master(), ui::Side::down, ui::Side::left, {.look = "basebox"}),
     app(*(App*)t->get_master()),
@@ -22,11 +20,7 @@ Slot::Slot(Tab *t) :
     overload_inner(content);
     
     pushLeft.set_border(1, 0, 1, 1);
-    pushLeft.text_stick(ui::Text::middle);
-    pushLeft.text_offset(0, -0.3);
     pushRight.set_border(1, 0, 1, 1);
-    pushRight.text_stick(ui::Text::middle);
-    pushRight.text_offset(0, -0.3);
     
     buttons.insert(&pushLeft, 0);
     buttons.insert(&pushRight, 1);

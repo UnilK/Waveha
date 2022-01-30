@@ -18,7 +18,7 @@ public:
 
     Content(App*, ui::Kwargs = {});
 
-    virtual std::string content_type();
+    virtual std::string content_type() = 0;
 
 };
 

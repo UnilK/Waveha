@@ -19,6 +19,7 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
 
     set_border(0, 0, 0, 0);
 
+    
     if(side == Side::left || side == Side::right){
         
         setup_grid(1, 2);
@@ -35,9 +36,8 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
         bar.fill_width(0, 1);
         bar.fill_height(1, 1);
 
-        label.text_stick(Text::down);
+        label.text_stick(Text::up);
         label.text_direction(Text::down);
-        label.text_offset(0, 0);
         label.set_border(1, 1, 0, 0);
     }
     else {
@@ -58,7 +58,6 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
         
         label.text_stick(Text::left);
         label.text_direction(Text::left);
-        label.text_offset(0, -0.1);
         label.set_border(0, 0, 1, 1);
     }
 

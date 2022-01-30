@@ -11,8 +11,6 @@ Tab::Tab(App *a) :
     addSlot(a, [&](){ add_slot(); }, "+")
 {
     addSlot.set_border(1, 1, 1, 0);
-    addSlot.text_stick(ui::Text::middle);
-    addSlot.text_offset(0, -0.3);
     buttons.insert(&addSlot, 0);
 
     set_look(look);

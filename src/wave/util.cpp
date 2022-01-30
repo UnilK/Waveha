@@ -14,15 +14,23 @@ float int_to_float(sf::Int16 num){
     return (float)num/(1<<15);
 }
 
-std::vector<sf::Int16> float_to_int(std::vector<float> &data){
-    std::vector<sf::Int16> conv(data.size());
-    for(uint32_t i=0; i<data.size(); i++) conv[i] = float_to_int(data[i]);
+std::vector<sf::Int16> float_to_int(const std::vector<float> &data){
+    return float_to_int(data.data(), data.size());
+}
+
+std::vector<float> int_to_float(const std::vector<sf::Int16> &data){
+    return int_to_float(data.data(), data.size());
+}
+
+std::vector<sf::Int16> float_to_int(const float *data, unsigned size){
+    std::vector<sf::Int16> conv(size);
+    for(uint32_t i=0; i<size; i++) conv[i] = float_to_int(data[i]);
     return conv;
 }
 
-std::vector<float> int_to_float(std::vector<sf::Int16> &data){
-    std::vector<float> conv(data.size());
-    for(uint32_t i=0; i<data.size(); i++) conv[i] = int_to_float(data[i]);
+std::vector<float> int_to_float(const sf::Int16 *data, unsigned size){
+    std::vector<float> conv(size);
+    for(uint32_t i=0; i<size; i++) conv[i] = int_to_float(data[i]);
     return conv;
 }
 

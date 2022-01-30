@@ -71,6 +71,11 @@ SessionDir::SessionDir(Session &s) :
     put_function("load", [&](ui::Command c){ load(c); });
     put_function("name", [&](ui::Command c){ rename(c); });
     put_function("new", [&](ui::Command c){ create_new(c); });
+
+    document("save", "{name} save current session");
+    document("load", "[name] load a session from a file and discard the current one");
+    document("name", "[new name] rename the current session");
+    document("new", "[name] start a new session and discard the current one");
 }
 
 void SessionDir::save(ui::Command c){

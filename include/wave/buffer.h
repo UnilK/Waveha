@@ -5,7 +5,7 @@
 
 namespace wave {
 
-class Buffer{
+class Buffer {
 
 public:
 
@@ -16,8 +16,8 @@ public:
     std::vector<float> pull(uint32_t amount);
 
     // append data
-    void push(float *data, uint32_t amount);
-    void push(std::vector<float> &data);
+    void push(const float *data, uint32_t amount);
+    void push(const std::vector<float> &data);
 
     // how much data the buffer needs until it is satisfied?
     uint32_t hunger();

@@ -30,7 +30,6 @@ class Cache : public Source {
 
 public:
 
-    Cache();
     Cache(Audio&);
     virtual ~Cache();
    

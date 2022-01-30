@@ -7,9 +7,23 @@
 
 namespace wave {
 
-    // class for playing audio that has already been recorded.
+/*
+    Note:
+
+    openAL seems to use some HRTF by default.
+    It's not a fit for my head and screws up the
+    sounds.
+
+    setting
+    stereo-mode = speakers
+    (etc)/openal/alsoft.conf
+
+    fixed the thing (obviously a HRTF shouldn't be used with spwakers).
+*/
 
 class Player : public sf::SoundStream {
+    
+    // class for playing audio that has already been recorded.
 
 public:
 

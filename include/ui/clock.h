@@ -8,11 +8,6 @@ using namespace std::chrono;
 
 class Clock {
 
-protected:
-
-    duration<long double> tick_length;
-    time_point<high_resolution_clock, duration<long double> > clock;
-    
 public:
 
     Clock(long double seconds);
@@ -25,6 +20,11 @@ public:
 
     long double get_duration();
     long double duration_and_tick();
+
+protected:
+
+    duration<long double> tick_length;
+    time_point<high_resolution_clock, duration<long double> > clock;
 
 };
 

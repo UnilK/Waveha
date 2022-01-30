@@ -31,7 +31,7 @@ std::vector<float> Buffer::pull(uint32_t amount){
     return data;
 }
 
-void Buffer::push(float *data, uint32_t amount){
+void Buffer::push(const float *data, uint32_t amount){
     
     lock.lock();
 
@@ -43,7 +43,7 @@ void Buffer::push(float *data, uint32_t amount){
     lock.unlock();
 }
 
-void Buffer::push(std::vector<float> &data){
+void Buffer::push(const std::vector<float> &data){
     push(data.data(), data.size());
 }
 

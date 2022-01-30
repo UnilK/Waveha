@@ -38,6 +38,8 @@ void Graph::load(Loader &loader){
     refresh_all();
 }
 
+std::string Graph::content_type(){ return "graph"; }
+
 void Graph::set_look(std::string look_){
    
     Frame::set_look(look_);

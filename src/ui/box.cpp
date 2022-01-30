@@ -84,8 +84,6 @@ void Box::set_buttons(bool up, bool dw, bool cl, bool mi, bool ma, bool de){
         functions.set_border(1, 1, 0, 0);
         for(auto button : all){
             button->set_border(1, 1, 1, 0);
-            button->text_stick(Text::middle);
-            button->text_offset(0, -0.3);
         }
     }
     else {
@@ -93,8 +91,6 @@ void Box::set_buttons(bool up, bool dw, bool cl, bool mi, bool ma, bool de){
         functions.set_border(0, 0, 1, 1);
         for(auto button : all){
             button->set_border(1, 0, 1, 1);
-            button->text_stick(Text::middle);
-            button->text_offset(0, -0.3);
         }
     }
 

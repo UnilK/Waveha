@@ -34,7 +34,17 @@ public:
     void set_text(std::string text_);
     std::string get_text();
     
-    enum Position { left, down, middle};
+    enum Position {
+        left,
+        right,
+        up,
+        down,
+        leftup, 
+        rightup,
+        leftdown,
+        rightdown,
+        middle
+    };
 
     // use these for initialization.
     void text_stick(Position);
@@ -47,9 +57,9 @@ private:
 
     std::string text;
     
-    Position stick = Position::middle, direction = Position::left;
+    Position stick = Position::down, direction = Position::left;
 
-    float offsetX = 0, offsetY = -0.3;
+    float offsetX = 0, offsetY = -0.1;
 
     sf::Text textBox;
 

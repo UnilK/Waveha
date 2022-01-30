@@ -43,18 +43,51 @@ void Text::on_reconfig(){
     float textX = 0;
     float textY = 0;
 
+    float lX = std::round(border.l + x);
+    float mX = std::round((canvasWidth - border.r + border.l - rect.width - rect.left) / 2 + x);
+    float rX = std::round(canvasHeight + canvasWidth - rect.width - border.r + x);
+    float uY = std::round(border.u + y);
+    float mY = std::round((canvasHeight - border.d + border.u - textBox.getCharacterSize()) / 2
+            - textBox.getFont()->getUnderlinePosition(textBox.getCharacterSize()) + y);
+    float dY = std::round(canvasHeight - textBox.getCharacterSize()
+            - textBox.getFont()->getUnderlinePosition(textBox.getCharacterSize()) + y - border.d);
+
     switch(stick){
         case left:
-            textX = std::round(border.l + x);
-            textY = std::round(y - border.d);
+            textX = lX;
+            textY = mY;
+            break;
+        case right:
+            textX = rX;
+            textY = mY;
+            break;
+        case up:
+            textX = mX;
+            textY = uY;
             break;
         case down:
-            textX = std::round((canvasWidth - border.r + border.l + x - rect.width - rect.left) / 2);
-            textY = std::round(border.u + y);
+            textX = mX;
+            textY = dY;
+            break;
+        case leftup:
+            textX = lX;
+            textY = uY;
+            break;
+        case rightup:
+            textX = rX;
+            textY = uY;
+            break;
+        case leftdown:
+            textX = lX;
+            textY = dY;
+            break;
+        case rightdown:
+            textX = rX;
+            textY = dY;
             break;
         case middle:
-            textX = std::round((canvasWidth - border.r + border.l + x - rect.width - rect.left) / 2);
-            textY = std::round((canvasHeight - border.d + border.u + y - rect.height - rect.top) / 2);
+            textX = mX;
+            textY = mY;
             break;
     }
 
@@ -73,9 +106,15 @@ void Text::set_text(std::string text_){
     switch(direction){
         case left:
         case middle:
+        case right:
+        case leftup: 
+        case rightup:
+        case leftdown:
+        case rightdown:
             textBox.setString(text);
             break;
         case down:
+        case up:
             std::string vtex;
             for(char i : text){
                 vtex.push_back(i);

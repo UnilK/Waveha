@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <string.h>
 
-namespace wave{
+namespace wave {
 
 File::File(){}
 

@@ -20,8 +20,6 @@ Layout::Layout(App *a) :
     set_slidable(0);
 
     addTab.set_border(1, 0, 0, 1);
-    addTab.text_stick(ui::Text::middle);
-    addTab.text_offset(0, -0.3);
     buttons.push_back(&addTab);
 
     set_look(look);
@@ -76,6 +74,8 @@ void Layout::load(Loader &loader){
 
 void Layout::reset(){
 
+    selected = nullptr;
+
     for(uint32_t i=0; i<stack.size(); i++) delete stack.get(i);
 
     stack.clear();
@@ -104,13 +104,17 @@ void Layout::add_tab(){
 // directory //////////////////////////////////////////////////////////////////
 
 LayoutDir::LayoutDir(Layout &l) : layout(l) {
+    
     put_function("set", [&](ui::Command c){ set_content(c); });
+
+    document("set", "[type] create content to the currently selected slot."
+            " Select a slot by clicking it.");
 }
 
 void LayoutDir::set_content(ui::Command c){
     
     if(layout.selected == nullptr){
-        c.source.push_error("select a slot first by clicking on it");
+        c.source.push_error("select a slot first by clicking one");
     }
     else {
         if(!layout.selected->content_from_type(c.pop())){

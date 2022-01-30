@@ -47,7 +47,6 @@ void Audio::load(Loader &loader){
 
     for(unsigned i=0; i<camount; i++){
 
-
         wave::Audio *audio = new wave::Audio();
         audio->name = loader.read_string();
         audio->channels = loader.read_unsigned();
@@ -134,6 +133,10 @@ AudioDir::AudioDir(Audio &a) : audio(a) {
     put_function("save", [&](ui::Command c){ write_cache(c); });
     put_function("del", [&](ui::Command c){ delete_audio(c); });
 
+    document("list", "list currently stored caches and linked files");
+    document("link", "[file] {name} link a .wav file");
+    document("save", "[name] save a cache to a .wav file");
+    document("del", "[name] delete a cache or unlink a file");
 }
 
 void AudioDir::list_sources(ui::Command c){

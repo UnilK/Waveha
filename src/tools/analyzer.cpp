@@ -65,7 +65,11 @@ Analyzer::Analyzer(App *a) :
 
     buttons.put(0, 9, &fileNameBox);
 
+    terminal.erase_entry("cd");
+    terminal.erase_entry("pwd");
     terminal.put_function("link", [&](ui::Command c){ link_audio(c); });
+
+    terminal.document("link", "[name] link audio to this analyzer");
 }
 
 Analyzer::~Analyzer(){
@@ -247,13 +251,15 @@ void Analyzer::link_audio(ui::Command c){
     if(source != nullptr) delete source;
     source = app.audio.get_source(sourceName);
 
+    position = 0;
+
     update_data();
     switch_mode(dataMode);
 
 }
 
-struct init {
-    init(){ Slot::add_content_type("analyze", [&](App *a){ return new Analyzer(a); } ); }
-} innit;
+struct initAnalyzer {
+    initAnalyzer(){ Slot::add_content_type("analyze", [&](App *a){ return new Analyzer(a); } ); }
+} iAnalyzer;
 
 }
