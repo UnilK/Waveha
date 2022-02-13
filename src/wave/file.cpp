@@ -26,22 +26,32 @@ void File::open(std::string fileName){
     else good = 0;
 }
 
-void File::seek(uint32_t sample){
+void File::seek(unsigned sample){
     file.seek(sample);
 }
 
-bool File::pull(uint32_t amount, std::vector<float> &samples){
+unsigned File::tell(){
+    return file.tell();
+}
+
+unsigned File::size(){
+    return file.get_sample_amount();
+}
+
+unsigned File::pull(unsigned amount, std::vector<float> &samples){
     
     good = 1;
     
     samples = std::vector<float>(amount, 0.0f);
     
-    if(file.read_move(samples, amount) != amount) good = 0;
+    unsigned actual = file.read_move(samples, amount);
+
+    if(actual != amount) good = 0;
     
-    return good;
+    return actual;
 }
 
-std::vector<float> File::get(uint32_t amount, uint32_t begin){
+std::vector<float> File::get(unsigned amount, unsigned begin){
     return file.read_silent(begin, amount);
 }
 

@@ -9,7 +9,7 @@ Scroll::Scroll(Window *master_,std::function<void(float)> func, Kwargs kwargs) :
 
 Scroll::~Scroll(){}
 
-Frame::Capture Scroll::on_event(sf::Event event, int32_t priority){
+Frame::Capture Scroll::on_event(sf::Event event, int priority){
 
     if(priority > 0) return Capture::pass;
 

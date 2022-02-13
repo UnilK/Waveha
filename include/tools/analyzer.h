@@ -12,6 +12,21 @@
 namespace app {
 
 class App;
+class Analyzer;
+
+class AnalyzerGraph : public Graph {
+
+public:
+
+    AnalyzerGraph(Analyzer&, ui::Kwargs = {});
+
+    Capture on_event(sf::Event event, int priority);
+
+private:
+
+    Analyzer &analyzer;
+
+};
 
 class Analyzer : public Content {
 
@@ -31,14 +46,17 @@ public:
 
     void save(Saver&);
     void load(Loader&);
-    
-    Capture on_event(sf::Event event, int32_t priority);
 
     void switch_mode(Mode mode);
     
     void update_data();
 
+    friend class AnalyzerGraph;
+
 private:
+
+    static const std::string type;
+    static int init_class;
 
     App &app;
 
@@ -49,26 +67,24 @@ private:
 
     void link_audio(ui::Command);
 
-    const int32_t defaultLength = 1<<10;
+    const int defaultLength = 1<<10;
 
     std::string sourceName = "";
     wave::Source *source = nullptr;
 
-    int32_t position = 0, length = defaultLength;
+    int position = 0, length = defaultLength;
 
     Mode dataMode = regularMode;
 
     change::Pitch pitch;
 
-
-
     ui::Slider slider;
     ui::Terminal terminal;
     
-    Graph graph;
+    AnalyzerGraph graph;
     
     ui::Frame buttons;
-    ui::Text fileNameBox;
+    ui::Text sourceNameBox;
     ui::Button switchRegular, switchFrequency, switchPeak, switchCorrelation;
 
 };

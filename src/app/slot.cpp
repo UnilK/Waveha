@@ -89,10 +89,14 @@ void Slot::set_content(Content *c){
 
 void Slot::func_detach(){
     Box::func_detach();
+    
+    if(app.layout.get_selected() == this)
+        app.layout.forget_slot();    
+    
     delete this;
 }
 
-ui::Frame::Capture Slot::on_event(sf::Event event, int32_t priority){
+ui::Frame::Capture Slot::on_event(sf::Event event, int priority){
     
     if(event.type == sf::Event::MouseButtonPressed){
         select();
@@ -118,6 +122,8 @@ bool Slot::content_from_type(std::string type){
 
     set_content(types[type](&app));
 
+    set_label(type);
+
     return 1;
 }
 
@@ -128,7 +134,7 @@ void Slot::add_content_type(std::string type, std::function<Content*(App*)> cons
 
 void Slot::push_left(){
 
-    uint32_t index = app.layout.stack.find(tab);
+    unsigned index = app.layout.stack.find(tab);
 
     assert(index < app.layout.stack.size());
 
@@ -142,7 +148,7 @@ void Slot::push_left(){
 
 void Slot::push_right(){
 
-    uint32_t index = app.layout.stack.find(tab);
+    unsigned index = app.layout.stack.find(tab);
 
     assert(index < app.layout.stack.size());
 

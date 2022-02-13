@@ -72,7 +72,7 @@ void Window::event_update(){
         focus = find_focus();
         softFocus = focus.back();        
         
-        int32_t priority = focus.size() - 1;
+        int priority = focus.size() - 1;
         Capture captured = Capture::pass;
 
         if(hardFocus != nullptr) captured = std::max(captured, hardFocus->on_event(event, -1));
@@ -165,7 +165,7 @@ void Window::set_hard(){
     softFocus = focus.back();
     
     hardFocus = nullptr;
-    for(int32_t i=focus.size() - 1; i > 0; i--){
+    for(int i=focus.size() - 1; i > 0; i--){
         if(focus[i]->focusable){
             hardFocus = focus[i];
             break;

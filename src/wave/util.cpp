@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <math.h>
-#include <cstdint>
 
 namespace wave {
 
@@ -24,13 +23,13 @@ std::vector<float> int_to_float(const std::vector<sf::Int16> &data){
 
 std::vector<sf::Int16> float_to_int(const float *data, unsigned size){
     std::vector<sf::Int16> conv(size);
-    for(uint32_t i=0; i<size; i++) conv[i] = float_to_int(data[i]);
+    for(unsigned i=0; i<size; i++) conv[i] = float_to_int(data[i]);
     return conv;
 }
 
 std::vector<float> int_to_float(const sf::Int16 *data, unsigned size){
     std::vector<float> conv(size);
-    for(uint32_t i=0; i<size; i++) conv[i] = int_to_float(data[i]);
+    for(unsigned i=0; i<size; i++) conv[i] = int_to_float(data[i]);
     return conv;
 }
 

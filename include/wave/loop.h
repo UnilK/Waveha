@@ -1,21 +1,22 @@
 #pragma once
 
 #include "wave/source.h"
-#include "wave/audio.h"
 
 namespace wave {
 
-class Cache : public Source {
+class Loop : public Source {
 
 public:
 
-    Cache(Audio&);
-    virtual ~Cache();
+    Loop(Source&);
+    virtual ~Loop();
    
-    void open(Audio&);
+    void open(Source&);
 
     void seek(unsigned sample);
     unsigned tell();
+    
+    // does not have a size. Returns 0.
     unsigned size();
 
     unsigned pull(unsigned amount, std::vector<float> &samples);
@@ -23,7 +24,7 @@ public:
 
 protected:
    
-    Audio &audio;
+    Source &source;
     unsigned read = 0;
 
 };

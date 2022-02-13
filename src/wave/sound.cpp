@@ -13,17 +13,17 @@ Player::~Player(){}
 
 bool Player::onGetData(sf::SoundStream::Chunk &data){
 
-    uint32_t amount = getSampleRate() * getChannelCount() / 2;
+    unsigned amount = getSampleRate() * getChannelCount() / 2;
     
     std::vector<float> floats;
-    bool ok = source.pull(amount, floats);
+    unsigned actual = source.pull(amount, floats);
 
     temp = float_to_int(floats);
     
-    data.sampleCount = amount;
+    data.sampleCount = actual;
     data.samples = temp.data();
 
-    return ok;
+    return amount == actual;
 }
 
 void Player::onSeek(sf::Time timeOffset){
@@ -32,7 +32,7 @@ void Player::onSeek(sf::Time timeOffset){
 
 
 
-Playback::Playback(uint32_t channels, uint32_t frameRate){
+Playback::Playback(unsigned channels, unsigned frameRate){
     initialize(channels, frameRate);
 }
 
@@ -40,7 +40,7 @@ Playback::~Playback(){}
 
 bool Playback::onGetData(sf::SoundStream::Chunk &data){
 
-    uint32_t amount = std::max(getChannelCount(), max() / 2 / getChannelCount() * getChannelCount());
+    unsigned amount = std::max(getChannelCount(), max() / 2 / getChannelCount() * getChannelCount());
 
     std::vector<float> floats = pull(amount);
 

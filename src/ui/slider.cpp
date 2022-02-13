@@ -258,7 +258,7 @@ Slider::Bar::Bar(Window *master_, Slider *slider_, Side side) :
     }
 }
 
-Frame::Capture Slider::Bar::on_event(sf::Event event, int32_t priority){
+Frame::Capture Slider::Bar::on_event(sf::Event event, int priority){
 
     if(event.type == sf::Event::MouseButtonPressed){
         

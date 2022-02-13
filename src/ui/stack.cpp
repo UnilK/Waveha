@@ -33,14 +33,14 @@ void Stack::pop_back(){
     update();
 }
 
-void Stack::insert(Frame *frame, uint32_t index){
+void Stack::insert(Frame *frame, unsigned index){
     index = std::min(index, size());
     stack.push_back(frame);
     std::swap(stack[size()], stack[size() - 1]);
-    move(size() - 1, (int32_t)index + 1 - size());
+    move(size() - 1, (int)index + 1 - size());
 }
 
-void Stack::erase(uint32_t index){
+void Stack::erase(unsigned index){
     assert(index < size());
     move(index, size() - 1 - index);
     pop_back();
@@ -63,13 +63,13 @@ void Stack::clear(){
 
 }
 
-uint32_t Stack::find(Frame *frame){
-    uint32_t index = 0;
+unsigned Stack::find(Frame *frame){
+    unsigned index = 0;
     while(index < size() && stack[index] != frame) index++;
     return index;
 }
 
-Frame *Stack::get(uint32_t index){
+Frame *Stack::get(unsigned index){
     assert(index < size());
     return stack[index];
 }
@@ -78,7 +78,7 @@ Frame *Stack::get(Frame *frame){
     return get(find(frame));
 }
 
-void Stack::push_resize(uint32_t index, float csize){
+void Stack::push_resize(unsigned index, float csize){
     
     assert(index < size());
 
@@ -97,7 +97,7 @@ void Stack::push_resize(Frame *frame, float csize){
     push_resize(find(frame), csize);
 }
 
-void Stack::sticky_resize(uint32_t index, float csize){
+void Stack::sticky_resize(unsigned index, float csize){
     
     assert(index < size());
 
@@ -157,7 +157,7 @@ void Stack::sticky_resize(Frame *frame, float csize){
     sticky_resize(find(frame), csize);
 }
 
-float Stack::max_size(uint32_t index){
+float Stack::max_size(unsigned index){
     
     assert(index < size());
 
@@ -174,7 +174,7 @@ float Stack::max_size(Frame *frame){
     return max_size(find(frame));
 }
 
-void Stack::scroll_to(uint32_t index){
+void Stack::scroll_to(unsigned index){
     
     assert(index < size());
 
@@ -196,7 +196,7 @@ void Stack::scroll_to(Frame *frame){
     scroll_to(find(frame));
 }
 
-void Stack::swap(uint32_t a, uint32_t b){
+void Stack::swap(unsigned a, unsigned b){
     
     assert(a < size() && b < size());
 
@@ -209,12 +209,12 @@ void Stack::swap(Frame *a, Frame *b){
     swap(find(a), find(b));
 }
 
-void Stack::move(uint32_t index, int32_t direction){
+void Stack::move(unsigned index, int direction){
     
     assert(index < size());
     
-    uint32_t left = index, right = 0;
-    if(direction < 0 && (uint32_t)(-direction) > index) right = 0;
+    unsigned left = index, right = 0;
+    if(direction < 0 && (unsigned)(-direction) > index) right = 0;
     else right = std::min(size() - 1, index + direction);
 
     if(left > right) std::swap(left, right);
@@ -235,7 +235,7 @@ void Stack::move(uint32_t index, int32_t direction){
     update();
 }
 
-void Stack::move(Frame *frame, int32_t direction){
+void Stack::move(Frame *frame, int direction){
     move(find(frame), direction);
 }
 
@@ -252,15 +252,15 @@ float Stack::length(){
     return total;
 }
 
-uint32_t Stack::size(){
+unsigned Stack::size(){
     return stack.size() - 1;
 }
 
-void Stack::create(uint32_t size){
+void Stack::create(unsigned size){
     stack = std::vector<Frame*>(size + 1, nullptr);
 }
 
-void Stack::put(Frame *frame, uint32_t index){
+void Stack::put(Frame *frame, unsigned index){
     assert(index < size());
     stack[index] = frame;
 }
@@ -271,7 +271,7 @@ void Stack::update(){
         case Side::left:
 
             setup_grid(1, stack.size());
-            for(uint32_t i=0; i<stack.size(); i++) Frame::put(0, i, stack[i]);
+            for(unsigned i=0; i<stack.size(); i++) Frame::put(0, i, stack[i]);
             fill_width(size(), 1);
             fill_height(0, 1);
 
@@ -279,7 +279,7 @@ void Stack::update(){
         case Side::right:
 
             setup_grid(1, stack.size());
-            for(uint32_t i=0; i<stack.size(); i++) Frame::put(0, size() - i, stack[i]);
+            for(unsigned i=0; i<stack.size(); i++) Frame::put(0, size() - i, stack[i]);
             fill_width(0, 1);
             fill_height(0, 1);
 
@@ -287,7 +287,7 @@ void Stack::update(){
         case Side::up:
             
             setup_grid(stack.size(), 1);
-            for(uint32_t i=0; i<stack.size(); i++) Frame::put(i, 0, stack[i]);
+            for(unsigned i=0; i<stack.size(); i++) Frame::put(i, 0, stack[i]);
             fill_width(0, 1);
             fill_height(size(), 1);
             
@@ -295,7 +295,7 @@ void Stack::update(){
         case Side::down:
             
             setup_grid(stack.size(), 1);
-            for(uint32_t i=0; i<stack.size(); i++) Frame::put(size() - i, 0, stack[i]);
+            for(unsigned i=0; i<stack.size(); i++) Frame::put(size() - i, 0, stack[i]);
             fill_width(0, 1);
             fill_height(0, 1);
             

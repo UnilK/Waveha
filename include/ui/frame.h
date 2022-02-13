@@ -3,7 +3,6 @@
 #include "ui/borders.h"
 #include "ui/style.h"
 
-#include <cstdint>
 #include <string>
 #include <vector>
 #include <array>
@@ -21,8 +20,8 @@ struct FrameArgs {
     float width = 0;
     float height = 0;
     std::array<float, 4> range = {0, 1e9, 0, 1e9}; // w min, w max, h min, h max
-    uint32_t spanx = 1;
-    uint32_t spany = 1;
+    unsigned spanx = 1;
+    unsigned spany = 1;
     std::array<float, 4> pad = {0, 0, 0, 0}; // left, right, up, down
     std::array<float, 6> fill = {0, 1, 0, 0, 1, 0}; // left, mid, right, up, mid, down.
     std::array<bool, 4> border = {1, 1, 1, 1}; // left, right, up, down
@@ -114,7 +113,7 @@ public:
     // inner most frame will get priority 1 and so on...
     // hard focus event gets priority -1.
     enum Capture { pass, use, capture };
-    virtual Capture on_event(sf::Event event, int32_t priority);
+    virtual Capture on_event(sf::Event event, int priority);
     
     // load styles from the style sheet. Should mainly be called on frame construction.
     virtual void set_look(std::string look_);
@@ -181,10 +180,10 @@ public:
     // grid management
 
     // setup a nullptr grid of size {rows_, columns_}
-    void setup_grid(uint32_t rows_, uint32_t columns_);
+    void setup_grid(unsigned rows_, unsigned columns_);
 
     // resize grid
-    void resize_grid(uint32_t rows_, uint32_t columns_);
+    void resize_grid(unsigned rows_, unsigned columns_);
 
     // update window and canvas sizes in the grid. If the frame has a grid
     // this needs to be called if window, target or canvas position
@@ -194,21 +193,21 @@ public:
     
     // parent management
     void set_parent(Frame *parent_);
-    Frame *get_parent(int32_t steps = 1);
+    Frame *get_parent(int steps = 1);
     Frame *get_top();
     Window *get_master();
 
     // place frames to the grid. Use these outside initialization.
-    int32_t place_frame(uint32_t row, uint32_t column, Frame *frame);
-    int32_t remove_frame(uint32_t row, uint32_t column);
-    int32_t remove_frame(Frame *frame);
+    int place_frame(unsigned row, unsigned column, Frame *frame);
+    int remove_frame(unsigned row, unsigned column);
+    int remove_frame(Frame *frame);
     
     // method for placing frames to the grid without updating the grid.
     // use this for initialization.
-    int32_t put(uint32_t row, uint32_t column, Frame *frame);
+    int put(unsigned row, unsigned column, Frame *frame);
     
     // access the grid
-    Frame *&get(uint32_t row, uint32_t column);
+    Frame *&get(unsigned row, unsigned column);
     Frame *&get(Frame *frame);
 
     // configure extra space allocation among rows & columns.
@@ -217,10 +216,10 @@ public:
     // frames stick to the top left corner.
     void fill_height(std::vector<float> heightFill_);
     void fill_width(std::vector<float> widthFill_);
-    void fill_height(uint32_t row, float value);
-    void fill_width(uint32_t column, float value);
+    void fill_height(unsigned row, float value);
+    void fill_width(unsigned column, float value);
 
-    void set_span(uint32_t rowSpan_, uint32_t columnSpan_);
+    void set_span(unsigned rowSpan_, unsigned columnSpan_);
 
 
 
@@ -272,10 +271,10 @@ private:
     // grid and fill configuration
     std::vector<float> widthFill, heightFill;
     std::vector<std::vector<Frame*> > grid;
-    uint32_t columns = 0, rows = 0;
+    unsigned columns = 0, rows = 0;
 
     // The frame's size on it's parent's grid.
-    uint32_t rowSpan = 1, columnSpan = 1; 
+    unsigned rowSpan = 1, columnSpan = 1; 
     
     // Alignment and padding.
     float frameFillWidth = 1, frameFillHeight = 1;

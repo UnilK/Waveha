@@ -41,7 +41,7 @@ void Tab::save(Saver &saver){
 
     saver.write_unsigned(stack.size());
 
-    for(uint32_t i=0; i<stack.size(); i++){
+    for(unsigned i=0; i<stack.size(); i++){
         Tab *tab = (Tab*)stack.get(i);
         tab->save(saver);
     }
@@ -56,7 +56,7 @@ void Tab::load(Loader &loader){
 
     unsigned samount = loader.read_unsigned();
     
-    for(uint32_t i=0; i<samount; i++){
+    for(unsigned i=0; i<samount; i++){
         Slot *slot = new Slot(this);
         stack.push_back(slot->set_manager(&stack));
         slot->load(loader);
@@ -64,7 +64,7 @@ void Tab::load(Loader &loader){
 }
 
 void Tab::reset(){
-    for(uint32_t i=0; i<stack.size(); i++) delete stack.get(i);
+    for(unsigned i=0; i<stack.size(); i++) delete stack.get(i);
     stack.clear();
 }
 

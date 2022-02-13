@@ -33,11 +33,11 @@ void load(std::string styleFile){
     std::vector<std::string> lines;
     while(std::getline(I, line)) lines.push_back(line);
 
-    int32_t n = lines.size();
+    int n = lines.size();
 
     std::map<std::string, std::vector<std::string> > edges_out, edges_in;
     
-    for(int32_t i=0; i<n; i++){
+    for(int i=0; i<n; i++){
 
         if(lines[i] == "font"){
             
@@ -52,7 +52,7 @@ void load(std::string styleFile){
                 in >> key;
                 std::getline(in, value);
 
-                uint32_t j = 0;
+                unsigned j = 0;
                 while(j < value.size() && value[j] == ' ') j++;                    
                 if(j != value.size()) value = value.substr(j, value.size()-j);
 
@@ -87,7 +87,7 @@ void load(std::string styleFile){
                     }
                     else {
 
-                        uint32_t j = 0;
+                        unsigned j = 0;
                         while(j < value.size() && value[j] == ' ') j++;                    
                         if(j != value.size()) value = value.substr(j, value.size()-j);
 
@@ -108,7 +108,7 @@ void load(std::string styleFile){
                 in >> key;
                 std::getline(in, value);
                         
-                uint32_t j = 0;
+                unsigned j = 0;
                 while(j < value.size() && value[j] == ' ') j++;                    
                 if(j != value.size()) value = value.substr(j, value.size()-j);
 
@@ -131,14 +131,14 @@ void load(std::string styleFile){
     // serach for "topological sorting" for some algorithm reference.
 
     std::vector<std::string> order;
-    std::map<std::string, int32_t> count;
+    std::map<std::string, int> count;
 
     for(auto i : edges_in){
         count[i.first] = i.second.size();
         if(i.second.size() == 0) order.push_back(i.first);
     }
 
-    for(uint32_t i=0; i<order.size(); i++){
+    for(unsigned i=0; i<order.size(); i++){
         
         std::string look = order[i];
         
@@ -196,7 +196,7 @@ sf::Color Styled::color(std::string key){
     if(color.size() == 6) color += "ff";
     while(color.size() < 8) color.push_back('0');
     
-    uint32_t rgba;
+    unsigned rgba;
     std::stringstream(color) >> std::hex >> rgba >> std::dec;
 
     return sf::Color(rgba>>24&0xff, rgba>>16&0xff, rgba>>8&0xff, rgba&0xff);
@@ -226,13 +226,13 @@ std::vector<long double> Styled::nums(std::string key){
     return v;
 }
 
-uint32_t Styled::textStyle(std::string key){
+unsigned Styled::textStyle(std::string key){
     
     std::string styles = chars(key), style;
 
     std::stringstream cin(styles) ;
 
-    uint32_t result = 0;
+    unsigned result = 0;
 
     while(cin >> style){
         if(style == "bold") result |= sf::Text::Style::Bold;

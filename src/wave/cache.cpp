@@ -5,45 +5,6 @@
 
 namespace wave {
 
-Audio::Audio(){}
-    
-Audio::Audio(    
-    std::string name_,
-    uint32_t channels_,
-    uint32_t frameRate_,
-    const std::vector<float> &data_) :
-    name(name_),
-    channels(channels_),
-    frameRate(frameRate_),
-    data(data_)
-{}
-
-Audio::Audio(std::string fileName){
-    open(fileName);
-}
-
-Audio::~Audio(){}
-
-bool Audio::open(std::string fileName){
-
-    iwstream file;
-
-    if(file.open(fileName)){
-        
-        name = fileName;
-
-        frameRate = file.get_frame_rate();
-        channels = file.get_channel_amount();
-        
-        data = file.read_file();
-        
-        return 1;
-    }
-
-    return 0;
-}
-
-
 
 Cache::Cache(Audio &audio_) : audio(audio_) {
     open(audio_);
@@ -58,31 +19,39 @@ void Cache::open(Audio &audio_){
     seek(0);
 }
 
-void Cache::seek(uint32_t sample){
-    read = std::min(sample, (uint32_t)audio.data.size());
+void Cache::seek(unsigned sample){
+    read = std::min(sample, (unsigned)audio.data.size());
 }
 
-bool Cache::pull(uint32_t amount, std::vector<float> &samples){
+unsigned Cache::tell(){
+    return read;
+}
+
+unsigned Cache::size(){
+    return audio.data.size();
+}
+
+unsigned Cache::pull(unsigned amount, std::vector<float> &samples){
 
     good = 1;
 
     samples = std::vector<float>(amount, 0.0f);
 
-    amount = std::min(amount, (uint32_t)audio.data.size() - read);
+    amount = std::min(amount, (unsigned)audio.data.size() - read);
 
     if(amount != samples.size()) good = 0;
 
     memcpy(samples.data(), audio.data.data() + read, sizeof(float) * amount);
     read += amount;
 
-    return good;
+    return amount;
 }
 
-std::vector<float> Cache::get(uint32_t amount, uint32_t begin){
+std::vector<float> Cache::get(unsigned amount, unsigned begin){
     
     std::vector<float> samples(amount, 0.0f);
 
-    if(begin < audio.data.size()) amount = std::min(amount, (uint32_t)audio.data.size() - begin);
+    if(begin < audio.data.size()) amount = std::min(amount, (unsigned)audio.data.size() - begin);
     else amount = 0;
 
     memcpy(samples.data(), audio.data.data() + begin, sizeof(float) * amount);

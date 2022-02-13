@@ -97,7 +97,7 @@ public:
     Terminal(Window *master_, Kwargs = {});
     virtual ~Terminal();
 
-    Capture on_event(sf::Event event, int32_t priority);
+    Capture on_event(sf::Event event, int priority);
 
     void set_look(std::string look_);
     void on_refresh();
@@ -114,19 +114,19 @@ protected:
 private:
     
     std::vector<std::string> create_command(std::string);
-    std::vector<std::string> wrap(std::string, uint32_t);
+    std::vector<std::string> wrap(std::string, unsigned);
 
     // editing
     std::deque<std::string> edits, originals;
-    std::set<uint32_t> edited;
+    std::set<unsigned> edited;
     std::string prefix = "$ ";
-    uint32_t editX = 0, editY = 0;
+    unsigned editX = 0, editY = 0;
     sf::Text blinker;
 
     // command history
     std::deque<Line> buffer;
-    uint32_t bufferMax = 1000;
-    uint32_t bufferOffset = 0;
+    unsigned bufferMax = 1000;
+    unsigned bufferOffset = 0;
 
     void clean_buffer();
 

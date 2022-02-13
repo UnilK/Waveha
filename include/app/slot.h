@@ -18,7 +18,18 @@ public:
 
     Content(App*, ui::Kwargs = {});
 
+    // static std::string type;
     virtual std::string content_type() = 0;
+
+    // !!!  Slot::add_content_type must be called for each class
+    // use a patter something like:
+    // .h : static int init_class;
+    // .cpp :
+    //      XX::init_class = [](){
+    //          Slot::add_content_type(type, [](App *a){ return new XX(a); } );
+    //          return 0;
+    //      }();
+    // (yuck!)
 
 };
 
@@ -39,7 +50,7 @@ public:
 
     void func_detach();
 
-    Capture on_event(sf::Event event, int32_t priority);
+    Capture on_event(sf::Event event, int priority);
 
     void select();
     void forget();

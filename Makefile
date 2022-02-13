@@ -87,22 +87,26 @@ depend: $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 build/wave/file.o: include/wave/file.h include/wave/source.h
 build/wave/file.o: lib/Wstream/include/wstream/wstream.h include/wave/util.h
 build/wave/cache.o: include/wave/cache.h include/wave/source.h
-build/wave/cache.o: lib/Wstream/include/wstream/wstream.h
+build/wave/cache.o: include/wave/audio.h lib/Wstream/include/wstream/wstream.h
+build/wave/audio.o: include/wave/audio.h lib/Wstream/include/wstream/wstream.h
 build/wave/buffer.o: include/wave/buffer.h include/wave/util.h
 build/wave/mic.o: include/wave/mic.h include/wave/buffer.h include/wave/util.h
 build/wave/source.o: include/wave/source.h
 build/wave/sound.o: include/wave/sound.h include/wave/buffer.h
 build/wave/sound.o: include/wave/source.h include/wave/util.h
+build/wave/loop.o: include/wave/loop.h include/wave/source.h
 build/wave/util.o: include/wave/util.h
+build/change/matrix.o: include/change/matrix.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
-build/app/audio.o: include/wave/cache.h include/wave/file.h
-build/app/audio.o: lib/Wstream/include/wstream/wstream.h include/ui/terminal.h
-build/app/audio.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
-build/app/audio.o: include/ui/window.h include/app/session.h include/app/app.h
-build/app/audio.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
-build/app/audio.o: include/ui/text.h include/app/layout.h include/ui/box.h
-build/app/audio.o: include/ui/button.h include/app/creations.h
+build/app/audio.o: include/wave/cache.h include/wave/audio.h
+build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
+build/app/audio.o: include/wave/loop.h include/ui/terminal.h include/ui/frame.h
+build/app/audio.o: include/ui/borders.h include/ui/style.h include/ui/window.h
+build/app/audio.o: include/app/session.h include/app/app.h include/app/tools.h
+build/app/audio.o: include/ui/slider.h include/ui/stack.h include/ui/text.h
+build/app/audio.o: include/app/layout.h include/ui/box.h include/ui/button.h
+build/app/audio.o: include/app/creations.h
 build/app/slot.o: include/app/slot.h include/ui/box.h include/ui/slider.h
 build/app/slot.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
 build/app/slot.o: include/ui/style.h include/ui/window.h include/ui/text.h
@@ -110,49 +114,53 @@ build/app/slot.o: include/ui/button.h include/app/session.h
 build/app/slot.o: include/ui/terminal.h include/app/tab.h include/app/layout.h
 build/app/slot.o: include/app/app.h include/app/tools.h include/app/audio.h
 build/app/slot.o: include/wave/source.h include/wave/cache.h
-build/app/slot.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
+build/app/slot.o: include/wave/audio.h include/wave/file.h
+build/app/slot.o: lib/Wstream/include/wstream/wstream.h include/wave/loop.h
 build/app/slot.o: include/app/creations.h
 build/app/app.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/app/app.o: include/ui/borders.h include/ui/style.h include/ui/terminal.h
 build/app/app.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
 build/app/app.o: include/ui/text.h include/app/audio.h include/wave/source.h
-build/app/app.o: include/wave/cache.h include/wave/file.h
-build/app/app.o: lib/Wstream/include/wstream/wstream.h include/app/session.h
-build/app/app.o: include/app/layout.h include/ui/box.h include/ui/button.h
-build/app/app.o: include/app/creations.h
+build/app/app.o: include/wave/cache.h include/wave/audio.h include/wave/file.h
+build/app/app.o: lib/Wstream/include/wstream/wstream.h include/wave/loop.h
+build/app/app.o: include/app/session.h include/app/layout.h include/ui/box.h
+build/app/app.o: include/ui/button.h include/app/creations.h
 build/app/layout.o: include/app/layout.h include/ui/slider.h include/ui/stack.h
 build/app/layout.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/app/layout.o: include/ui/window.h include/ui/text.h include/ui/box.h
 build/app/layout.o: include/ui/button.h include/app/session.h
 build/app/layout.o: include/ui/terminal.h include/app/app.h include/app/tools.h
 build/app/layout.o: include/app/audio.h include/wave/source.h
-build/app/layout.o: include/wave/cache.h include/wave/file.h
-build/app/layout.o: lib/Wstream/include/wstream/wstream.h
-build/app/layout.o: include/app/creations.h include/app/tab.h
-build/app/layout.o: include/app/slot.h
+build/app/layout.o: include/wave/cache.h include/wave/audio.h
+build/app/layout.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
+build/app/layout.o: include/wave/loop.h include/app/creations.h
+build/app/layout.o: include/app/tab.h include/app/slot.h
 build/app/tab.o: include/app/tab.h include/ui/box.h include/ui/slider.h
 build/app/tab.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
 build/app/tab.o: include/ui/style.h include/ui/window.h include/ui/text.h
 build/app/tab.o: include/ui/button.h include/app/session.h
 build/app/tab.o: include/ui/terminal.h include/app/slot.h include/app/layout.h
 build/app/tab.o: include/app/app.h include/app/tools.h include/app/audio.h
-build/app/tab.o: include/wave/source.h include/wave/cache.h include/wave/file.h
-build/app/tab.o: lib/Wstream/include/wstream/wstream.h include/app/creations.h
+build/app/tab.o: include/wave/source.h include/wave/cache.h
+build/app/tab.o: include/wave/audio.h include/wave/file.h
+build/app/tab.o: lib/Wstream/include/wstream/wstream.h include/wave/loop.h
+build/app/tab.o: include/app/creations.h
 build/app/session.o: include/app/session.h include/ui/terminal.h
 build/app/session.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/app/session.o: include/ui/window.h include/app/app.h include/app/tools.h
 build/app/session.o: include/ui/slider.h include/ui/stack.h include/ui/text.h
 build/app/session.o: include/app/audio.h include/wave/source.h
-build/app/session.o: include/wave/cache.h include/wave/file.h
-build/app/session.o: lib/Wstream/include/wstream/wstream.h include/app/layout.h
-build/app/session.o: include/ui/box.h include/ui/button.h
-build/app/session.o: include/app/creations.h
+build/app/session.o: include/wave/cache.h include/wave/audio.h
+build/app/session.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
+build/app/session.o: include/wave/loop.h include/app/layout.h include/ui/box.h
+build/app/session.o: include/ui/button.h include/app/creations.h
 build/app/tools.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
 build/app/tools.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/app/tools.o: include/ui/window.h include/ui/text.h include/app/app.h
 build/app/tools.o: include/ui/terminal.h include/app/audio.h
 build/app/tools.o: include/wave/source.h include/wave/cache.h
-build/app/tools.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
+build/app/tools.o: include/wave/audio.h include/wave/file.h
+build/app/tools.o: lib/Wstream/include/wstream/wstream.h include/wave/loop.h
 build/app/tools.o: include/app/session.h include/app/layout.h include/ui/box.h
 build/app/tools.o: include/ui/button.h include/app/creations.h
 build/app/creations.o: include/app/creations.h
@@ -165,6 +173,21 @@ build/tools/recorder.o: include/ui/style.h include/ui/window.h
 build/tools/recorder.o: include/ui/text.h include/ui/button.h
 build/tools/recorder.o: include/app/session.h include/ui/terminal.h
 build/tools/recorder.o: include/app/tab.h include/ui/clock.h
+build/tools/recorder.o: include/wave/cache.h include/wave/source.h
+build/tools/recorder.o: include/wave/audio.h include/wave/mic.h
+build/tools/recorder.o: include/wave/buffer.h include/wave/sound.h
+build/tools/recorder.o: include/app/app.h include/app/tools.h
+build/tools/recorder.o: include/app/audio.h include/wave/file.h
+build/tools/recorder.o: lib/Wstream/include/wstream/wstream.h
+build/tools/recorder.o: include/wave/loop.h include/app/layout.h
+build/tools/recorder.o: include/app/creations.h
+build/tools/meditor.o: include/tools/meditor.h include/app/slot.h
+build/tools/meditor.o: include/ui/box.h include/ui/slider.h include/ui/stack.h
+build/tools/meditor.o: include/ui/frame.h include/ui/borders.h
+build/tools/meditor.o: include/ui/style.h include/ui/window.h include/ui/text.h
+build/tools/meditor.o: include/ui/button.h include/app/session.h
+build/tools/meditor.o: include/ui/terminal.h include/app/tab.h
+build/tools/meditor.o: include/tools/graph.h
 build/tools/analyzer.o: include/tools/analyzer.h include/ui/button.h
 build/tools/analyzer.o: include/ui/text.h include/ui/frame.h
 build/tools/analyzer.o: include/ui/borders.h include/ui/style.h
@@ -175,10 +198,11 @@ build/tools/analyzer.o: include/ui/box.h include/app/tab.h
 build/tools/analyzer.o: include/tools/graph.h include/wave/source.h
 build/tools/analyzer.o: include/change/pitch.h include/app/app.h
 build/tools/analyzer.o: include/app/tools.h include/app/audio.h
-build/tools/analyzer.o: include/wave/cache.h include/wave/file.h
+build/tools/analyzer.o: include/wave/cache.h include/wave/audio.h
+build/tools/analyzer.o: include/wave/file.h
 build/tools/analyzer.o: lib/Wstream/include/wstream/wstream.h
-build/tools/analyzer.o: include/app/layout.h include/app/creations.h
-build/tools/analyzer.o: include/math/fft.h
+build/tools/analyzer.o: include/wave/loop.h include/app/layout.h
+build/tools/analyzer.o: include/app/creations.h include/math/fft.h
 build/tools/graph.o: include/tools/graph.h include/app/slot.h include/ui/box.h
 build/tools/graph.o: include/ui/slider.h include/ui/stack.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
@@ -186,8 +210,9 @@ build/tools/graph.o: include/ui/window.h include/ui/text.h include/ui/button.h
 build/tools/graph.o: include/app/session.h include/ui/terminal.h
 build/tools/graph.o: include/app/tab.h include/app/app.h include/app/tools.h
 build/tools/graph.o: include/app/audio.h include/wave/source.h
-build/tools/graph.o: include/wave/cache.h include/wave/file.h
-build/tools/graph.o: lib/Wstream/include/wstream/wstream.h include/app/layout.h
+build/tools/graph.o: include/wave/cache.h include/wave/audio.h
+build/tools/graph.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
+build/tools/graph.o: include/wave/loop.h include/app/layout.h
 build/tools/graph.o: include/app/creations.h include/math/constants.hpp
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/borders.h
 build/ui/text.o: include/ui/style.h include/ui/window.h
@@ -220,7 +245,7 @@ build/main.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/main.o: include/ui/borders.h include/ui/style.h include/ui/terminal.h
 build/main.o: include/app/tools.h include/ui/slider.h include/ui/stack.h
 build/main.o: include/ui/text.h include/app/audio.h include/wave/source.h
-build/main.o: include/wave/cache.h include/wave/file.h
-build/main.o: lib/Wstream/include/wstream/wstream.h include/app/session.h
-build/main.o: include/app/layout.h include/ui/box.h include/ui/button.h
-build/main.o: include/app/creations.h
+build/main.o: include/wave/cache.h include/wave/audio.h include/wave/file.h
+build/main.o: lib/Wstream/include/wstream/wstream.h include/wave/loop.h
+build/main.o: include/app/session.h include/app/layout.h include/ui/box.h
+build/main.o: include/ui/button.h include/app/creations.h

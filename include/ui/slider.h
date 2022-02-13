@@ -59,7 +59,7 @@ protected:
         
         Bar(Window*, Slider*, Side);
 
-        Capture on_event(sf::Event event, int32_t priority);
+        Capture on_event(sf::Event event, int priority);
 
         void set_label(std::string);
         std::string get_label();

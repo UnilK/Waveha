@@ -49,7 +49,7 @@ class Playback : public sf::SoundStream, public Buffer {
 
 public:
 
-    Playback(uint32_t channels = 1, uint32_t frameRate = 44100);
+    Playback(unsigned channels = 1, unsigned frameRate = 44100);
     virtual ~Playback();
 
     // wont stop unless explicitly told so.

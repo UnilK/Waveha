@@ -26,7 +26,7 @@ void Button::set_look(std::string look_){
     look = look_;
 }
 
-Frame::Capture Button::on_event(sf::Event event, int32_t priority){
+Frame::Capture Button::on_event(sf::Event event, int priority){
    
     if(priority > 0) return Capture::pass;
 

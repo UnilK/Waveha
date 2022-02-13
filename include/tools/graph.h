@@ -36,16 +36,16 @@ public:
 
     Graph(App*, ui::Kwargs = {});
     
-    void save(Saver&);
-    void load(Loader&);
-    
+    virtual void save(Saver&);
+    virtual void load(Loader&);
+
     std::string content_type();
     
-    void set_look(std::string look_);
-    Capture on_event(sf::Event event, int32_t priority);
-    void on_reconfig();
-    void on_refresh();
-
+    virtual void set_look(std::string look_);
+    virtual Capture on_event(sf::Event event, int priority);
+    virtual void on_reconfig();
+    virtual void on_refresh();
+    
     // NOTE: since most of these operations are rather heavy,
     // they don't update the plot automatically. The plot is updated
     // manually with the provided refresh functions.
@@ -97,7 +97,7 @@ public:
     float origoX = 0, origoY = 0;
     float scaleX = 1, scaleY = 1;
 
-private:
+protected:
 
     std::vector<Point> points;
     sf::VertexArray vertices;

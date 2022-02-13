@@ -57,14 +57,14 @@ void Frame::set_look(std::string look_){
     border.set_look(look);
 }
 
-Frame::Capture Frame::on_event(sf::Event event, int32_t priority){ return Capture::pass; }
+Frame::Capture Frame::on_event(sf::Event event, int priority){ return Capture::pass; }
 
 void Frame::tick(){
     
     on_tick();
     
-    for(uint32_t i=0; i<rows; i++){
-        for(uint32_t j=0; j<columns; j++){
+    for(unsigned i=0; i<rows; i++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] == nullptr) continue;
             grid[i][j]->tick();
         }
@@ -116,8 +116,8 @@ void Frame::refresh(){
         on_refresh();
     }
     
-    for(uint32_t i=0; i<rows; i++){
-        for(uint32_t j=0; j<columns; j++){
+    for(unsigned i=0; i<rows; i++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] != nullptr){
                 if(refreshFlag) grid[i][j]->set_refresh(); 
                 grid[i][j]->refresh();
@@ -171,8 +171,8 @@ void Frame::find_focus_inner(std::vector<Frame*> &focus){
 
     focus.push_back(this);
 
-    for(uint32_t i=0; i<rows; i++){
-        for(uint32_t j=0; j<columns; j++){
+    for(unsigned i=0; i<rows; i++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] == nullptr) continue;
             Frame *child = grid[i][j];
             if(child->contains_mouse()){
@@ -272,7 +272,7 @@ void Frame::auto_contain(bool autoContain_){ autoContain = autoContain_; }
 
 // grid management ////////////////////////////////////////////////////////////
 
-void Frame::setup_grid(uint32_t rows_, uint32_t columns_){
+void Frame::setup_grid(unsigned rows_, unsigned columns_){
     
     rows = rows_;
     columns = columns_;
@@ -282,7 +282,7 @@ void Frame::setup_grid(uint32_t rows_, uint32_t columns_){
     widthFill = std::vector<float>(columns, 0);
 }
 
-void Frame::resize_grid(uint32_t rows_, uint32_t columns_){
+void Frame::resize_grid(unsigned rows_, unsigned columns_){
     
     rows = rows_;
     columns = columns_;
@@ -304,11 +304,11 @@ void Frame::update_grid(){
    
     // calculate grid dimensions. Each row & column size is determined by the most
     // space consuming frame that ends there.
-    for(uint32_t i=0; i<rows; i++){
+    for(unsigned i=0; i<rows; i++){
         if(i > 0) heightGrid[i] = std::max(heightGrid[i], heightGrid[i-1]);
-        for(uint32_t j=0; j<columns; j++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] != nullptr){
-                uint32_t end = std::min(rows, i+grid[i][j]->rowSpan);
+                unsigned end = std::min(rows, i+grid[i][j]->rowSpan);
                 heightGrid[end] = std::max(heightGrid[end], heightGrid[i]+grid[i][j]->target_height());
             }
         }
@@ -316,11 +316,11 @@ void Frame::update_grid(){
     
     if(rows > 0) heightGrid[rows] = std::max(heightGrid[rows], heightGrid[rows-1]);
     
-    for(uint32_t j=0; j<columns; j++){
+    for(unsigned j=0; j<columns; j++){
         if(j > 0) widthGrid[j] = std::max(widthGrid[j], widthGrid[j-1]);
-        for(uint32_t i=0; i<rows; i++){
+        for(unsigned i=0; i<rows; i++){
             if(grid[i][j] != nullptr){
-                uint32_t end = std::min(columns, j+grid[i][j]->columnSpan);
+                unsigned end = std::min(columns, j+grid[i][j]->columnSpan);
                 widthGrid[end] = std::max(widthGrid[end], widthGrid[j]+grid[i][j]->target_width());
             }
         }
@@ -350,19 +350,19 @@ void Frame::update_grid(){
     float heightSum = 0, widthSum = 0;
 
     // allocate extra space
-    for(uint32_t i=0; i<rows; i++){
+    for(unsigned i=0; i<rows; i++){
         heightGrid[i] += heightSum;
         heightSum += heightExtra*(heightFill[i]/heightTotal);
     } heightGrid[rows] += heightSum;
     
-    for(uint32_t i=0; i<columns; i++){
+    for(unsigned i=0; i<columns; i++){
         widthGrid[i] += widthSum;
         widthSum += widthExtra*(widthFill[i]/widthTotal);
     } widthGrid[columns] += widthSum;
   
     // do the windowing
-    for(uint32_t i=0; i<rows; i++){
-        for(uint32_t j=0; j<columns; j++){
+    for(unsigned i=0; i<rows; i++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] == nullptr) continue;
             
             Frame *child = grid[i][j];
@@ -436,7 +436,7 @@ void Frame::set_parent(Frame *parent_){
     }
 }
 
-Frame *Frame::get_parent(int32_t steps){
+Frame *Frame::get_parent(int steps){
     if(steps < 1) return this;
     if(parent == nullptr) return nullptr;
     return parent->get_parent(steps - 1);
@@ -449,13 +449,13 @@ Frame *Frame::get_top(){
 
 Window *Frame::get_master(){ return master; }
 
-int32_t Frame::place_frame(uint32_t row, uint32_t column, Frame *frame){
-    int32_t ret = put(row, column, frame);
+int Frame::place_frame(unsigned row, unsigned column, Frame *frame){
+    int ret = put(row, column, frame);
     update_grid();
     return ret;
 }
 
-int32_t Frame::remove_frame(uint32_t row, uint32_t column){
+int Frame::remove_frame(unsigned row, unsigned column){
     
     assert(row < rows && column < columns);
 
@@ -466,10 +466,10 @@ int32_t Frame::remove_frame(uint32_t row, uint32_t column){
     return 0;
 }
 
-int32_t Frame::remove_frame(Frame *frame){
+int Frame::remove_frame(Frame *frame){
     
-    for(uint32_t i=0; i<rows; i++){
-        for(uint32_t j=0; j<columns; j++){
+    for(unsigned i=0; i<rows; i++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] == frame){
                 frame->set_parent(nullptr);
                 grid[i][j] = nullptr;
@@ -482,7 +482,7 @@ int32_t Frame::remove_frame(Frame *frame){
     return 1;
 }
 
-int32_t Frame::put(uint32_t row, uint32_t column, Frame *frame){
+int Frame::put(unsigned row, unsigned column, Frame *frame){
     
     assert(row < rows && column < columns);
     
@@ -498,7 +498,7 @@ int32_t Frame::put(uint32_t row, uint32_t column, Frame *frame){
     }
 }
 
-Frame *&Frame::get(uint32_t row, uint32_t column){
+Frame *&Frame::get(unsigned row, unsigned column){
 
     assert(row < rows && column < columns);
 
@@ -507,10 +507,10 @@ Frame *&Frame::get(uint32_t row, uint32_t column){
 
 Frame *&Frame::get(Frame *frame){
     
-    uint32_t row = 0, column = 0;
+    unsigned row = 0, column = 0;
 
-    for(uint32_t i=0; i<rows; i++){
-        for(uint32_t j=0; j<columns; j++){
+    for(unsigned i=0; i<rows; i++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] == frame){
                 row = i;
                 column = j;
@@ -534,17 +534,17 @@ void Frame::fill_width(std::vector<float> widthFill_){
     widthFill = widthFill_;
 }
 
-void Frame::fill_height(uint32_t row, float value){
+void Frame::fill_height(unsigned row, float value){
     assert(row < rows);
     heightFill[row] = value;
 }
 
-void Frame::fill_width(uint32_t column, float value){
+void Frame::fill_width(unsigned column, float value){
     assert(column < columns);
     widthFill[column] = value;
 }
 
-void Frame::set_span(uint32_t rowSpan_, uint32_t columnSpan_){
+void Frame::set_span(unsigned rowSpan_, unsigned columnSpan_){
     rowSpan = std::max(1u, rowSpan_);
     columnSpan = std::max(1u, columnSpan_);
 };
@@ -572,8 +572,8 @@ void Frame::update_style(){
     
     set_look(look);
 
-    for(uint32_t i=0; i<rows; i++){
-        for(uint32_t j=0; j<columns; j++){
+    for(unsigned i=0; i<rows; i++){
+        for(unsigned j=0; j<columns; j++){
             if(grid[i][j] != nullptr){
                 grid[i][j]->update_style();
             }

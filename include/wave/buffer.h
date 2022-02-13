@@ -9,26 +9,26 @@ class Buffer {
 
 public:
 
-    Buffer(uint32_t capacity_ = 1<<15);
+    Buffer(unsigned capacity_ = 1<<15);
     virtual ~Buffer();
     
     // retrieve data
-    std::vector<float> pull(uint32_t amount);
+    std::vector<float> pull(unsigned amount);
 
     // append data
-    void push(const float *data, uint32_t amount);
+    void push(const float *data, unsigned amount);
     void push(const std::vector<float> &data);
 
     // how much data the buffer needs until it is satisfied?
-    uint32_t hunger();
+    unsigned hunger();
     
     // the amount of available data
-    uint32_t max();
+    unsigned max();
     
 protected:
     
     // number of samples needed to satisfy the buffer
-    uint32_t capacity;
+    unsigned capacity;
 
     // clear all data and reset pointers.
     void reset();
@@ -36,8 +36,8 @@ protected:
     std::vector<float> buffer;
     std::mutex lock;
 
-    uint32_t read = 0;
-    uint32_t write = 0;
+    unsigned read = 0;
+    unsigned write = 0;
 
 };
 

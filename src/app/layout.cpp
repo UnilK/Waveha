@@ -49,7 +49,7 @@ void Layout::save(Saver &saver){
 
     saver.write_unsigned(stack.size());
 
-    for(uint32_t i=0; i<stack.size(); i++){
+    for(unsigned i=0; i<stack.size(); i++){
         Tab *tab = (Tab*)stack.get(i);
         tab->save(saver);
     }
@@ -63,7 +63,7 @@ void Layout::load(Loader &loader){
 
     unsigned tamount = loader.read_unsigned();
     
-    for(uint32_t i=0; i<tamount; i++){
+    for(unsigned i=0; i<tamount; i++){
         Tab *tab = new Tab(&app);
         stack.push_back(tab->set_manager(&stack));
         tab->load(loader);
@@ -76,7 +76,7 @@ void Layout::reset(){
 
     selected = nullptr;
 
-    for(uint32_t i=0; i<stack.size(); i++) delete stack.get(i);
+    for(unsigned i=0; i<stack.size(); i++) delete stack.get(i);
 
     stack.clear();
 

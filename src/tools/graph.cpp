@@ -85,7 +85,7 @@ void Graph::set_look(std::string look_){
     refresh_indicator();
 }
 
-ui::Frame::Capture Graph::on_event(sf::Event event, int32_t priority){
+ui::Frame::Capture Graph::on_event(sf::Event event, int priority){
 
     if(priority > 0) return Capture::pass;
 
@@ -177,10 +177,35 @@ ui::Frame::Capture Graph::on_event(sf::Event event, int32_t priority){
             refresh_all();
             return Capture::capture;
         }
+    }
+    
+    return Capture::pass;
+}
+
+void Graph::on_reconfig(){
+    Frame::on_reconfig();
+    refresh_all();
+}
+
+
+void Graph::on_refresh(){
+
+    Frame::on_refresh();
+
+    master->draw(xAxis);
+    master->draw(yAxis);
+    master->draw(vertices);
+
+    if(hasInspector){
+
+        master->draw(indicatorLine);
+        master->draw(phaseIndicator);
+        master->draw(indicatorNeedle);
+        master->draw(indicatorTextX);
+        master->draw(indicatorTextY);
+        master->draw(indicatorTextA);
 
     }
-
-    return Capture::pass;
 }
 
 void Graph::set_origo(float x, float y){
@@ -222,13 +247,13 @@ void Graph::switch_inspector_lock(){
 
 void Graph::set_data(const std::vector<float> &data, bool imag){
     std::vector<Point> newData(data.size());
-    for(uint32_t i=0; i<data.size(); i++) newData[i] = {(float)i, data[i]};
+    for(unsigned i=0; i<data.size(); i++) newData[i] = {(float)i, data[i]};
     set_data(newData, imag);
 }
 
 void Graph::set_data(const std::vector<std::complex<float> > &data, bool imag){
     std::vector<Point> newData(data.size());
-    for(uint32_t i=0; i<data.size(); i++) newData[i] = {(float)i, data[i]};
+    for(unsigned i=0; i<data.size(); i++) newData[i] = {(float)i, data[i]};
     set_data(newData, imag);
 }
 
@@ -296,16 +321,11 @@ void Graph::set_scalar_y(double y){
     scalarY = y;
 }
 
-void Graph::on_reconfig(){
-    border.set_size(canvasWidth, canvasHeight);
-    refresh_all();  
-}
-
 void Graph::refresh_vertices(){
 
     vertices.resize(points.size());
 
-    for(uint32_t i=0; i<points.size(); i++){
+    for(unsigned i=0; i<points.size(); i++){
        
         vertices[i].color = color("vertexColor");
         
@@ -367,26 +387,6 @@ void Graph::refresh_indicator(){
 void Graph::refresh_all(){
     refresh_vertices();
     refresh_indicator();
-}
-
-void Graph::on_refresh(){
-
-    Frame::on_refresh();
-
-    master->draw(xAxis);
-    master->draw(yAxis);
-    master->draw(vertices);
-
-    if(hasInspector){
-
-        master->draw(indicatorLine);
-        master->draw(phaseIndicator);
-        master->draw(indicatorNeedle);
-        master->draw(indicatorTextX);
-        master->draw(indicatorTextY);
-        master->draw(indicatorTextA);
-
-    }
 }
 
 }

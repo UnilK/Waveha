@@ -32,6 +32,9 @@ public:
     void save_audio(ui::Command);
 
 private:
+    
+    static const std::string type;
+    static int init_class;
 
     App &app;
 

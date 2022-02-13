@@ -6,14 +6,64 @@
 
 namespace app {
 
+AnalyzerGraph::AnalyzerGraph(Analyzer &a, ui::Kwargs kwargs) :
+    Graph((App*)a.get_master(), kwargs),
+    analyzer(a)
+{}
+
+ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
+
+    if(Graph::on_event(event, priority) == Capture::capture){
+        return Capture::capture;
+    }
+
+    if(event.type == sf::Event::KeyPressed){
+        
+        if(event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::D){
+            
+            int speed = 1<<4;
+            if(event.key.code == sf::Keyboard::A) speed = -speed;
+
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
+                && sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                speed = speed / (1<<4) * analyzer.source->frameRate * analyzer.source->channels;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+                speed /= 1<<4;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                speed *= 1<<4;
+
+            analyzer.position = std::max(0, analyzer.position + speed);
+
+            analyzer.update_data();
+
+            return Capture::capture;
+
+        } else if(event.key.code == sf::Keyboard::W || event.key.code == sf::Keyboard::S){
+
+            if(event.key.code == sf::Keyboard::S)
+                analyzer.length = std::max(1, analyzer.length / 2);
+            else 
+                analyzer.length = std::min(1<<18, analyzer.length * 2);
+
+            analyzer.update_data();
+
+            return Capture::capture;
+        }
+    }
+
+    return Capture::pass;
+}
+
+
+
 Analyzer::Analyzer(App *a) :
     Content(a),
     app(*a),
     slider(a, ui::Side::up, ui::Side::up, {.look = "basebox", .height = 100}),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}}),
-    graph(a, {.look = "agraph", .border = {0, 0, 0, 0}}),
+    graph(*this, {.look = "agraph", .border = {0, 0, 0, 0}}),
     buttons(a, {.height = 20}),
-    fileNameBox(a, "", {.look = "basetext", .border = {0, 0, 0, 1}}),
+    sourceNameBox(a, "source: (none)", {.look = "basetext", .border = {0, 0, 0, 1}}),
     
     switchRegular(
             a,
@@ -63,7 +113,9 @@ Analyzer::Analyzer(App *a) :
     buttons.put(0, 2, &switchPeak);
     buttons.put(0, 3, &switchCorrelation);
 
-    buttons.put(0, 9, &fileNameBox);
+    buttons.put(0, 9, &sourceNameBox);
+    sourceNameBox.text_stick(ui::Text::left);
+    sourceNameBox.text_offset(1, -0.1);
 
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
@@ -78,7 +130,14 @@ Analyzer::~Analyzer(){
     }
 }
 
-std::string Analyzer::content_type(){ return "analyze"; }
+std::string Analyzer::content_type(){ return type; }
+
+const std::string Analyzer::type = "analyze";
+
+int Analyzer::init_class = [](){
+    Slot::add_content_type(type, [](App *a){ return new Analyzer(a); });
+    return 0;
+}();
 
 void Analyzer::save(Saver &saver){
 
@@ -187,47 +246,6 @@ void Analyzer::update_data(){
 
 }
 
-ui::Frame::Capture Analyzer::on_event(sf::Event event, int32_t priority){
-
-    if(event.type == sf::Event::KeyPressed){
-        
-        if(event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::D){
-            
-            int32_t speed = 1<<4;
-            if(event.key.code == sf::Keyboard::A) speed = -speed;
-
-            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
-                && sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed = speed / (1<<4) * source->frameRate * source->channels;
-            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-                speed /= 1<<4;
-            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed *= 1<<4;
-
-            position = std::max(0, position + speed);
-
-            update_data();
-
-            return Capture::capture;
-
-        } else if(event.key.code == sf::Keyboard::W || event.key.code == sf::Keyboard::S){
-
-            if(event.key.code == sf::Keyboard::S)
-                length = std::max(1, length / 2);
-            else 
-                length = std::min(1<<20, length * 2);
-
-            update_data();
-
-            return Capture::capture;
-        }
-    
-    }
-
-    return Capture::pass;
-}
-
-
 void Analyzer::switch_regular(){
     switch_mode(regularMode);
 }
@@ -251,15 +269,13 @@ void Analyzer::link_audio(ui::Command c){
     if(source != nullptr) delete source;
     source = app.audio.get_source(sourceName);
 
+    sourceNameBox.set_text("source: " + sourceName);
+
     position = 0;
 
     update_data();
     switch_mode(dataMode);
 
 }
-
-struct initAnalyzer {
-    initAnalyzer(){ Slot::add_content_type("analyze", [&](App *a){ return new Analyzer(a); } ); }
-} iAnalyzer;
 
 }

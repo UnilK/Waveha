@@ -53,7 +53,14 @@ void Recorder::save(Saver &save){}
 
 void Recorder::load(Loader &loader){}
 
-std::string Recorder::content_type(){ return "record"; }
+const std::string Recorder::type = "record";
+
+std::string Recorder::content_type(){ return type; }
+
+int Recorder::init_class = [](){
+    Slot::add_content_type(type, [](App *a){ return new Recorder(a); });
+    return 0;
+}();
 
 void Recorder::on_tick(){
     
@@ -165,15 +172,13 @@ void Recorder::save_audio(ui::Command c){
 
     std::string name = c.pop();
 
-    if(!app.audio.cache(name, audio.channels, audio.frameRate, audio.data)){
-        c.source.push_error("invalid cache name");
+    wave::Audio *copy = new wave::Audio(audio);
+
+    if(app.audio.add_cache(copy)){
+        c.source.push_output("source overriden");
     }
 
 }
-
-struct initRecorder {
-    initRecorder(){ Slot::add_content_type("record", [&](App *a){ return new Recorder(a); } ); }
-} iRecorder;
 
 }
 

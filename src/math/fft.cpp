@@ -2,62 +2,60 @@
 #include "math/constants.hpp"
 
 #include <algorithm>
+#include <assert.h>
 
 namespace math {
 
 using std::vector;
 using std::complex;
 
-// precalc table size = 1<<B (2 to the power of B)
-int32_t B;
+FFTPrecalc::FFTPrecalc(unsigned B_){
+    resize(B_);
+}
 
-// precalculation tables
-vector<vector<complex<float> > > w;
-vector<int32_t > invbit;
-
-struct init {
-    init(int32_t B_){
-        
-        B = B_;
-        w.resize(B);
-        invbit.resize(1<<B, 0);
-
-        w[B-1].resize(1<<(B-1));
-        for(int32_t i=0; i<(1<<(B-1)); i++) w[B-1][i] = std::polar(1.0f, -PIF*i/(1<<(B-1)));
-        if(B>1) invbit[1] = 1;
-
-        for(int32_t b=B-2; b>=0; b--){
-            int32_t n = 1<<b, nn = 1<<(B-b-1);
-            w[b].resize(n);
-            for(int32_t i=0; i<nn; i++){
-                invbit[i] <<= 1;
-                invbit[i+nn] = invbit[i]|1;
-            }
-            for(int32_t i=0; i<n; i++) w[b][i] = w[b+1][2*i];
-        }
-    }
-} initialize(18);
-
-
-void in_place_fft(complex<float> *v, int32_t n, bool inv){
+void FFTPrecalc::resize(unsigned B_){
     
-    int32_t bits = 0;
-    while(1<<bits < n) bits++;
+    B = B_;
+    w.resize(B);
+    invbit.resize(1u<<B, 0);
+
+    w[B-1].resize(1u<<(B-1));
+    for(unsigned i=0; i<(1u<<(B-1)); i++) w[B-1][i] = std::polar(1.0f, -PIF*i/(1<<(B-1)));
+    if(B>1) invbit[1] = 1;
+
+    for(unsigned b=B-1; b-->0;){
+        unsigned n = 1<<b, nn = 1<<(B-b-1);
+        w[b].resize(n);
+        for(unsigned i=0; i<nn; i++){
+            invbit[i] <<= 1;
+            invbit[i+nn] = invbit[i]|1;
+        }
+        for(unsigned i=0; i<n; i++) w[b][i] = w[b+1][2*i];
+    }
+}
+
+FFTPrecalc fftPrecalc(18);
+
+void in_place_fft(complex<float> *v, unsigned n, bool inv){
+    
+    unsigned bits = 0;
+    while(1u<<bits < n) bits++;
 
     // only powers of 2 are supported
-    if(1<<bits != n) return;
+    assert(1u<<bits == n);
+    assert(bits <= fftPrecalc.B);
     
-    int32_t shift = B-bits;
+    unsigned shift = fftPrecalc.B-bits;
 
-    for(int32_t i=0; i<n; i++){
-        if(i < invbit[i]>>shift) std::swap(v[i], v[invbit[i]>>shift]);
+    for(unsigned i=0; i<n; i++){
+        if(i < fftPrecalc.invbit[i]>>shift) std::swap(v[i], v[fftPrecalc.invbit[i]>>shift]);
     }
 
-    for(int32_t r=0; r<bits; r++){
-        int32_t rd = 1<<r;
-        for(int32_t i=0; i<n; i+=2*rd){
-            for(int32_t j=i; j<i+rd; j++){
-                complex<float> tmp = w[r][j-i]*v[j+rd];
+    for(unsigned r=0; r<bits; r++){
+        unsigned rd = 1u<<r;
+        for(unsigned i=0; i<n; i+=2*rd){
+            for(unsigned j=i; j<i+rd; j++){
+                complex<float> tmp = fftPrecalc.w[r][j-i]*v[j+rd];
                 v[j+rd] = v[j]-tmp;
                 v[j] = v[j]+tmp;
             }
@@ -66,7 +64,7 @@ void in_place_fft(complex<float> *v, int32_t n, bool inv){
 
     if(inv){
         std::reverse(v+1, v+n);
-        for(int32_t i=0; i<n; i++) v[i] /= n;
+        for(unsigned i=0; i<n; i++) v[i] /= n;
     }
 }
 
@@ -74,9 +72,9 @@ void in_place_fft(vector<complex<float> > &v, bool inv){
     in_place_fft(v.data(), v.size(), inv);
 }
 
-vector<complex<float> > fft(const float *v, int32_t n){
+vector<complex<float> > fft(const float *v, unsigned n){
     vector<complex<float> > f(n);
-    for(int32_t i=0; i<n; i++) f[i] = v[i];
+    for(unsigned i=0; i<n; i++) f[i] = v[i];
     in_place_fft(f, n);
     return f;
 }
@@ -85,12 +83,12 @@ vector<complex<float> > fft(const vector<float> &v){
     return fft(v.data(), v.size());
 }
 
-vector<float> inverse_fft(const complex<float> *v, int32_t n){
+vector<float> inverse_fft(const complex<float> *v, unsigned n){
     vector<float> r(n);
     vector<complex<float> > f(n);
-    for(int32_t i=0; i<n; i++) f[i] = v[i];
+    for(unsigned i=0; i<n; i++) f[i] = v[i];
     in_place_fft(f, 1);
-    for(int32_t i=0; i<n; i++) r[i] = f[i].real();
+    for(unsigned i=0; i<n; i++) r[i] = f[i].real();
     return r;
 }
 
@@ -103,34 +101,34 @@ vector<complex<float> > fft(vector<complex<float> > v, bool inv){
     return v;
 }
 
-vector<complex<float> > fft(complex<float> *v, int32_t n, bool inv){
+vector<complex<float> > fft(complex<float> *v, unsigned n, bool inv){
     vector<complex<float> > f(n);
-    for(int32_t i=0; i<n; i++) f[i] = v[i];
+    for(unsigned i=0; i<n; i++) f[i] = v[i];
     in_place_fft(f, inv);
     return f;
 }
 
-vector<float> convolution(vector<float> &a, vector<float> &b, int32_t size){
+vector<float> convolution(vector<float> &a, vector<float> &b, unsigned size){
     
-    int32_t za = a.size(), zb = b.size();
-    int32_t mx = std::max(za, zb);
-    int32_t n = size;
+    unsigned za = a.size(), zb = b.size();
+    unsigned mx = std::max(za, zb);
+    unsigned n = size;
     if(!n) n = za + zb - 1;
 
-    int32_t cz = 1;
+    unsigned cz = 1;
     while(cz < n) cz *= 2;
 
     vector<complex<float> > c(cz, {0, 0});
     
-    for(int32_t i=0; i<mx; i++){
+    for(unsigned i=0; i<mx; i++){
         if(i < za) c[i] = {a[i], 0};
         if(i < zb) c[i] = {c[i].real(), b[i]};
     }
 
     in_place_fft(c);
 
-    for(int32_t i=0; 2*i<=cz; i++){
-        int32_t j = (cz-i)%cz;
+    for(unsigned i=0; 2*i<=cz; i++){
+        unsigned j = (cz-i)%cz;
         c[i] = -(c[i]-conj(c[j]))*(c[i]+conj(c[j]))*complex<float>(0, 0.25f);
         c[j] = conj(c[i]);
     }
@@ -138,7 +136,7 @@ vector<float> convolution(vector<float> &a, vector<float> &b, int32_t size){
     in_place_fft(c, 1);
 
     vector<float> r(n, 0);
-    for(int32_t i=0; i<n; i++) r[i] = c[i].real();
+    for(unsigned i=0; i<n; i++) r[i] = c[i].real();
     
     return r;
 }
@@ -146,12 +144,12 @@ vector<float> convolution(vector<float> &a, vector<float> &b, int32_t size){
 vector<complex<float> > convolution(
         vector<complex<float> > a,
         vector<complex<float> > b,
-        int32_t size){
+        unsigned size){
 
-    int32_t n = size;
+    unsigned n = size;
     if(!n) n = a.size() + b.size() - 1;
 
-    int32_t z = 1;
+    unsigned z = 1;
     while(z < n) z *= 2;
 
     a.resize(z, {0, 0});
@@ -160,7 +158,7 @@ vector<complex<float> > convolution(
     in_place_fft(a);
     in_place_fft(b);
 
-    for(int32_t i=0; i<z; i++) a[i] *= b[i];
+    for(unsigned i=0; i<z; i++) a[i] *= b[i];
 
     in_place_fft(a, 1);
 
@@ -171,20 +169,20 @@ vector<complex<float> > convolution(
 
 vector<complex<float> > bluestein(vector<complex<float> > v, bool inv){
     
-    int32_t z = v.size(), n = 1;
+    unsigned z = v.size(), n = 1;
     while(n < 2*z-1) n *= 2;
 
     v.resize(n, {0, 0});
     vector<complex<float> > w(n, {0, 0});
 
-    for(int32_t i=0; i<z; i++){
+    for(unsigned i=0; i<z; i++){
         w[i] = w[(n-i)%n] = std::polar(1.0f, PIF*i*i/z);
         v[i] *= conj(w[i]);
     }
 
     vector<complex<float> > c = convolution(v, w, n);
  
-    for(int32_t i=0; i<z; i++) c[i] *= conj(w[i]);
+    for(unsigned i=0; i<z; i++) c[i] *= conj(w[i]);
 
     c.resize(z);
 
@@ -198,14 +196,14 @@ vector<complex<float> > bluestein(vector<complex<float> > v, bool inv){
 
 vector<complex<float> > bluestein(vector<float> &v, bool inv){
     vector<complex<float> > w(v.size());
-    for(uint32_t i=0; i<v.size(); i++) w[i] = v[i];
+    for(unsigned i=0; i<v.size(); i++) w[i] = v[i];
     return bluestein(w, inv);
 }
 
 vector<float> inverse_bluestein(vector<complex<float> > &v){
     auto w = bluestein(v, 1);
     vector<float> r(w.size());
-    for(uint32_t i=0; i<v.size(); i++) r[i] = w[i].real();
+    for(unsigned i=0; i<v.size(); i++) r[i] = w[i].real();
     return r;
 }
 

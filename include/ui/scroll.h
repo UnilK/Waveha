@@ -16,7 +16,7 @@ public:
     Scroll(Window *master_, std::function<void(float)> func, Kwargs = {});
     virtual ~Scroll();
 
-    Capture on_event(sf::Event event, int32_t priority);
+    Capture on_event(sf::Event event, int priority);
 
 private:
 

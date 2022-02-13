@@ -40,7 +40,7 @@ void Audio::load(Loader &loader){
     for(unsigned i=0; i<famount; i++){
         auto name = loader.read_string();
         auto file = loader.read_string();
-        link(name, file);
+        add_file(name, file);
     }
 
     unsigned camount = loader.read_unsigned();
@@ -57,8 +57,9 @@ void Audio::load(Loader &loader){
         audio->data.resize(data.size() / sizeof(float));
 
         memcpy((char*)audio->data.data(), data.data(), data.size());
+    
+        add_cache(audio);
 
-        caches[audio->name] = audio;
     }
 }
 
@@ -71,34 +72,44 @@ void Audio::reset(){
     for(auto i : keys) remove_audio(i);
 }
 
+bool Audio::pop_update(std::string key){
+    bool ret = is_updated(key);
+    updates.erase(key);
+    return ret;
+}
+
+bool Audio::is_updated(std::string key){
+    return updates.count(key);
+}
+
 bool Audio::key_exists(std::string key){
     return files.count(key) != 0 || caches.count(key) != 0;
 }
 
-bool Audio::cache(
-        std::string name,
-        uint32_t channels,
-        uint32_t frameRate,
-        const std::vector<float> &data)
-{
-    if(key_exists(name)) return 0;
+int Audio::add_cache(wave::Audio *audio){
 
-    caches[name] = new wave::Audio(name, channels, frameRate, data);
+    int ret = key_exists(audio->name);
 
-    return 1;
+    if(ret) remove_audio(audio->name);
+
+    caches[audio->name] = audio;
+
+    return ret;
 }
 
-bool Audio::link(std::string name, std::string file){
+int Audio::add_file(std::string name, std::string file){
     
-    if(key_exists(name)) return 0;
+    bool ret = key_exists(name);
+
+    if(ret) remove_audio(name);
 
     iwstream I;
 
-    if(!I.open(file)) return 0;
+    if(!I.open(file)) return 2;
 
     files[name] = file;
 
-    return 1;
+    return ret;
 }
 
 bool Audio::remove_audio(std::string name){
@@ -145,21 +156,13 @@ void AudioDir::list_sources(ui::Command c){
 
     message += "files:\n";
     
-    if(audio.files.empty()){
-        message += "(empty)\n";
-    }
-    else {
-        for(auto i : audio.files) message += i.first + "\n";
-    }
+    if(audio.files.empty()) message += "(empty)\n";
+    else for(auto i : audio.files) message += i.first + "\n";
 
     message += "\ncaches:\n";
 
-    if(audio.caches.empty()){
-        message += "(empty)\n";
-    }
-    else {
-        for(auto i : audio.caches) message += i.first + "\n";
-    }
+    if(audio.caches.empty()) message += "(empty)\n";
+    else for(auto i : audio.caches) message += i.first + "\n";
 
     message.pop_back();
 
@@ -172,12 +175,7 @@ void AudioDir::link_audio(ui::Command c){
     std::string name = file;
     if(!c.empty()) name = c.pop();
 
-    if(audio.key_exists(name)){
-        c.source.push_error("source with name \"" + name + "\" already exsists");
-        return;
-    }
-
-    if(!audio.link(name, "audio/" + file + ".wav")){
+    if(audio.add_file(name, "audio/" + file + ".wav") == 2){
         c.source.push_error("error opening file: audio/" + file + ".wav");
     }
 

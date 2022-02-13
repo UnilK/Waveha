@@ -6,11 +6,11 @@
 
 namespace wave {
 
-Buffer::Buffer(uint32_t capacity_) : capacity(capacity_) {}
+Buffer::Buffer(unsigned capacity_) : capacity(capacity_) {}
 
 Buffer::~Buffer(){}
 
-std::vector<float> Buffer::pull(uint32_t amount){
+std::vector<float> Buffer::pull(unsigned amount){
    
     lock.lock();
     
@@ -31,11 +31,11 @@ std::vector<float> Buffer::pull(uint32_t amount){
     return data;
 }
 
-void Buffer::push(const float *data, uint32_t amount){
+void Buffer::push(const float *data, unsigned amount){
     
     lock.lock();
 
-    buffer.resize(std::max(write + amount, (uint32_t)buffer.size()));
+    buffer.resize(std::max(write + amount, (unsigned)buffer.size()));
 
     memcpy(buffer.data() + write, data, sizeof(float) * amount);
     write += amount;
@@ -47,20 +47,20 @@ void Buffer::push(const std::vector<float> &data){
     push(data.data(), data.size());
 }
 
-uint32_t Buffer::max(){
+unsigned Buffer::max(){
     
     lock.lock();
-    uint32_t max = write - read;
+    unsigned max = write - read;
     lock.unlock();
     
     return max;
 }
 
-uint32_t Buffer::hunger(){
+unsigned Buffer::hunger(){
     
     lock.lock();
     if(capacity < (write - read)) return 0;
-    uint32_t hunger = capacity - (write - read);
+    unsigned hunger = capacity - (write - read);
     lock.unlock();
     
     return hunger;

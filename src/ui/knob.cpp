@@ -43,7 +43,7 @@ void Knob::on_reconfig(){
     needle[1].position = {midX + std::cos(angle) * radius, midY + std::sin(angle) * radius}; 
 }
 
-Frame::Capture Knob::on_event(sf::Event event, int32_t priority){
+Frame::Capture Knob::on_event(sf::Event event, int priority){
 
     if(priority > 0) return Capture::pass;
 

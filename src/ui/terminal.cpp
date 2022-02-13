@@ -171,7 +171,7 @@ Terminal::Terminal(Window *master_, Kwargs kwargs) :
 
 Terminal::~Terminal(){}
 
-Frame::Capture Terminal::on_event(sf::Event event, int32_t priority){
+Frame::Capture Terminal::on_event(sf::Event event, int priority){
     
     if(priority > 0) return Capture::pass;
 
@@ -289,9 +289,9 @@ void Terminal::on_refresh(){
     Frame::on_refresh();
 
     float charWidth = font("font").getGlyph(0x0020, num("textSize"), 0).advance; // space size
-    uint32_t maxChars = std::max(1.0f, std::floor((canvasWidth - offsetX - charWidth) / charWidth));
+    unsigned maxChars = std::max(1.0f, std::floor((canvasWidth - offsetX - charWidth) / charWidth));
 
-    uint32_t blinkerPos = editX, editCount = 0;
+    unsigned blinkerPos = editX, editCount = 0;
 
     std::string packed;
     auto content = wrap(prefix + edits[editY], maxChars);
@@ -319,8 +319,8 @@ void Terminal::on_refresh(){
     x = std::round(offsetX);
     y = std::round((float)text.getCharacterSize() * content.size());
 
-    uint32_t count = 0;
-    for(uint32_t i = 0; y < canvasHeight && i < buffer.size(); i++){
+    unsigned count = 0;
+    for(unsigned i = 0; y < canvasHeight && i < buffer.size(); i++){
         
         packed.clear();
 
@@ -342,7 +342,7 @@ void Terminal::on_refresh(){
         if(count > bufferOffset){
             rect = text.getLocalBounds();
             y = std::round(y + (float)text.getCharacterSize()
-                    * std::min(count - bufferOffset, (uint32_t)content.size()));
+                    * std::min(count - bufferOffset, (unsigned)content.size()));
         }
     }
 }
@@ -371,7 +371,7 @@ std::vector<std::string> Terminal::create_command(std::string s){
 
     std::vector<std::string> parsed;
     
-    uint32_t left = 0, right = 1;
+    unsigned left = 0, right = 1;
     while(left < s.size()){
         
         std::string sub;
@@ -398,18 +398,18 @@ std::vector<std::string> Terminal::create_command(std::string s){
        
         std::vector<std::string> old = parsed;
         parsed = address;
-        for(uint32_t i=1; i<old.size(); i++) parsed.push_back(old[i]);
+        for(unsigned i=1; i<old.size(); i++) parsed.push_back(old[i]);
         
     }
 
     return parsed;
 }
 
-std::vector<std::string> Terminal::wrap(std::string s, uint32_t max){
+std::vector<std::string> Terminal::wrap(std::string s, unsigned max){
     
     std::vector<std::string> wrapped = {""};
 
-    uint32_t length = 0, left = 0, right = 1;
+    unsigned length = 0, left = 0, right = 1;
     while(left < s.size()){
        
         if(s[left] == '\n'){

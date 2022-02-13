@@ -17,10 +17,12 @@ public:
     virtual ~File();
 
     void open(std::string fileName);
+    unsigned tell();
+    unsigned size();
 
-    void seek(uint32_t sample);
-    bool pull(uint32_t amount, std::vector<float> &samples);
-    std::vector<float> get(uint32_t amount, uint32_t begin);
+    void seek(unsigned sample);
+    unsigned pull(unsigned amount, std::vector<float> &samples);
+    std::vector<float> get(unsigned amount, unsigned begin);
 
 protected:
 
