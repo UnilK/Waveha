@@ -27,10 +27,6 @@ public:
     void shuffle_matrix(ui::Command);
     void unit_matrix(ui::Command);
 
-    void update_data();
-    void set_begin(unsigned);
-    void set_end(unsigned);
-
 private:
     
     static const std::string type;

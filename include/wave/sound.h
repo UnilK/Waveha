@@ -27,16 +27,22 @@ class Player : public sf::SoundStream {
 
 public:
 
-    Player(Source &source_);
+    Player(Source*);
     virtual ~Player();
+
+    void open(Source*);
 
     // pushes 1/2 a second of audio at a time.
     bool onGetData(sf::SoundStream::Chunk &data);
     void onSeek(sf::Time timeOffset);
 
+    void set_block(double);
+
 private:
 
-    Source &source;
+    double blockSeconds = 0.5f;
+
+    Source *source;
     std::vector<sf::Int16> temp;
 
 };

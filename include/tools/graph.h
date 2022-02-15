@@ -105,7 +105,7 @@ protected:
     sf::VertexArray xAxis, yAxis;
     bool yAxisPosition = 0, xAxisPosition = 0;
   
-    // for mocign the graph with a mouse
+    // for moving the graph with a mouse
     float dragX = 0, dragY = 0;
     float beginX = 0, beginY = 0;
 

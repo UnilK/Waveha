@@ -13,6 +13,7 @@ class Matrix {
 public:
 
     Matrix(unsigned size);
+    Matrix();
 
     void resize(unsigned size);
     unsigned size() const;

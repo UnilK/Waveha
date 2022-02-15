@@ -13,6 +13,8 @@ Matrix::Matrix(unsigned size){
     resize(size);
 }
 
+Matrix::Matrix(){}
+
 void Matrix::resize(unsigned size){
     x.resize(size);
     for(auto &i : x) i.resize(size);

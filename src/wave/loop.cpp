@@ -4,21 +4,21 @@
 
 namespace wave {
 
-Loop::Loop(Source &s) : source(s) {
+Loop::Loop(Source *s){
     open(s);
 }
 
 Loop::~Loop(){}
 
-void Loop::open(Source &s){
+void Loop::open(Source *s){
     source = s;
-    channels = source.channels;
-    frameRate = source.frameRate;
+    channels = source->channels;
+    frameRate = source->frameRate;
     seek(0);
 }
 
 void Loop::seek(unsigned sample){
-    read = sample % source.size();
+    read = sample % source->size();
 }
 
 unsigned Loop::tell(){
@@ -26,54 +26,50 @@ unsigned Loop::tell(){
 }
 
 unsigned Loop::size(){
-    return 0;
+    return source->size();
 }
 
 unsigned Loop::pull(unsigned amount, std::vector<float> &samples){
 
     samples = std::vector<float>(amount, 0.0f);
 
-    unsigned position = 0;
+    unsigned position = 0, left = amount;
 
-    while(amount){
+    while(left){
         
-        unsigned jump = std::min(amount, source.size() - read);
+        unsigned jump = std::min(left, size() - read % size());
 
-        auto segment = source.get(jump, read);
+        auto segment = source->get(jump, read);
 
-        for(unsigned i=0; i<jump; i++){
-            samples[position++] = segment[i];
-        }
+        for(unsigned i=0; i<jump; i++) samples[position++] = segment[i];
         
         read += jump;
-        read %= source.size();
+        read %= size();
 
-        amount -= jump;
+        left -= jump;
     }
 
     return amount;
 }
 
 std::vector<float> Loop::get(unsigned amount, unsigned begin){
-    
+
     std::vector<float> samples(amount, 0.0f);
 
-    unsigned position = 0;
+    unsigned position = 0, left = amount;
 
-    while(amount){
+    while(left){
         
-        unsigned jump = std::min(amount, source.size() - begin);
+        unsigned jump = std::min(left, size() - begin % size());
 
-        auto segment = source.get(jump, begin);
+        auto segment = source->get(jump, begin);
 
-        for(unsigned i=0; i<jump; i++){
-            samples[position++] = segment[i];
-        }
+        for(unsigned i=0; i<jump; i++) samples[position++] = segment[i];
         
         begin += jump;
-        begin %= source.size();
+        begin %= size();
 
-        amount -= jump;
+        left -= jump;
     }
 
     return samples;

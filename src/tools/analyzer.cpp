@@ -1,15 +1,28 @@
 #include "tools/analyzer.h"
 #include "app/app.h"
+#include "app/audio.h"
 #include "math/fft.h"
 
 #include <algorithm>
+#include <math.h>
+#include <limits>
 
 namespace app {
 
 AnalyzerGraph::AnalyzerGraph(Analyzer &a, ui::Kwargs kwargs) :
     Graph((App*)a.get_master(), kwargs),
+    beginLine(sf::LineStrip, 2),
+    endLine(sf::LineStrip, 2),
     analyzer(a)
-{}
+{
+    set_look(look);
+}
+
+void AnalyzerGraph::set_look(std::string look_){
+    Graph::set_look(look_);
+    for(int i=0; i<2; i++) beginLine[i].color = color("axisColor");
+    for(int i=0; i<2; i++) endLine[i].color = color("axisColor");
+}
 
 ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
@@ -32,9 +45,11 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                 speed *= 1<<4;
 
-            analyzer.position = std::max(0, analyzer.position + speed);
-
-            analyzer.update_data();
+            if(analyzer.loop != nullptr){
+                analyzer.position = (analyzer.position + speed) % (int)analyzer.loop->size();
+                if(analyzer.position < 0) analyzer.position += analyzer.loop->size();
+                analyzer.update_data();
+            }
 
             return Capture::capture;
 
@@ -48,20 +63,148 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             analyzer.update_data();
 
             return Capture::capture;
+        
+        } else if(event.key.code == sf::Keyboard::I || event.key.code == sf::Keyboard::K){
+           
+            if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
+                return Capture::pass;
+
+            int speed = 1<<4;
+            if(event.key.code == sf::Keyboard::K) speed = -speed;
+
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+                speed /= 1<<4;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                speed *= 1<<4;
+
+            clipEnd = (clipEnd + speed) % analyzer.loop->size();
+            if(clipEnd < clipBegin) clipEnd = clipBegin;
+
+            if(clipBegin != analyzer.clipBegin || clipEnd != analyzer.clipEnd){
+                analyzer.clipBegin = clipBegin;
+                analyzer.clipEnd = clipEnd;
+                analyzer.save_clip();
+                set_refresh();
+            }
+
+        } else if(event.key.code == sf::Keyboard::J || event.key.code == sf::Keyboard::L){
+            
+            if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
+                return Capture::pass;
+            
+            int speed = 1<<4;
+            if(event.key.code == sf::Keyboard::J) speed = -speed;
+
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+                speed /= 1<<4;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+                speed *= 1<<4;
+
+            int length = clipEnd - clipBegin;
+
+            clipBegin = (clipBegin + speed) % (int)analyzer.loop->size();
+            if(clipBegin < 0) clipBegin += analyzer.loop->size();
+            
+            clipEnd = clipBegin + length;
+            
+            if(clipBegin != analyzer.clipBegin || clipEnd != analyzer.clipEnd){
+                analyzer.clipBegin = clipBegin;
+                analyzer.clipEnd = clipEnd;
+                analyzer.save_clip();
+                set_refresh();
+            }
+        
+        } else if(event.key.code == sf::Keyboard::U){
+            
+            if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
+                return Capture::pass;
+            
+            float x = local_mouse()[0] / scaleX + origoX;
+
+            float min = std::numeric_limits<float>::max();
+
+            int pos = 0;
+
+            for(Point &i : points){
+                if(std::abs(i.x - x) < min){
+                    min = std::abs(i.x - x);
+                    pos = (int)std::round(i.x);
+                }
+            }
+
+            pos = (int)std::round(pos + offsetX);
+
+            int length = clipEnd - clipBegin;
+            clipBegin = pos;
+            clipEnd = clipBegin + length;
+
+            if(clipBegin != analyzer.clipBegin || clipEnd != analyzer.clipEnd){
+                analyzer.clipBegin = clipBegin;
+                analyzer.clipEnd = clipEnd;
+                analyzer.save_clip();
+                set_refresh();
+            }
         }
     }
 
     return Capture::pass;
 }
 
+void AnalyzerGraph::on_refresh(){
+    
+    Graph::on_refresh();
+    
+    if(currentMode == regularMode && analyzer.loop && analyzer.clipping){
+        
+        float beginX = (clipBegin - origoX - offsetX) * scaleX;
+        beginLine[0].position = sf::Vector2f(beginX, 0);
+        beginLine[1].position = sf::Vector2f(beginX, canvasHeight);
+        
+        float endX = (clipEnd - origoX - offsetX) * scaleX;
+        endLine[0].position = sf::Vector2f(endX, 0);
+        endLine[1].position = sf::Vector2f(endX, canvasHeight);
 
+        master->draw(beginLine);
+        master->draw(endLine);
+    }
+}
+
+void AnalyzerGraph::set_view(Mode mode){
+
+    View view{origoX, origoY, scaleX, scaleY};
+    views[currentMode] = view;
+
+    if(mode == regularMode){
+        set_unit_x("");
+        set_unit_y("");
+    } else if(mode == frequencyMode){
+        set_unit_x("Hz");
+        set_unit_y("");
+    } else if(mode == peakMode){
+        set_unit_x("");
+        set_unit_y("");
+    } else if(mode == correlationMode){
+        set_unit_x("");
+        set_unit_y("");
+    }
+
+    view = views[mode];
+    currentMode = mode;
+    
+    set_origo(view.origoX, view.origoY);
+    set_scale(view.scaleX, view.scaleY);
+
+    refresh_all();
+}
 
 Analyzer::Analyzer(App *a) :
     Content(a),
     app(*a),
+    linkId(Audio::generate_reciever_id()),
     slider(a, ui::Side::up, ui::Side::up, {.look = "basebox", .height = 100}),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}}),
     graph(*this, {.look = "agraph", .border = {0, 0, 0, 0}}),
+    clipName(linkId),
     buttons(a, {.height = 20}),
     sourceNameBox(a, "source: (none)", {.look = "basetext", .border = {0, 0, 0, 1}}),
     
@@ -120,14 +263,24 @@ Analyzer::Analyzer(App *a) :
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
     terminal.put_function("link", [&](ui::Command c){ link_audio(c); });
+    terminal.put_function("name", [&](ui::Command c){ set_name(c); });
+    terminal.put_function("clip", [&](ui::Command c){ switch_clip(c); });
+    terminal.put_function("play", [&](ui::Command c){ switch_play(c); });
 
     terminal.document("link", "[name] link audio to this analyzer");
+    terminal.document("name", "[name] set clip name");
+    terminal.document("clip", "start clipping. A portion of the source"
+            "is automatically cached.");
+    terminal.document("play", "switch source audio playback.");
 }
 
 Analyzer::~Analyzer(){
     if(source != nullptr){
+        if(app.audioAlive) app.audio.detach_source(sourceName, linkId);
         delete source;
     }
+    if(loop != nullptr) delete loop;
+    if(player != nullptr) delete player;
 }
 
 std::string Analyzer::content_type(){ return type; }
@@ -138,6 +291,31 @@ int Analyzer::init_class = [](){
     Slot::add_content_type(type, [](App *a){ return new Analyzer(a); });
     return 0;
 }();
+
+void Analyzer::on_tick(){
+
+    if(playing && player->getStatus() != wave::Player::Playing){
+        playing = 0;
+    }
+    
+    if(!sourceName.empty() && app.audio.pop_update(sourceName, linkId)){
+
+        wave::Source *src = app.audio.get_source(sourceName, linkId);
+    
+        if(src){
+            
+            if(source != nullptr) delete source;
+            source = src;
+
+            if(loop == nullptr) loop = new wave::Loop(source);
+            else loop->open(source);
+
+            if(playing) player->open(loop);
+
+            update_data();
+        }
+    }
+}
 
 void Analyzer::save(Saver &saver){
 
@@ -166,41 +344,8 @@ void Analyzer::load(Loader &loader){
 void Analyzer::switch_mode(Mode mode){
     
     dataMode = mode;
+    graph.set_view(mode);
     update_data();
-    
-    if(dataMode == regularMode){
-        
-        graph.fit_x();
-        graph.fit_y();
-        graph.set_unit_x("");
-        graph.set_unit_y("");
-        graph.refresh_all();
-    
-    } else if(dataMode == frequencyMode){
-        
-        graph.fit_x();
-        graph.fit_y();
-        graph.set_unit_x("Hz");
-        graph.set_unit_y("");
-        graph.refresh_all();
-
-    } else if(dataMode == peakMode){
-
-        graph.fit_x();
-        graph.fit_y();
-        graph.set_unit_x("");
-        graph.set_unit_y("");
-        graph.refresh_all();
-
-    } else if(dataMode == correlationMode){
-
-        graph.fit_x();
-        graph.fit_y();
-        graph.set_unit_x("");
-        graph.set_unit_y("");
-        graph.refresh_all();
-
-    }
 }
 
 void Analyzer::update_data(){
@@ -213,24 +358,24 @@ void Analyzer::update_data(){
 
         if(dataMode == regularMode){
             
-            graph.set_data(source->get(length, position));
+            graph.set_data(loop->get(length, position));
             graph.set_offset_x(position);
             graph.set_scalar_x(1);
             graph.refresh_all();
         
         } else if(dataMode == frequencyMode){
             
-            auto data = math::fft(source->get(length, position));
+            auto data = math::fft(loop->get(length, position));
             data.resize(data.size()/2 + 1);
 
             graph.set_data(data);
             graph.set_offset_x(0);
-            graph.set_scalar_x((double)source->frameRate / length);
+            graph.set_scalar_x((double)loop->frameRate / length);
             graph.refresh_all();
             
         } else if(dataMode == peakMode){
 
-            graph.set_data(pitch.graph(source->get(length, position)));
+            graph.set_data(pitch.graph(loop->get(length, position)));
             graph.set_offset_x(0);
             graph.set_scalar_x(1);
             graph.refresh_all();
@@ -244,6 +389,23 @@ void Analyzer::update_data(){
         }
     }
 
+}
+
+void Analyzer::save_clip(){
+    
+    if(loop != nullptr){
+
+        int length = clipEnd - clipBegin + 1;
+        
+        wave::Audio *audio = new wave::Audio();
+        audio->name = clipName;
+        audio->channels = loop->channels;
+        audio->frameRate = loop->frameRate;
+        audio->data = loop->get(length, clipBegin);
+
+        app.audio.add_cache(audio);
+    
+    }
 }
 
 void Analyzer::switch_regular(){
@@ -266,16 +428,70 @@ void Analyzer::link_audio(ui::Command c){
     
     sourceName = c.pop();
 
-    if(source != nullptr) delete source;
-    source = app.audio.get_source(sourceName);
+    if(playing) switch_play(c);
 
-    sourceNameBox.set_text("source: " + sourceName);
+    wave::Source *src = app.audio.get_source(sourceName, linkId);
+    
+    if(src){
+        
+        if(source != nullptr) delete source;
+        source = src;
 
-    position = 0;
+        if(loop == nullptr) loop = new wave::Loop(source);
+        else loop->open(source);
 
-    update_data();
-    switch_mode(dataMode);
+        sourceNameBox.set_text("source: " + sourceName);
 
+        position = 0;
+
+        update_data();
+        switch_mode(dataMode);
+    }
+    else {
+        c.source.push_error("audio source not found");
+    }
+}
+
+void Analyzer::switch_play(ui::Command c){
+    
+    if(playing){
+        playing = 0;
+        player->stop();
+    }
+    else {
+
+        if(source == nullptr){
+            c.source.push_error("no audio linked");
+        }
+        else {
+            
+            playing = 1;
+
+            if(player != nullptr) delete player;
+            player = new wave::Player(loop);
+            
+            loop->seek(position);
+
+            player->play();
+        }
+    }
+}
+
+void Analyzer::set_name(ui::Command c){
+    
+    std::string name = c.pop();
+
+    if(name.empty()){
+        c.source.push_error("name cannot be empty");
+    }
+    else {
+        clipName = name;
+    }
+
+}
+
+void Analyzer::switch_clip(ui::Command c){
+    clipping ^= 1;
 }
 
 }

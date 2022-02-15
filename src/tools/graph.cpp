@@ -362,6 +362,7 @@ void Graph::refresh_indicator(){
                 indicatorX = (i.x - origoX) * scaleX;
                 indicatorA = std::arg(i.y);
                 indicatorY = std::abs(i.y);
+                if(!isComplex && std::abs(std::arg(i.y)) > PIF / 2) indicatorY = -indicatorY;
             }
         }
     }

@@ -13,8 +13,8 @@ Recorder::Recorder(App *a) :
     timeDisplay(a, "time:", {.look = "basetext", .height = 20, .border = {0, 0, 0, 1}}),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}}),
     audio("untitled", 1, 44100, {}),
-    cache(audio),
-    player(cache),
+    cache(&audio),
+    player(&cache),
     clock(1)
 {
 
@@ -134,7 +134,7 @@ void Recorder::switch_record(ui::Command c){
         audio.frameRate = recorder.getSampleRate();
         audio.data = recorder.pull(recorder.max());
 
-        cache.open(audio);
+        cache.open(&audio);
 
     }
     else {

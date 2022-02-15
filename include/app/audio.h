@@ -40,35 +40,39 @@ class Audio : public Presistent {
 public:
 
     Audio(App*);
-    
+    ~Audio();
+
     void save(Saver&);
     void load(Loader&);
     void reset();
 
-    bool pop_update(std::string key);
-    bool is_updated(std::string key);
+    bool pop_update(std::string name, std::string reciever);
+    bool is_updated(std::string name, std::string reciever);
 
     bool key_exists(std::string key);
 
     int add_cache(wave::Audio*);
     int add_file(std::string name, std::string file);
+    int remove_audio(std::string name);
 
-    bool remove_audio(std::string name);
+    wave::Source *get_source(std::string name, std::string reciever);
+    void detach_source(std::string name, std::string reciever);
 
-    wave::Source *get_source(std::string name);
-
+    static std::string generate_reciever_id();
+    
     AudioDir dir;
-
     friend class AudioDir;
 
 private:
 
     App &app;
 
-    std::set<std::string> updates;
+    std::map<std::string, std::set<std::string> > links, updates;
 
     std::map<std::string, std::string> files;
     std::map<std::string, wave::Audio*> caches;
+
+    static std::set<std::string> used_ids;
 
 };
 

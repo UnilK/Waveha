@@ -2,21 +2,31 @@
 #include "wave/util.h"
 
 #include <algorithm>
+#include <math.h>
 
 namespace wave {
 
-Player::Player(Source &source_) : source(source_) {
-    initialize(source.channels, source.frameRate);
+Player::Player(Source *source_) {
+    open(source_);
 }
 
 Player::~Player(){}
 
+void Player::open(Source *s){
+    source = s;
+    initialize(source->channels, source->frameRate);
+}
+
+void Player::set_block(double d){
+    blockSeconds = d;
+}
+
 bool Player::onGetData(sf::SoundStream::Chunk &data){
 
-    unsigned amount = getSampleRate() * getChannelCount() / 2;
+    unsigned amount = (unsigned)std::round(getSampleRate() * getChannelCount() * blockSeconds);
     
     std::vector<float> floats;
-    unsigned actual = source.pull(amount, floats);
+    unsigned actual = source->pull(amount, floats);
 
     temp = float_to_int(floats);
     
@@ -27,7 +37,7 @@ bool Player::onGetData(sf::SoundStream::Chunk &data){
 }
 
 void Player::onSeek(sf::Time timeOffset){
-    source.seek(timeOffset.asSeconds() * getSampleRate() * getChannelCount());
+    source->seek(timeOffset.asSeconds() * getSampleRate() * getChannelCount());
 }
 
 

@@ -8,15 +8,15 @@ class Loop : public Source {
 
 public:
 
-    Loop(Source&);
+    Loop(Source*);
     virtual ~Loop();
    
-    void open(Source&);
+    void open(Source*);
 
     void seek(unsigned sample);
     unsigned tell();
     
-    // does not have a size. Returns 0.
+    // does not actually have a size. Returns size of source.
     unsigned size();
 
     unsigned pull(unsigned amount, std::vector<float> &samples);
@@ -24,7 +24,7 @@ public:
 
 protected:
    
-    Source &source;
+    Source *source;
     unsigned read = 0;
 
 };

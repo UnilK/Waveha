@@ -17,6 +17,11 @@ public:
     App();
     ~App();
 
+    // for avoiding segfaults on destruction
+    bool layoutAlive = 1;
+    bool audioAlive = 1;
+    bool sessionAlive = 1;
+
     Layout layout;
     Audio audio;
     Session session;

@@ -9,10 +9,10 @@ class Cache : public Source {
 
 public:
 
-    Cache(Audio&);
+    Cache(Audio*);
     virtual ~Cache();
    
-    void open(Audio&);
+    void open(Audio*);
 
     void seek(unsigned sample);
     unsigned tell();
@@ -23,7 +23,7 @@ public:
 
 protected:
    
-    Audio &audio;
+    Audio *audio;
     unsigned read = 0;
 
 };

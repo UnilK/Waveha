@@ -12,6 +12,10 @@ Audio::Audio(App *a) :
     app(*a)
 {}
 
+Audio::~Audio(){
+    app.audioAlive = 0;
+}
+
 void Audio::save(Saver &saver){
     
     saver.write_unsigned(files.size());
@@ -72,15 +76,16 @@ void Audio::reset(){
     for(auto i : keys) remove_audio(i);
 }
 
-bool Audio::pop_update(std::string key){
-    bool ret = is_updated(key);
-    updates.erase(key);
+bool Audio::pop_update(std::string name, std::string reciever){
+    bool ret = is_updated(name, reciever);
+    updates[name].erase(reciever);
     return ret;
 }
 
-bool Audio::is_updated(std::string key){
-    return updates.count(key);
+bool Audio::is_updated(std::string name, std::string reciever){
+    return updates[name].count(reciever);
 }
+
 
 bool Audio::key_exists(std::string key){
     return files.count(key) != 0 || caches.count(key) != 0;
@@ -93,6 +98,7 @@ int Audio::add_cache(wave::Audio *audio){
     if(ret) remove_audio(audio->name);
 
     caches[audio->name] = audio;
+    for(auto i : links[audio->name]) updates[audio->name].insert(i);
 
     return ret;
 }
@@ -108,13 +114,15 @@ int Audio::add_file(std::string name, std::string file){
     if(!I.open(file)) return 2;
 
     files[name] = file;
+    for(auto i : links[name]) updates[name].insert(i);
 
     return ret;
 }
 
-bool Audio::remove_audio(std::string name){
+int Audio::remove_audio(std::string name){
     
-    if(!key_exists(name)) return 0;
+    if(!key_exists(name)) return 1;
+    if(!links[name].empty()) return 2;
     
     if(files.count(name)){
         files.erase(name);
@@ -127,13 +135,42 @@ bool Audio::remove_audio(std::string name){
     return 1;
 }
 
-wave::Source *Audio::get_source(std::string name){
+
+wave::Source *Audio::get_source(std::string name, std::string reciever){
     
-    if(files.count(name)) return new wave::File(files[name]);
-    if(caches.count(name)) return new wave::Cache(*caches[name]);
+    if(files.count(name)){
+        links[name].insert(reciever);
+        return new wave::File(files[name]);
+    }
+
+    if(caches.count(name)){
+        links[name].insert(reciever);
+        return new wave::Cache(caches[name]);
+    }
 
     return nullptr;
 }
+
+void Audio::detach_source(std::string name, std::string reciever){
+    links[name].erase(reciever);
+}
+
+std::string Audio::generate_reciever_id(){
+    
+    std::string id;
+
+    do {
+        id.clear();
+        id.push_back('#');
+        for(int i=0; i<8; i++) id.push_back('0' + rand()%10);
+    } while(used_ids.count(id));
+
+    used_ids.insert(id);
+
+    return id;
+}
+
+std::set<std::string> Audio::used_ids;
 
 // directory //////////////////////////////////////////////////////////////////
 
@@ -189,9 +226,14 @@ void AudioDir::delete_audio(ui::Command c){
     
     std::string name = c.pop();
 
-    if(!audio.remove_audio(name)){
+    int ret = audio.remove_audio(name);
+
+    if(ret == 1){
         c.source.push_error("source with name \"" + name + "\" not found");
-        return;
+    }
+    else if(ret == 2){
+        c.source.push_error("source with name \"" + name + "\" is linked."
+                " Unlink the source to remove it.");
     }
 
 }
