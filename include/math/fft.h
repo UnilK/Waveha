@@ -30,9 +30,8 @@ vector<complex<float> > convolution(
         vector<complex<float> > b,
         unsigned size = 0);
 
-// these are here for fun
 vector<complex<float> > bluestein(vector<complex<float> > v, bool inv = 0); 
-vector<complex<float> > bluestein(vector<float> &v, bool inv = 0);
+vector<complex<float> > bluestein(vector<float> &v);
 vector<float> inverse_bluestein(vector<complex<float> > &v); 
 
 // default precalc table size is 18 -> vectors of size 2^18 max can be processed

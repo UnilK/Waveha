@@ -1,4 +1,5 @@
 #include "change/matrix.h"
+#include "math/constants.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -17,8 +18,7 @@ Matrix::Matrix(){}
 
 void Matrix::resize(unsigned size){
     x.resize(size);
-    for(auto &i : x) i.resize(size);
-    set_nil();
+    for(auto &i : x) i.resize(size, 0.0f);
 }
 
 unsigned Matrix::size() const {
@@ -30,7 +30,7 @@ cfloat Matrix::operator()(unsigned r, unsigned c) const {
     return x[r][c];
 }
 
-vector<cfloat> Matrix::operator*=(const vector<cfloat> &vec) const {
+vector<cfloat> Matrix::operator*(const vector<cfloat> &vec) const {
     
     assert(vec.size() == size());
 
@@ -79,7 +79,7 @@ void Matrix::set_nil(){
 void Matrix::phase_shuffle(){
     for(unsigned i=0; i<size(); i++){
         for(unsigned j=0; j<size(); j++){
-            x[i][j] *= cfloat((float)rand() / RAND_MAX, (float)rand() / RAND_MAX);
+            x[i][j] *= std::polar(1.0f, (float)rand()/RAND_MAX*2*PIF);
         }
     }
 }

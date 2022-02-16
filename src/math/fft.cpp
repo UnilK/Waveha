@@ -1,5 +1,5 @@
 #include "math/fft.h"
-#include "math/constants.hpp"
+#include "math/constants.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -194,10 +194,10 @@ vector<complex<float> > bluestein(vector<complex<float> > v, bool inv){
     return c;
 }
 
-vector<complex<float> > bluestein(vector<float> &v, bool inv){
+vector<complex<float> > bluestein(vector<float> &v){
     vector<complex<float> > w(v.size());
     for(unsigned i=0; i<v.size(); i++) w[i] = v[i];
-    return bluestein(w, inv);
+    return bluestein(w, 0);
 }
 
 vector<float> inverse_bluestein(vector<complex<float> > &v){

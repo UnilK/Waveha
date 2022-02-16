@@ -1,6 +1,6 @@
 #include "tools/graph.h"
 #include "app/app.h"
-#include "math/constants.hpp"
+#include "math/constants.h"
 
 #include <iostream>
 #include <math.h>

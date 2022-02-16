@@ -45,7 +45,7 @@ Recorder::Recorder(App *a) :
     terminal.document("fuze", "[time] set delay before recording starts");
     terminal.document("rec", "switch recording on/off");
     terminal.document("play", "switch playback on/off");
-    terminal.document("save", "save the audio to caches");
+    terminal.document("save", "[name] save the audio to caches");
 
 }
 
@@ -172,10 +172,16 @@ void Recorder::save_audio(ui::Command c){
 
     std::string name = c.pop();
 
-    wave::Audio *copy = new wave::Audio(audio);
+    if(name.empty()){
+        c.source.push_output("name for saved source cannot be empty");
+    }
+    else {
+        wave::Audio *copy = new wave::Audio(audio);
+        copy->name = name;
 
-    if(app.audio.add_cache(copy)){
-        c.source.push_output("source overriden");
+        if(app.audio.add_cache(copy)){
+            c.source.push_output("source overriden");
+        }
     }
 
 }

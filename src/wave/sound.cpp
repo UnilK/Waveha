@@ -20,24 +20,39 @@ void Player::open(Source *s){
 void Player::set_block(double d){
     blockSeconds = d;
 }
+    
+void Player::lock(){
+    sourceLock.lock();
+}
+
+void Player::unlock(){
+    sourceLock.unlock();
+}
 
 bool Player::onGetData(sf::SoundStream::Chunk &data){
+
+    lock();
 
     unsigned amount = (unsigned)std::round(getSampleRate() * getChannelCount() * blockSeconds);
     
     std::vector<float> floats;
     unsigned actual = source->pull(amount, floats);
+    
+    unlock();
 
     temp = float_to_int(floats);
     
     data.sampleCount = actual;
     data.samples = temp.data();
 
+
     return amount == actual;
 }
 
 void Player::onSeek(sf::Time timeOffset){
+    lock();
     source->seek(timeOffset.asSeconds() * getSampleRate() * getChannelCount());
+    unlock();
 }
 
 

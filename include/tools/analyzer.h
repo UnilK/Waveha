@@ -22,7 +22,8 @@ enum Mode {
     regularMode,
     frequencyMode,
     peakMode,
-    correlationMode
+    correlationMode,
+    last
 };
 
 class AnalyzerGraph : public Graph {
@@ -34,6 +35,9 @@ public:
     void set_look(std::string look_);
     Capture on_event(sf::Event event, int priority);
     void on_refresh();
+    
+    void save(Saver&);
+    void load(Loader&);
 
     void set_view(Mode);
 

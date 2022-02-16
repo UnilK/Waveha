@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <math.h>
 #include <limits>
+#include <iostream>
 
 namespace app {
 
@@ -27,6 +28,7 @@ void AnalyzerGraph::set_look(std::string look_){
 ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
     if(Graph::on_event(event, priority) == Capture::capture){
+        views[currentMode] = View{origoX, origoY, scaleX, scaleY};
         return Capture::capture;
     }
 
@@ -169,10 +171,38 @@ void AnalyzerGraph::on_refresh(){
     }
 }
 
+void AnalyzerGraph::save(Saver &saver){
+
+    saver.write_int((int)last);
+    
+    views[currentMode] = View{origoX, origoY, scaleX, scaleY};
+
+    for(int mode = regularMode; mode < last; mode++){
+        auto [oX, oY, sX, sY] = views[(Mode)mode];
+        saver.write_float(oX);
+        saver.write_float(oY);
+        saver.write_float(sX);
+        saver.write_float(sY);
+    }
+
+}
+
+void AnalyzerGraph::load(Loader &loader){
+    
+    int modes = loader.read_int();
+
+    for(int mode=regularMode; mode<modes; mode++){
+        views[(Mode)mode] = {
+            loader.read_float(),
+            loader.read_float(),
+            loader.read_float(),
+            loader.read_float()
+        };
+    }
+}
+
 void AnalyzerGraph::set_view(Mode mode){
 
-    View view{origoX, origoY, scaleX, scaleY};
-    views[currentMode] = view;
 
     if(mode == regularMode){
         set_unit_x("");
@@ -188,7 +218,7 @@ void AnalyzerGraph::set_view(Mode mode){
         set_unit_y("");
     }
 
-    view = views[mode];
+    View view = views[mode];
     currentMode = mode;
     
     set_origo(view.origoX, view.origoY);
@@ -303,16 +333,17 @@ void Analyzer::on_tick(){
         wave::Source *src = app.audio.get_source(sourceName, linkId);
     
         if(src){
+
+            if(playing) player->lock();
             
             if(source != nullptr) delete source;
             source = src;
 
-            if(loop == nullptr) loop = new wave::Loop(source);
-            else loop->open(source);
-
-            if(playing) player->open(loop);
+            loop->open(source);
 
             update_data();
+            
+            if(playing) player->unlock();
         }
     }
 }
@@ -323,6 +354,7 @@ void Analyzer::save(Saver &saver){
     saver.write_int(position);
     saver.write_int(length);
     saver.write_int(dataMode);
+    saver.write_string(clipName);
 
     graph.save(saver);
 }
@@ -330,15 +362,21 @@ void Analyzer::save(Saver &saver){
 void Analyzer::load(Loader &loader){
     
     sourceName = loader.read_string();
-    position = loader.read_int();
+    int pos = loader.read_int();
     length = loader.read_int();
     dataMode = (Mode)loader.read_int();
+    clipName = loader.read_string();
 
     switch_mode(dataMode);
 
     link_audio({terminal, {sourceName}});
 
+    position = pos;
+
     graph.load(loader);
+
+    update_data();
+    graph.set_view(dataMode);
 }
 
 void Analyzer::switch_mode(Mode mode){

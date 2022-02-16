@@ -1,7 +1,7 @@
 #!/bin/bash
 
 openterminal="gnome-terminal"
-openmath="gnome-terminal --tab -t math -- vim -S dev/.vimrc -p include/math/*.hpp src/math/*.cpp"
+openmath="gnome-terminal --tab -t math -- vim -S dev/.vimrc -p src/math/*.cpp include/math/constants.h"
 openwave="gnome-terminal --tab -t wave -- vim -S dev/.vimrc -p src/wave/*.cpp"
 openui="gnome-terminal --tab -t ui -- vim -S dev/.vimrc -p src/ui/*.cpp"
 openapp="gnome-terminal --tab -t app -- vim -S dev/.vimrc -p src/app/*.cpp"

@@ -1,5 +1,5 @@
 #include "math/ft.h"
-#include "math/constants.hpp"
+#include "math/constants.h"
 
 #include <math.h>
 

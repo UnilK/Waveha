@@ -5,6 +5,8 @@
 
 #include <SFML/Audio/SoundStream.hpp>
 
+#include <mutex>
+
 namespace wave {
 
 /*
@@ -38,9 +40,14 @@ public:
 
     void set_block(double);
 
+    void lock();
+    void unlock();
+
 private:
 
     double blockSeconds = 0.5f;
+
+    std::mutex sourceLock;
 
     Source *source;
     std::vector<sf::Int16> temp;

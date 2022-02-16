@@ -19,7 +19,7 @@ public:
     unsigned size() const;
 
     std::complex<float> operator()(unsigned r, unsigned c) const;
-    std::vector<std::complex<float> > operator*=(const std::vector<std::complex<float> > &vec) const;
+    std::vector<std::complex<float> > operator*(const std::vector<std::complex<float> > &vec) const;
 
     void set(unsigned r, unsigned c, std::complex<float> m);
     void add(unsigned r, unsigned c, std::complex<float> m);
