@@ -128,10 +128,9 @@ ui::Frame::Capture Graph::on_event(sf::Event event, int priority){
                 newY = origoY;
 
             set_origo(newX, newY);
-            refresh_vertices();
         }
-
-        refresh_indicator();
+        
+        set_reconfig();
 
         return Capture::capture;
 
@@ -161,7 +160,7 @@ ui::Frame::Capture Graph::on_event(sf::Event event, int priority){
         origoX = centerX - (x / scaleX);
         origoY = centerY - ((canvasHeight - y) / scaleY);
 
-        refresh_all();
+        set_reconfig();
 
         return Capture::capture;
     }
@@ -169,12 +168,12 @@ ui::Frame::Capture Graph::on_event(sf::Event event, int priority){
         
         if(event.key.code == sf::Keyboard::X){
             fit_x();
-            refresh_all();
+            set_reconfig();
             return Capture::capture;
         }
         else if(event.key.code == sf::Keyboard::Y){
             fit_y();
-            refresh_all();
+            set_reconfig();
             return Capture::capture;
         }
     }

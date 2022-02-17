@@ -4,7 +4,6 @@
 
 #include <math.h>
 #include <algorithm>
-#include <sstream>
 #include <iostream>
 
 namespace app {
@@ -28,14 +27,19 @@ Meditor::Meditor(App *a) :
     terminal.put_function("name", [&](ui::Command c){ rename_output(c); });
     terminal.put_function("resize", [&](ui::Command c){ resize_matrix(c); });
     terminal.put_function("unit", [&](ui::Command c){ unit_matrix(c); });
-    terminal.put_function("shuffle", [&](ui::Command c){ shuffle_matrix(c); });
+    terminal.put_function("phasesuf", [&](ui::Command c){ shuffle_phase(c); });
+    terminal.put_function("magsuf", [&](ui::Command c){ shuffle_magnitude(c); });
+    
+    terminal.put_function("slant", [&](ui::Command c){ set_slant(c); });
+    terminal.put_function("pitch", [&](ui::Command c){ set_pitch(c); });
 
     terminal.document("link", "[name] link audio to be edited."
             "Linked audio should be a single wavelength");
     terminal.document("name", "[name] set output name");
     terminal.document("resize", "resize edit matrix.");
     terminal.document("unit", "make edit matrix a unit matrix.");
-    terminal.document("shuffle", "shuffle the phase of matrix cells.");
+    terminal.document("phasesuf", "shuffle the phase of matrix cells.");
+    terminal.document("magsuf", " [low] [high] shuffle the magnitude of matrix cells.");
 }
 
 Meditor::~Meditor(){
@@ -68,13 +72,15 @@ void Meditor::load(Loader &loader){
     link_audio({terminal, {sourceName}});
     
     matrix.resize(loader.read_unsigned());
-    
+
     for(unsigned i=0; i<matrix.size(); i++){
         for(unsigned j=0; j<matrix.size(); j++){
             std::complex<float> c{loader.read_float(), loader.read_float()};
             matrix.set(i, j, c);
         }
     }
+
+    update_output();
 }
 
 std::string Meditor::content_type(){ return type; }
@@ -106,6 +112,11 @@ void Meditor::update_output(){
 
     auto data = source->get(source->size(), 0);
     
+    for(unsigned i=0; i<data.size(); i++){
+        float d = (float)i/data.size();
+        data[i] /= (1-d)+d*slantIn;
+    }
+    
     auto freq = math::bluestein(data);
 
     std::vector<std::complex<float> > edits(matrix.size(), 0.0f);
@@ -113,13 +124,20 @@ void Meditor::update_output(){
 
     edits = matrix*edits;
 
-    freq = std::vector<std::complex<float> >(freq.size(), 0.0f);
-    for(unsigned i=1; i <= freq.size() / 2 && i <= matrix.size(); i++){
-        freq[freq.size() - i] = std::conj(edits[i-1]);
+    unsigned nsize = (unsigned)std::round(pitch*freq.size());
+
+    freq = std::vector<std::complex<float> >(nsize, 0.0f);
+    for(unsigned i=1; i <= nsize / 2 && i <= matrix.size(); i++){
+        freq[nsize - i] = std::conj(edits[i-1]);
         freq[i] = edits[i-1];
     }
 
     data = math::inverse_bluestein(freq);
+    
+    for(unsigned i=0; i<data.size(); i++){
+        float d = (float)i/data.size();
+        data[i] *= (1-d)+d*slantOut;
+    }
     
     wave::Audio *audio = new wave::Audio();
     audio->name = outputName;
@@ -131,18 +149,25 @@ void Meditor::update_output(){
 }
 
 void Meditor::resize_matrix(ui::Command c){
-    
-    std::stringstream s(c.pop());
-    unsigned size;
-    s >> size;
-
-    matrix.resize(size);
-
+    matrix.resize(std::stoi(c.pop()));
     update_output();
 }
 
-void Meditor::shuffle_matrix(ui::Command c){
+void Meditor::shuffle_phase(ui::Command c){
     matrix.phase_shuffle();
+    update_output();
+}
+
+void Meditor::shuffle_magnitude(ui::Command c){
+    float low = std::stof(c.pop());
+    float high = std::stof(c.pop());
+
+    for(unsigned i=0; i<matrix.size(); i++){
+        for(unsigned j=0; j<matrix.size(); j++){
+            matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
+        }
+    }
+
     update_output();
 }
 
@@ -179,6 +204,17 @@ void Meditor::link_audio(ui::Command c){
     else {
         c.source.push_error("audio source not found");
     }
+}
+
+void Meditor::set_slant(ui::Command c){
+    slantIn = std::stof(c.pop());
+    slantOut = std::stof(c.pop());
+    update_output();
+}
+
+void Meditor::set_pitch(ui::Command c){
+    pitch = std::stof(c.pop());
+    update_output();
 }
 
 }

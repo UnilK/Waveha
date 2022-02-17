@@ -36,16 +36,16 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
         
         if(event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::D){
             
-            int speed = 1<<4;
+            int speed = 16;
             if(event.key.code == sf::Keyboard::A) speed = -speed;
 
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
                 && sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed = speed / (1<<4) * analyzer.source->frameRate * analyzer.source->channels;
+                speed = speed / 16 * analyzer.source->frameRate * analyzer.source->channels;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-                speed /= 1<<4;
+                speed /= 16;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed *= 1<<4;
+                speed *= 16;
 
             if(analyzer.loop != nullptr){
                 analyzer.position = (analyzer.position + speed) % (int)analyzer.loop->size();
@@ -71,16 +71,16 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
                 return Capture::pass;
 
-            int speed = 1<<4;
+            int speed = 16;
             if(event.key.code == sf::Keyboard::K) speed = -speed;
 
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-                speed /= 1<<4;
+                speed /= 16;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed *= 1<<4;
+                speed *= 16;
 
             clipEnd = (clipEnd + speed) % analyzer.loop->size();
-            if(clipEnd < clipBegin) clipEnd = clipBegin;
+            if(clipEnd < clipBegin) clipEnd += analyzer.loop->size();
 
             if(clipBegin != analyzer.clipBegin || clipEnd != analyzer.clipEnd){
                 analyzer.clipBegin = clipBegin;
@@ -88,19 +88,20 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
                 analyzer.save_clip();
                 set_refresh();
             }
+            return Capture::capture;
 
         } else if(event.key.code == sf::Keyboard::J || event.key.code == sf::Keyboard::L){
             
             if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
                 return Capture::pass;
             
-            int speed = 1<<4;
+            int speed = 16;
             if(event.key.code == sf::Keyboard::J) speed = -speed;
 
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-                speed /= 1<<4;
+                speed /= 16;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed *= 1<<4;
+                speed *= 16;
 
             int length = clipEnd - clipBegin;
 
@@ -115,6 +116,7 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
                 analyzer.save_clip();
                 set_refresh();
             }
+            return Capture::capture;
         
         } else if(event.key.code == sf::Keyboard::U){
             
@@ -146,6 +148,7 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
                 analyzer.save_clip();
                 set_refresh();
             }
+            return Capture::capture;
         }
     }
 
@@ -399,7 +402,6 @@ void Analyzer::update_data(){
             graph.set_data(loop->get(length, position));
             graph.set_offset_x(position);
             graph.set_scalar_x(1);
-            graph.refresh_all();
         
         } else if(dataMode == frequencyMode){
             
@@ -409,22 +411,21 @@ void Analyzer::update_data(){
             graph.set_data(data);
             graph.set_offset_x(0);
             graph.set_scalar_x((double)loop->frameRate / length);
-            graph.refresh_all();
             
         } else if(dataMode == peakMode){
 
             graph.set_data(pitch.graph(loop->get(length, position)));
             graph.set_offset_x(0);
             graph.set_scalar_x(1);
-            graph.refresh_all();
 
         } else if(dataMode == correlationMode){
             
             graph.set_offset_x(0);
             graph.set_scalar_x(1);
-            graph.refresh_all();
 
         }
+        
+        graph.set_reconfig();
     }
 
 }

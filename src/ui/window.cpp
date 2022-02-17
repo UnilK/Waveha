@@ -18,7 +18,7 @@ Window::Window(float width, float height, std::string title) :
 Window::~Window(){}
 
 void Window::event_update(){
-    
+   
     sf::Event event;
     while (pollEvent(event)){
 
