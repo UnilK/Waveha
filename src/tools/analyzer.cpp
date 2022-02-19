@@ -227,7 +227,7 @@ void AnalyzerGraph::set_view(Mode mode){
     set_origo(view.origoX, view.origoY);
     set_scale(view.scaleX, view.scaleY);
 
-    refresh_all();
+    set_reconfig();
 }
 
 Analyzer::Analyzer(App *a) :

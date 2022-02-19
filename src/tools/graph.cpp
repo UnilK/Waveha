@@ -35,7 +35,7 @@ void Graph::load(Loader &loader){
     scaleX = loader.read_float();
     scaleY = loader.read_float();
 
-    refresh_all();
+    set_reconfig();
 }
 
 std::string Graph::content_type(){ return "graph"; }
@@ -81,8 +81,7 @@ void Graph::set_look(std::string look_){
     yAxis[0].position = sf::Vector2f(0, 0);
     yAxis[1].position = sf::Vector2f(0, canvasHeight);
 
-    refresh_vertices();
-    refresh_indicator();
+    set_reconfig();
 }
 
 ui::Frame::Capture Graph::on_event(sf::Event event, int priority){
@@ -182,13 +181,61 @@ ui::Frame::Capture Graph::on_event(sf::Event event, int priority){
 }
 
 void Graph::on_reconfig(){
+    
     Frame::on_reconfig();
-    refresh_all();
+    
+    vertices.resize(points.size());
+
+    sf::Vertex origo(
+            sf::Vector2f( -origoX * scaleX, canvasHeight + origoY * scaleY),
+            color("vertexColor"));    
+
+    float mouseX = local_mouse()[0] / scaleX + origoX;
+
+    float min = std::numeric_limits<float>::max();
+
+    for(unsigned i=0; i<points.size(); i++){
+
+        vertices[i] = origo;
+        vertices[i].position.x += points[i].x * scaleX;
+        vertices[i].position.y -= points[i].y * scaleY;
+        
+        if(std::abs(points[i].x - mouseX) < min){
+            min = std::abs(points[i].x - mouseX);
+            indicatorX = points[i].x;
+            indicatorY = points[i].y;
+            indicatorA = points[i].a;
+        }
+    }
+    
+    xAxis[0].position = sf::Vector2f(0, canvasHeight + origoY * scaleY);
+    xAxis[1].position = sf::Vector2f(canvasWidth, canvasHeight + origoY * scaleY);
+    
+    yAxis[0].position = sf::Vector2f(-origoX * scaleX, 0);
+    yAxis[1].position = sf::Vector2f(-origoX * scaleX, canvasHeight);
+
+
+    indicatorLine[0].position = sf::Vector2f((indicatorX - origoX) * scaleX, 0);
+    indicatorLine[1].position = sf::Vector2f((indicatorX - origoX) * scaleX, canvasHeight);
+
+    indicatorNeedle[0].position = sf::Vector2f(indicatorSize, indicatorSize);
+    indicatorNeedle[1].position = sf::Vector2f(
+            indicatorSize * (1 + std::polar(1.0, indicatorA).real()),
+            indicatorSize * (1 - std::polar(1.0, indicatorA).imag()));
+
+    indicatorTextX.setString(
+            "X: " + std::to_string(indicatorX * scalarX + offsetX)
+            + " " + unitX);
+
+    indicatorTextY.setString("Y: " + std::to_string(indicatorY * scalarY + offsetY) + " " + unitY);
+    indicatorTextA.setString("A: " + std::to_string(indicatorA));
+
+    set_refresh();
 }
 
 
 void Graph::on_refresh(){
-
+    
     Frame::on_refresh();
 
     master->draw(xAxis);
@@ -240,39 +287,34 @@ void Graph::switch_inspection_tool(bool value){
     hasInspector = value;
 }
 
-void Graph::switch_inspector_lock(){
-    inspectorLock ^= 1;
+void Graph::set_data(const std::vector<float> &data){
+    points.resize(data.size());
+    for(unsigned i=0; i<data.size(); i++) points[i] = {(float)i, data[i], 0};
+    vertices.resize(points.size());
 }
 
-void Graph::set_data(const std::vector<float> &data, bool imag){
-    std::vector<Point> newData(data.size());
-    for(unsigned i=0; i<data.size(); i++) newData[i] = {(float)i, data[i]};
-    set_data(newData, imag);
+void Graph::set_data(const std::vector<std::complex<float> > &data){
+    points.resize(data.size());
+    for(unsigned i=0; i<data.size(); i++){
+        points[i] = {(float)i, std::abs(data[i]), std::arg(data[i])};
+    }
+    vertices.resize(points.size());
 }
 
-void Graph::set_data(const std::vector<std::complex<float> > &data, bool imag){
-    std::vector<Point> newData(data.size());
-    for(unsigned i=0; i<data.size(); i++) newData[i] = {(float)i, data[i]};
-    set_data(newData, imag);
-}
-
-void Graph::set_data(const std::vector<Point> &data, bool imag){
+void Graph::set_data(const std::vector<Point> &data){
     points = data;
-    isComplex = imag;
     vertices.resize(points.size());
 }
 
 void Graph::fit_x(){
     
-    float min = 0;
-    float max = 0;
+    float min = std::numeric_limits<float>::max();
+    float max = std::numeric_limits<float>::min();
 
     for(Point &i : points){
         min = std::min(min, i.x);
         max = std::max(max, i.x);
     }
-    
-    if(min == max) max = min + 1;
 
     origoX = min;
     scaleX = canvasWidth / (max - min);
@@ -284,10 +326,8 @@ void Graph::fit_y(){
     float max = 0;
 
     for(Point &i : points){
-        float y = std::abs(i.y);
-        if(!isComplex && std::abs(std::arg(i.y)) > PI / 2) y = -y;
-        min = std::min(min, y);
-        max = std::max(max, y);
+        min = std::min(min, i.y);
+        max = std::max(max, i.y);
     }
    
     if(min == max) max = min + 1;
@@ -318,75 +358,6 @@ void Graph::set_scalar_x(double x){
 
 void Graph::set_scalar_y(double y){
     scalarY = y;
-}
-
-void Graph::refresh_vertices(){
-
-    vertices.resize(points.size());
-
-    for(unsigned i=0; i<points.size(); i++){
-       
-        vertices[i].color = color("vertexColor");
-        
-        float x = (points[i].x - origoX) * scaleX;
-        float y = std::abs(points[i].y);
-        if(!isComplex && std::abs(std::arg(points[i].y)) > PIF / 2) y = -y;
-        y = canvasHeight - (y - origoY) * scaleY;
-
-        vertices[i].position = sf::Vector2f(x, y);
-    }
-    
-    xAxis[0].position = sf::Vector2f(0, canvasHeight + origoY * scaleY);
-    xAxis[1].position = sf::Vector2f(canvasWidth, canvasHeight + origoY * scaleY);
-    
-    yAxis[0].position = sf::Vector2f(-origoX * scaleX, 0);
-    yAxis[1].position = sf::Vector2f(-origoX * scaleX, canvasHeight);
-
-    set_refresh();
-}
-
-void Graph::refresh_indicator(){
-
-    if(!inspectorLock && contains_mouse()){
-        
-        indicatorX = local_mouse()[0];
-
-        float x = indicatorX / scaleX + origoX;
-
-        float min = std::numeric_limits<float>::max();
-
-        for(Point &i : points){
-            if(std::abs(i.x - x) < min){
-                min = std::abs(i.x - x);
-                indicatorX = (i.x - origoX) * scaleX;
-                indicatorA = std::arg(i.y);
-                indicatorY = std::abs(i.y);
-                if(!isComplex && std::abs(std::arg(i.y)) > PIF / 2) indicatorY = -indicatorY;
-            }
-        }
-    }
-
-    indicatorLine[0].position = sf::Vector2f(indicatorX, 0);
-    indicatorLine[1].position = sf::Vector2f(indicatorX, canvasHeight);
-
-    indicatorNeedle[0].position = sf::Vector2f(indicatorSize, indicatorSize);
-    indicatorNeedle[1].position = sf::Vector2f(
-            indicatorSize * (1 + std::polar(1.0, indicatorA).real()),
-            indicatorSize * (1 - std::polar(1.0, indicatorA).imag()));
-
-    indicatorTextX.setString(
-            "X: " + std::to_string((indicatorX / scaleX + origoX) * scalarX + offsetX)
-            + " " + unitX);
-
-    indicatorTextY.setString("Y: " + std::to_string(indicatorY * scalarY + offsetY) + " " + unitY);
-    indicatorTextA.setString("A: " + std::to_string(indicatorA));
-
-    set_refresh();
-}
-
-void Graph::refresh_all(){
-    refresh_vertices();
-    refresh_indicator();
 }
 
 }

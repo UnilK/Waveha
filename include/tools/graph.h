@@ -11,10 +11,7 @@
 
 namespace app {
 
-struct Point {
-    float x;
-    std::complex<float> y;
-};
+struct Point { float x, y, a; };
 
 class Graph : public Content {
 
@@ -65,15 +62,13 @@ public:
     void switch_phase_indicator(bool value);
     // turn inspecting too on / off
     void switch_inspection_tool(bool value);
-    // stop tracking mouse
-    void switch_inspector_lock();
 
     // equally spaced real valued data
-    void set_data(const std::vector<float> &data, bool imag = 0);
+    void set_data(const std::vector<float> &data);
     // equally spaced complex valued data
-    void set_data(const std::vector<std::complex<float> > &data, bool imag = 1);
+    void set_data(const std::vector<std::complex<float> > &data);
     // arbitary points
-    void set_data(const std::vector<Point> &data, bool imag = 1);
+    void set_data(const std::vector<Point> &data);
 
     // set scale and origo to fit all on axis.
     void fit_x();
@@ -86,12 +81,6 @@ public:
     void set_offset_y(double);
     void set_scalar_x(double);
     void set_scalar_y(double);
-
-    void refresh_vertices();
-    void refresh_indicator();
-    void refresh_all();
-    
-    bool isComplex = 1;
 
     // use for access only
     float origoX = 0, origoY = 0;
@@ -117,7 +106,6 @@ protected:
     bool graphPressed = 0;
     bool hasPhase = 1;
     bool hasInspector = 1;
-    bool inspectorLock = 0;
     float indicatorSize = 0;
     double indicatorA = 0, indicatorX = 0, indicatorY = 0;
     std::string unitX = "", unitY = "";
