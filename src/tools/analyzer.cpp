@@ -299,12 +299,16 @@ Analyzer::Analyzer(App *a) :
     terminal.put_function("name", [&](ui::Command c){ set_name(c); });
     terminal.put_function("clip", [&](ui::Command c){ switch_clip(c); });
     terminal.put_function("play", [&](ui::Command c){ switch_play(c); });
+    terminal.put_function("speak", [&](ui::Command c){ setup_peaks(c); });
+    terminal.put_function("scorr", [&](ui::Command c){ setup_correlation(c); });
 
     terminal.document("link", "[name] link audio to this analyzer");
     terminal.document("name", "[name] set clip name");
     terminal.document("clip", "start clipping. A portion of the source"
             "is automatically cached.");
     terminal.document("play", "switch source audio playback.");
+    terminal.document("speak", "[variable] [value] set value to peak match variable.");
+    terminal.document("scorr", "[variable] [value] set value to correlation variable.");
 }
 
 Analyzer::~Analyzer(){
@@ -319,11 +323,6 @@ Analyzer::~Analyzer(){
 std::string Analyzer::content_type(){ return type; }
 
 const std::string Analyzer::type = "analyze";
-
-int Analyzer::init_class = [](){
-    Slot::add_content_type(type, [](App *a){ return new Analyzer(a); });
-    return 0;
-}();
 
 void Analyzer::on_tick(){
 
@@ -414,12 +413,13 @@ void Analyzer::update_data(){
             
         } else if(dataMode == peakMode){
 
-            graph.set_data(pitch.graph(loop->get(length, position)));
+            graph.set_data(change::peak_match_graph(loop->get(length, position), peakVars));
             graph.set_offset_x(0);
             graph.set_scalar_x(1);
 
         } else if(dataMode == correlationMode){
             
+            graph.set_data(change::correlation_graph(loop->get(length, position), corrVars));
             graph.set_offset_x(0);
             graph.set_scalar_x(1);
 
@@ -531,6 +531,41 @@ void Analyzer::set_name(ui::Command c){
 
 void Analyzer::switch_clip(ui::Command c){
     clipping ^= 1;
+}
+
+void Analyzer::setup_peaks(ui::Command c){
+    
+    auto var = c.pop();
+
+    if(var == "peaks"){
+        peakVars.peaks = std::stoi(c.pop());
+        update_data();
+    }
+    else if(var == "exp"){
+        peakVars.exponent = std::stof(c.pop());
+        update_data();
+    }
+    else {
+        c.source.push_error(var + " not in {peaks, exp}");
+    }
+
+}
+
+void Analyzer::setup_correlation(ui::Command c){
+
+    auto var = c.pop();
+
+    if(var == "exp"){
+        corrVars.exponent = std::stof(c.pop());
+        update_data();
+    }
+    else if(var == "sign"){
+        corrVars.sign = std::stoi(c.pop());
+        update_data();
+    }
+    else {
+        c.source.push_error(var + " not in {exp, sign}");
+    }
 }
 
 }

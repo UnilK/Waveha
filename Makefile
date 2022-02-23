@@ -164,6 +164,16 @@ build/app/tools.o: lib/Wstream/include/wstream/wstream.h include/wave/loop.h
 build/app/tools.o: include/app/session.h include/app/layout.h include/ui/box.h
 build/app/tools.o: include/ui/button.h include/app/creations.h
 build/app/creations.o: include/app/creations.h
+build/ml/trainer.o: include/ml/trainer.h
+build/ml/field.o: include/ml/field.h
+build/ml/util.o: include/ml/util.h
+build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/app/session.h
+build/ml/matrix.o: include/ui/terminal.h include/ui/frame.h
+build/ml/matrix.o: include/ui/borders.h include/ui/style.h include/ui/window.h
+build/ml/layer.o: include/ml/layer.h include/app/session.h
+build/ml/layer.o: include/ui/terminal.h include/ui/frame.h include/ui/borders.h
+build/ml/layer.o: include/ui/style.h include/ui/window.h
+build/ml/stack.o: include/ml/stack.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
 build/math/fft.o: include/math/fft.h include/math/constants.h
 build/tools/recorder.o: include/tools/recorder.h include/app/slot.h

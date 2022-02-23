@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/slot.h"
+#include "app/content.h"
 #include "tools/graph.h"
 #include "ui/terminal.h"
 #include "ui/slider.h"
@@ -27,6 +27,7 @@ public:
     void on_tick();
 
     std::string content_type();
+    static const std::string type;
 
     void update_output();
 
@@ -43,9 +44,6 @@ public:
     void set_pitch(ui::Command);
 
 private:
-    
-    static const std::string type;
-    static int init_class;
 
     App &app;
 

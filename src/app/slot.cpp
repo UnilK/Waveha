@@ -1,13 +1,12 @@
 #include "app/slot.h"
 #include "app/layout.h"
 #include "app/app.h"
+#include "app/content.h"
 
 #include <assert.h>
 #include <iostream>
 
 namespace app {
-
-Content::Content(App *a, ui::Kwargs kwargs) : ui::Frame(a, kwargs) {};
 
 Slot::Slot(Tab *t) :
     Box(t->get_master(), ui::Side::down, ui::Side::left, {.look = "basebox"}),
@@ -117,19 +116,16 @@ void Slot::forget(){
 }
 
 bool Slot::content_from_type(std::string type){
-    
-    if(!valid_type(type)) return 0;
 
-    set_content(types[type](&app));
+    Content *generated = create_content(type, &app);
+
+    if(generated == nullptr) return 0;
+
+    set_content(generated);
 
     set_label(type);
 
     return 1;
-}
-
-void Slot::add_content_type(std::string type, std::function<Content*(App*)> construct){
-    assert(types.count(type) == 0);
-    types[type] = construct;
 }
 
 void Slot::push_left(){
@@ -159,12 +155,6 @@ void Slot::push_right(){
         right->stack.push_back(set_manager(&right->stack));
     }
 }
-
-bool Slot::valid_type(std::string type){
-    return types.count(type) != 0;
-}
-
-std::map<std::string, std::function<Content*(App*)> > Slot::types;
 
 }
 

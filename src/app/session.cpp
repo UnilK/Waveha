@@ -155,6 +155,11 @@ void Saver::write_double(double d){
     out.write((char*)&d, sizeof(double));
 }
 
+void Saver::write_complex(std::complex<float> c){
+    write_float(c.real());
+    write_float(c.imag());
+}
+
 void Saver::write_block(unsigned bytes, void *data){
     write_unsigned(bytes);
     out.write((char*)data, bytes);
@@ -206,6 +211,10 @@ double Loader::read_double(){
     double d;
     in.read((char*)&d, sizeof(double));
     return d;
+}
+
+std::complex<float> Loader::read_complex(){
+    return {read_float(), read_float()};
 }
 
 std::vector<char> Loader::read_block(){

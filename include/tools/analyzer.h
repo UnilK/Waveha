@@ -4,7 +4,7 @@
 #include "ui/slider.h"
 #include "ui/terminal.h"
 #include "app/session.h"
-#include "app/slot.h"
+#include "app/content.h"
 #include "tools/graph.h"
 #include "wave/source.h"
 #include "wave/loop.h"
@@ -69,6 +69,7 @@ public:
     ~Analyzer();
 
     std::string content_type();
+    static const std::string type;
 
     void save(Saver&);
     void load(Loader&);
@@ -85,9 +86,6 @@ public:
 
 private:
 
-    static const std::string type;
-    static int init_class;
-
     App &app;
     const std::string linkId;
 
@@ -100,6 +98,8 @@ private:
     void switch_play(ui::Command);
     void set_name(ui::Command);
     void switch_clip(ui::Command);
+    void setup_peaks(ui::Command);
+    void setup_correlation(ui::Command);
 
     bool clipping = 0;
     int clipBegin = 0, clipEnd = 0;
@@ -112,8 +112,6 @@ private:
     int position = 0, length = defaultLength;
 
     Mode dataMode = regularMode;
-
-    change::Pitch pitch;
 
     ui::Slider slider;
     ui::Terminal terminal;
@@ -128,6 +126,9 @@ private:
     bool playing = 0;
     wave::Player *player = nullptr;
     wave::Loop *loop = nullptr;
+
+    change::PeakMatchVars peakVars;
+    change::CorrelationVars corrVars;
 
 };
 

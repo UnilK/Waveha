@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/slot.h"
+#include "app/content.h"
 #include "ui/button.h"
 #include "ui/clock.h"
 #include "ui/terminal.h"
@@ -20,6 +20,7 @@ public:
     void load(Loader&);
 
     std::string content_type();
+    static const std::string type;
     
     void on_tick();
 
@@ -32,9 +33,6 @@ public:
     void save_audio(ui::Command);
 
 private:
-    
-    static const std::string type;
-    static int init_class;
 
     App &app;
 

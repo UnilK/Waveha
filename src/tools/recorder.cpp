@@ -57,11 +57,6 @@ const std::string Recorder::type = "record";
 
 std::string Recorder::content_type(){ return type; }
 
-int Recorder::init_class = [](){
-    Slot::add_content_type(type, [](App *a){ return new Recorder(a); });
-    return 0;
-}();
-
 void Recorder::on_tick(){
     
     if(recording){

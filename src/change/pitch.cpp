@@ -2,22 +2,26 @@
 #include "math/fft.h"
 
 #include <math.h>
+#include <algorithm>
 
 namespace change {
 
-std::vector<float> Pitch::graph(const std::vector<float> &audio){
+PeakMatchVars defaultPeakVars;
+CorrelationVars defaultCorrelationVars;
 
-    std::vector<float> copy = audio;
-    for(auto &i : copy) i = i*i*i; 
-    auto spectrum = math::fft(copy);
+float sign(float x){ return (int)(x > 0) - (x < 0); }
+
+std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
+    
+    auto spectrum = math::fft(audio);
 
     std::vector<float> plot(audio.size(), 0.0f);
 
-    for(unsigned i = 2 * peaks; i * 2 < plot.size(); i++){
+    for(unsigned i = 2 * vars.peaks; i * 2 < plot.size(); i++){
         
         float fundamental = (float)plot.size() / i;
 
-        for(int j=1; j<=peaks; j++){
+        for(int j = 1; j <= vars.peaks; j++){
             
             float frequency = fundamental * j;
             int k = std::floor(frequency);
@@ -26,30 +30,29 @@ std::vector<float> Pitch::graph(const std::vector<float> &audio){
             if(k+1 > (int)audio.size() / 2) break;
 
             // there's a phase flip on the peak so use - instead of +.
-            plot[i] += std::pow(std::abs(spectrum[k] * (1 - d) - spectrum[k+1] * d), factor);
+            plot[i] += std::pow(std::abs(spectrum[k] * (1 - d) - spectrum[k+1] * d), vars.exponent);
 
         }
 
     }
 
     return plot;
+
 }
 
-int Pitch::period(const std::vector<float> &audio){
+std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){
     
-    auto plot = graph(audio);
+    auto copy = audio;
 
-    int period = 0;
-    float max = 0;
+    if(vars.sign) for(float &i : copy) i = sign(i) * std::pow(std::abs(i), vars.exponent);
+    else for(float &i : copy) i = std::pow(std::abs(i), vars.exponent);
 
-    for(unsigned i=0; i<plot.size(); i++){
-        if(max < plot[i]){
-            period = i;
-            max = plot[i];
-        }
-    }
+    auto reverseCopy = copy;
+    std::reverse(reverseCopy.begin(), reverseCopy.end());
 
-    return period;
+    auto plot = math::convolution(copy, reverseCopy);
+
+    return plot;
 }
 
 }

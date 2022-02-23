@@ -10,7 +10,7 @@
 namespace app {
 
 Graph::Graph(App *app, ui::Kwargs kwargs) :
-    Content(app, kwargs),
+    ui::Frame(app, kwargs),
     vertices(sf::LineStrip, 0),
     xAxis(sf::LineStrip, 2),
     yAxis(sf::LineStrip, 2),
@@ -37,8 +37,6 @@ void Graph::load(Loader &loader){
 
     set_reconfig();
 }
-
-std::string Graph::content_type(){ return "graph"; }
 
 void Graph::set_look(std::string look_){
    

@@ -58,8 +58,7 @@ void Meditor::save(Saver &saver){
     
     for(unsigned i=0; i<matrix.size(); i++){
         for(unsigned j=0; j<matrix.size(); j++){
-            saver.write_float(matrix(i, j).real());
-            saver.write_float(matrix(i, j).imag());
+            saver.write_complex(matrix(i, j));
         }
     }
 }
@@ -75,8 +74,7 @@ void Meditor::load(Loader &loader){
 
     for(unsigned i=0; i<matrix.size(); i++){
         for(unsigned j=0; j<matrix.size(); j++){
-            std::complex<float> c{loader.read_float(), loader.read_float()};
-            matrix.set(i, j, c);
+            matrix.set(i, j, loader.read_complex());
         }
     }
 
@@ -86,11 +84,6 @@ void Meditor::load(Loader &loader){
 std::string Meditor::content_type(){ return type; }
 
 const std::string Meditor::type = "medit";
-
-int Meditor::init_class = [](){
-    Slot::add_content_type(type, [](App *a){ return new Meditor(a); });
-    return 0;
-}();
 
 void Meditor::on_tick(){
     

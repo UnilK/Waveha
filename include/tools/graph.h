@@ -1,8 +1,9 @@
 #pragma once
 
-#include "app/slot.h"
+#include "ui/frame.h"
+#include "app/session.h"
 
-#include "SFML/Graphics/VertexArray.hpp"
+#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Text.hpp>
 
@@ -11,9 +12,11 @@
 
 namespace app {
 
+class App;
+
 struct Point { float x, y, a; };
 
-class Graph : public Content {
+class Graph : public ui::Frame {
 
     /*
        style:
@@ -35,8 +38,6 @@ public:
     
     virtual void save(Saver&);
     virtual void load(Loader&);
-
-    std::string content_type();
     
     virtual void set_look(std::string look_);
     virtual Capture on_event(sf::Event event, int priority);

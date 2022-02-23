@@ -5,6 +5,7 @@
 #include <map>
 #include <functional>
 #include <fstream>
+#include <complex>
 
 namespace app {
 
@@ -82,6 +83,7 @@ public:
     void write_unsigned(unsigned);
     void write_float(float);
     void write_double(double);
+    void write_complex(std::complex<float>);
     void write_block(unsigned bytes, void *data);
 
     void close();
@@ -108,6 +110,7 @@ public:
     unsigned read_unsigned();
     float read_float();
     double read_double();
+    std::complex<float> read_complex();
     std::vector<char> read_block();
 
     void close();
