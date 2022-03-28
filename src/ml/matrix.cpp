@@ -6,13 +6,13 @@
 namespace ml {
 
 Matrix::Matrix(
-        std::vector<std::complex<float> > &source,
-        std::vector<std::complex<float> > &destination) :
+        std::vector<float> &source,
+        std::vector<float> &destination) :
     Layer(source, destination)
 {
-    matrix.resize(right.size(), std::vector<std::complex<float> >(left.size()));
-    changes.resize(right.size(), std::vector<std::complex<float> >(left.size(), 0.0f));
-    for(auto &i : matrix) for(auto &j : i) j = random_complex();
+    matrix.resize(right.size(), std::vector<float>(left.size()));
+    changes.resize(right.size(), std::vector<float>(left.size(), 0.0f));
+    for(auto &i : matrix) for(auto &j : i) j = random_float();
 }
 
 void Matrix::push(){
@@ -50,7 +50,7 @@ void Matrix::save(app::Saver &saver){
     
     saver.write_unsigned(left.size());
     saver.write_unsigned(right.size());
-    for(auto &i : matrix) for(auto &j : i) saver.write_complex(j);
+    for(auto &i : matrix) for(auto &j : i) saver.write_float(j);
 
 }
 
@@ -58,13 +58,12 @@ void Matrix::load(app::Loader &loader){
 
     assert(loader.read_unsigned() == left.size());
     assert(loader.read_unsigned() == right.size());
-    for(auto &i : matrix) for(auto &j : i) j = loader.read_complex();
+    for(auto &i : matrix) for(auto &j : i) j = loader.read_float();
 
 }
 
-std::string Matrix::get_type(){ return type; };
-
-const std::string Matrix::type = "matrix";
+namespace Factory { extern std::string matrix; }
+std::string Matrix::get_type(){ return Factory::matrix; };
 
 }
 

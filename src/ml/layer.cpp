@@ -6,8 +6,8 @@ namespace ml {
 
 
 Layer::Layer(
-        std::vector<std::complex<float> > &source,
-        std::vector<std::complex<float> > &destination) :
+        std::vector<float> &source,
+        std::vector<float> &destination) :
     left(source),
     right(destination)
 {}

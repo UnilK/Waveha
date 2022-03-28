@@ -313,7 +313,7 @@ Analyzer::Analyzer(App *a) :
 
 Analyzer::~Analyzer(){
     if(source != nullptr){
-        if(app.audioAlive) app.audio.detach_source(sourceName, linkId);
+        app.audio.detach_source(sourceName, linkId);
         delete source;
     }
     if(loop != nullptr) delete loop;

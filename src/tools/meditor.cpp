@@ -1,6 +1,7 @@
 #include "tools/meditor.h"
 #include "app/app.h"
 #include "math/fft.h"
+#include "math/constants.h"
 
 #include <math.h>
 #include <algorithm>
@@ -44,7 +45,7 @@ Meditor::Meditor(App *a) :
 
 Meditor::~Meditor(){
     if(source != nullptr){
-        if(app.audioAlive) app.audio.detach_source(sourceName, linkId);
+        app.audio.detach_source(sourceName, linkId);
         delete source;
     }
 }
@@ -147,7 +148,11 @@ void Meditor::resize_matrix(ui::Command c){
 }
 
 void Meditor::shuffle_phase(ui::Command c){
-    matrix.phase_shuffle();
+    for(unsigned i=0; i<matrix.size(); i++){
+        for(unsigned j=0; j<matrix.size(); j++){
+            matrix.multiply(i, j, std::polar(1.0f, 0.1f*(float)rand()/RAND_MAX*2*PIF));
+        }
+    }
     update_output();
 }
 

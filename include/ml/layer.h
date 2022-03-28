@@ -3,9 +3,7 @@
 #include "app/session.h"
 
 #include <vector>
-#include <complex>
-#include <map>
-#include <functional>
+#include <string>
 
 namespace ml {
 
@@ -14,8 +12,8 @@ class Layer {
 public:
 
     Layer(
-            std::vector<std::complex<float> > &source,
-            std::vector<std::complex<float> > &destination);
+            std::vector<float> &source,
+            std::vector<float> &destination);
 
     virtual ~Layer();
 
@@ -35,7 +33,7 @@ public:
 
 protected:
     
-    std::vector<std::complex<float> > &left, &right;
+    std::vector<float> &left, &right;
 
 };
 

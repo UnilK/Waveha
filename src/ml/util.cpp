@@ -2,9 +2,9 @@
 
 namespace ml {
 
-std::complex<float> random_complex(){
-    return {(float)rand() / RAND_MAX, (float)rand() / RAND_MAX };
-}
+float random_float(){ return (float)rand() / RAND_MAX; }
+
+float sign(float x){ return (float)((x>0.0)-(x<0.0)); }
 
 }
 

@@ -3,7 +3,9 @@ build
 tags
 audio
 sessions
+stacks
 waveha
+res/mnist
 dev/.undo
 *.swp
 *.wav

@@ -9,8 +9,8 @@ class Matrix : public Layer {
 public:
 
     Matrix(
-            std::vector<std::complex<float> > &source,
-            std::vector<std::complex<float> > &destination);
+            std::vector<float> &source,
+            std::vector<float> &destination);
 
     void push();
     void pull();
@@ -21,11 +21,9 @@ public:
 
     std::string get_type();
 
-    static const std::string type;
-
 private:
 
-    std::vector<std::vector<std::complex<float> > > matrix, changes;
+    std::vector<std::vector<float> > matrix, changes;
 
 };
 

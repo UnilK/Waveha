@@ -77,6 +77,7 @@ public:
 
     Saver(std::string file);
 
+    void write_byte(char);
     void write_string(std::string);
     void write_bool(bool);
     void write_int(int);
@@ -104,6 +105,7 @@ public:
 
     Loader(std::string file);
 
+    char read_byte();
     std::string read_string();
     bool read_bool();
     int read_int();
@@ -111,6 +113,7 @@ public:
     float read_float();
     double read_double();
     std::complex<float> read_complex();
+    std::vector<char> read_raw(unsigned);
     std::vector<char> read_block();
 
     void close();

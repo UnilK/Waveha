@@ -2,20 +2,21 @@
 #include "ml/factory.h"
 
 #include <cmath>
+#include <fstream>
 
 namespace ml {
 
 Stack::Stack(){}
 
 Stack::Stack(std::vector<unsigned> sizes, std::vector<std::string> types){
-    open(sizes, types);    
+    construct(sizes, types);    
 }
 
 Stack::~Stack(){
     clear();
 }
 
-bool Stack::open(std::vector<unsigned> sizes, std::vector<std::string> types){
+bool Stack::construct(std::vector<unsigned> sizes, std::vector<std::string> types){
     
     clear();
     
@@ -35,6 +36,26 @@ bool Stack::open(std::vector<unsigned> sizes, std::vector<std::string> types){
     return good();
 }
 
+bool Stack::construct_from_file(std::string file){
+    
+    std::ifstream loader(file);
+    if(!loader.good()) return 0;
+
+    clear();
+
+    unsigned size;
+    loader >> size;
+
+    std::vector<unsigned> sizes(size);
+    std::vector<std::string> types(size);
+
+    for(unsigned i=0; i<size; i++) loader >> sizes[i] >> types[i];
+
+    construct(sizes, types);
+
+    return good();
+}
+
 bool Stack::good(){
     
     bool ok = layers.size() != 0;
@@ -48,7 +69,7 @@ Layer *Stack::get_layer(unsigned index){
     return index < layers.size() ? layers[index] : nullptr;
 }
 
-std::vector<std::complex<float> > Stack::run(const std::vector<std::complex<float> > &input){
+std::vector<float > Stack::run(const std::vector<float> &input){
 
     if(!good() || input.size() != vectors[0].size()) return {};
 
@@ -59,14 +80,18 @@ std::vector<std::complex<float> > Stack::run(const std::vector<std::complex<floa
 }
 
 void Stack::train(
-        const std::vector<std::complex<float> > &input,
-        const std::vector<std::complex<float> > &output){
+        const std::vector<float> &input,
+        const std::vector<float> &output){
    
-    if(!good() || input.size() != vectors[0].size() || output.size() != vectors.back().size()) return;
+    if(!good() || input.size() != vectors[0].size()
+            || output.size() != vectors.back().size()) return;
 
     for(unsigned i=0; i<input.size(); i++) vectors[0][i] = input[i];
     for(Layer *layer : layers) layer->push();
-
+    
+    for(unsigned i=0; i<output.size(); i++){
+        vectors.back()[i] = output[i] - vectors.back()[i];
+    }
     evaluate->push();
 
     for(unsigned i=layers.size(); i-- > 0;) layers[i]->pull();
@@ -74,23 +99,48 @@ void Stack::train(
     batch += 1;
 }
 
-double Stack::score(
-        const std::vector<std::complex<float> > &input,
-        const std::vector<std::complex<float> > &output){
+void Stack::train_progam(const std::vector<InputLabel > &data, unsigned batches){
 
-    if(!good() || input.size() != vectors[0].size() || output.size() != vectors.back().size()) return 0;
-
-    for(unsigned i=0; i<input.size(); i++) vectors[0][i] = input[i];
-    for(Layer *layer : layers) layer->push();
-
-    evaluate->push();
-
-    double total = 0;
-
-    for(auto i : vectors.back()) total += std::abs(i);
-
-    return total;
+    for(unsigned i=0; i<batches; i++){
+        for(unsigned j=0; j<batchSize; j++){
+            unsigned pick = rand()%data.size();
+            train(data[pick].first, data[pick].second);
+        }
+        apply_changes();
+    }
 }
+
+Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
+
+    TestAnalysis result;
+    result.errors.resize(vectors.back().size(), 0.0f);
+
+    for(auto &i : data){
+        
+        run(i.first);
+        
+        if(!good() || i.second.size() != vectors.back().size()) return result;
+        
+        for(unsigned j=0; j<i.second.size(); j++){
+            vectors.back()[j] = i.second[j] - vectors.back()[j];
+        }
+
+        evaluate->push();
+
+        for(unsigned j=0; j<i.second.size(); j++){
+            result.errors[j] += std::abs(vectors.back()[j]);
+        }
+    }
+
+    for(double &i : result.errors){
+        i /= data.size();
+        result.error += i;
+    }
+
+    return result;
+}
+
+void Stack::set_batch_size(unsigned size){ batchSize = size; }
 
 void Stack::set_speed(double s){ speed = s; }
 
@@ -134,7 +184,7 @@ void Stack::load(app::Loader &loader){
     for(auto &i : sizes) i = loader.read_unsigned();
     for(auto &i : types) i = loader.read_string();
 
-    open(sizes, types);
+    construct(sizes, types);
 
     for(auto i : layers) i->load(loader);
 

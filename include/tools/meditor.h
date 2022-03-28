@@ -7,6 +7,7 @@
 #include "change/matrix.h"
 #include "wave/source.h"
 #include "wave/audio.h"
+#include "ml/stack.h"
 
 #include <SFML/Graphics/VertexArray.hpp>
 
@@ -38,8 +39,6 @@ public:
     void rename_output(ui::Command);
     void link_audio(ui::Command);
 
-    // temporary experiments
-
     void set_slant(ui::Command);
     void set_pitch(ui::Command);
 
@@ -54,6 +53,8 @@ private:
     wave::Source *source = nullptr;
 
     change::Matrix matrix;
+
+    ml::Stack stack;
 
     ui::Terminal terminal;
 

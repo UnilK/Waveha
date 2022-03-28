@@ -4,7 +4,9 @@
 
 namespace ml {
 
-std::complex<float> random_complex();
+float random_float();
+
+float sign(float);
 
 }
 

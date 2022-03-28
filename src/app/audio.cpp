@@ -12,9 +12,7 @@ Audio::Audio(App *a) :
     app(*a)
 {}
 
-Audio::~Audio(){
-    app.audioAlive = 0;
-}
+Audio::~Audio(){}
 
 void Audio::save(Saver &saver){
     

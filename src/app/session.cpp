@@ -129,6 +129,10 @@ void Presistent::load(Loader&){}
 
 Saver::Saver(std::string file) : out(file) {}
 
+void Saver::write_byte(char c){
+    out.write(&c, 1);
+}
+
 void Saver::write_string(std::string s){
     for(unsigned i=0; i<s.size(); i++) if(s[i] == '\0') s = s.substr(0, i);
     out.write(s.data(), s.size());
@@ -183,6 +187,12 @@ std::string Loader::read_string(){
     return str;
 }
 
+char Loader::read_byte(){
+    char c;
+    in.read((char*)&c, 1);
+    return c;
+}
+
 bool Loader::read_bool(){
     bool b;
     in.read((char*)&b, sizeof(bool));
@@ -217,11 +227,14 @@ std::complex<float> Loader::read_complex(){
     return {read_float(), read_float()};
 }
 
-std::vector<char> Loader::read_block(){
-    unsigned size = read_unsigned();
+std::vector<char> Loader::read_raw(unsigned size){
     std::vector<char> data(size);
     in.read(data.data(), size);
     return data;
+}
+
+std::vector<char> Loader::read_block(){
+    return read_raw(read_unsigned());
 }
 
 void Loader::close(){
