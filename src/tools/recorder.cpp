@@ -1,5 +1,6 @@
 #include "tools/recorder.h"
 #include "app/app.h"
+#include "app/audio.h"
 
 #include <assert.h>
 #include <string>
@@ -49,13 +50,12 @@ Recorder::Recorder(App *a) :
 
 }
 
-void Recorder::save(Saver &save){}
+void Recorder::save(ui::Saver &save){}
 
-void Recorder::load(Loader &loader){}
+void Recorder::load(ui::Loader &loader){}
 
-const std::string Recorder::type = "record";
-
-std::string Recorder::content_type(){ return type; }
+namespace Factory { extern std::string recorder; }
+std::string Recorder::content_type(){ return Factory::recorder; }
 
 void Recorder::on_tick(){
     

@@ -34,7 +34,7 @@ void Tab::set_look(std::string look_){
     buttons.fit_content();
 }
 
-void Tab::save(Saver &saver){
+void Tab::save(ui::Saver &saver){
 
     saver.write_float(targetWidth);
     saver.write_float(canvasY);
@@ -47,7 +47,7 @@ void Tab::save(Saver &saver){
     }
 }
 
-void Tab::load(Loader &loader){
+void Tab::load(ui::Loader &loader){
 
     reset();
 

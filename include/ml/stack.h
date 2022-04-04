@@ -8,6 +8,7 @@
 namespace ml {
 
 typedef std::pair<std::vector<float>, std::vector<float> > InputLabel;
+typedef std::vector<InputLabel > TrainingData;
 
 class Stack {
 
@@ -29,7 +30,7 @@ public:
             const std::vector<float> &input,
             const std::vector<float> &output);
 
-    void train_progam(const std::vector<InputLabel > &data, unsigned batches);
+    void train_program(const TrainingData &data, unsigned batchSize, unsigned batches, double speed);
 
     struct TestAnalysis {
         unsigned correct = 0;
@@ -37,21 +38,18 @@ public:
         std::vector<double> errors;
     };
 
-    TestAnalysis test(const std::vector<InputLabel > &data);
+    TestAnalysis test(const TrainingData &data);
     
-    void set_batch_size(unsigned);
-    void set_speed(double);
-    void apply_changes();
+    void apply_changes(double);
 
-    void save(app::Saver &saver);
-    void load(app::Loader &loader);
+    void save(ui::Saver &saver);
+    void load(ui::Loader &loader);
 
 private:
 
     void clear();
 
-    unsigned batchSize = 100;
-    double batch = 0, speed = 0.1;
+    double batch = 0;
 
     std::vector<std::vector<float> > vectors;
     std::vector<Layer*> layers;

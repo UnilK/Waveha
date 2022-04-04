@@ -1,14 +1,23 @@
 #pragma once
 
-#include "ml/stack.h"
+#include "ui/terminal.h"
+#include "app/session.h"
 
 #include <map>
 #include <string>
+#include <tuple>
+
+namespace ml {
+
+typedef std::pair<std::vector<float>, std::vector<float> > InputLabel;
+typedef std::vector<InputLabel > TrainingData;
+class Stack;
+
+}
 
 namespace app {
 
-typedef std::vector<ml::InputLabel > TrainingData;
-
+class App;
 class Creations;
 
 class CreationsDir : public ui::Directory {
@@ -21,30 +30,38 @@ private:
 
     Creations &creations;
 
-    void load_data(ui::Command);
-    void remove_data(ui::Command);
+    void load_mldata(ui::Command);
+    void remove_mldata(ui::Command);
     
     void list_stuff(ui::Command);
+    
+    void create_stack(ui::Command);
     void load_stack(ui::Command);
     void save_stack(ui::Command);
     void remove_stack(ui::Command);
 
 };
 
-class Creations {
+class Creations : public Presistent {
 
 public:
 
     Creations(App*);
+    virtual ~Creations();
 
-    int load_data(std::string type, std::string file);
-    int remove_data(std::string name);
+    void save(ui::Saver&);
+    void load(ui::Loader&);
+    void reset();
     
+    int load_mldata(std::string type, std::string name, std::string file);
+    int remove_mldata(std::string name);
+    
+    int create_stack(std::string name, std::string file);
     int load_stack(std::string name, std::string file);
     int save_stack(std::string name, std::string file);
     int remove_stack(std::string name);
 
-    TrainingData *get_data(std::string name);
+    ml::TrainingData *get_mldata(std::string name);
     ml::Stack *get_stack(std::string name);
 
     CreationsDir dir;
@@ -54,8 +71,8 @@ private:
     
     App &app;
 
-    std::map<std::string, ml::Stack> stacks;
-    std::map<std::string, TrainingData> datas;
+    std::map<std::string, ml::Stack*> stacks;
+    std::map<std::string, std::tuple<std::string, std::string, ml::TrainingData*> > datas;
 
 };
 

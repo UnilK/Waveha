@@ -5,9 +5,8 @@
 #include "ui/terminal.h"
 #include "app/session.h"
 #include "app/content.h"
+#include "app/audio.h"
 #include "tools/graph.h"
-#include "wave/source.h"
-#include "wave/loop.h"
 #include "wave/sound.h"
 #include "change/pitch.h"
 
@@ -36,8 +35,8 @@ public:
     Capture on_event(sf::Event event, int priority);
     void on_refresh();
     
-    void save(Saver&);
-    void load(Loader&);
+    void save(ui::Saver&);
+    void load(ui::Loader&);
 
     void set_view(Mode);
 
@@ -69,10 +68,9 @@ public:
     ~Analyzer();
 
     std::string content_type();
-    static const std::string type;
 
-    void save(Saver&);
-    void load(Loader&);
+    void save(ui::Saver&);
+    void load(ui::Loader&);
     
     void on_tick();
 
@@ -87,7 +85,6 @@ public:
 private:
 
     App &app;
-    const std::string linkId;
 
     void switch_regular();
     void switch_frequency();
@@ -101,14 +98,13 @@ private:
     void setup_peaks(ui::Command);
     void setup_correlation(ui::Command);
 
+    AudioLink link;
+    wave::Player player;
+    
     bool clipping = 0;
     int clipBegin = 0, clipEnd = 0;
-
+    std::string clipName;
     const int defaultLength = 1<<10;
-
-    std::string sourceName = "";
-    wave::Source *source = nullptr;
-
     int position = 0, length = defaultLength;
 
     Mode dataMode = regularMode;
@@ -117,15 +113,12 @@ private:
     ui::Terminal terminal;
     
     AnalyzerGraph graph;
-    std::string clipName;
 
     ui::Frame buttons;
     ui::Text sourceNameBox;
     ui::Button switchRegular, switchFrequency, switchPeak, switchCorrelation;
 
     bool playing = 0;
-    wave::Player *player = nullptr;
-    wave::Loop *loop = nullptr;
 
     change::PeakMatchVars peakVars;
     change::CorrelationVars corrVars;

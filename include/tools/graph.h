@@ -36,8 +36,8 @@ public:
 
     Graph(App*, ui::Kwargs = {});
     
-    virtual void save(Saver&);
-    virtual void load(Loader&);
+    virtual void save(ui::Saver&);
+    virtual void load(ui::Loader&);
     
     virtual void set_look(std::string look_);
     virtual Capture on_event(sf::Event event, int priority);
@@ -45,8 +45,8 @@ public:
     virtual void on_refresh();
     
     // NOTE: since most of these operations are rather heavy,
-    // they don't update the plot automatically. The plot is updated
-    // manually with the provided refresh functions.
+    // they don't update the plot automatically. The plot should be
+    // updated manually by setting the reconfig flag, set_reconfig().
 
     // set offset coordinates for origo (lower left corner).
     void set_origo(float x, float y);

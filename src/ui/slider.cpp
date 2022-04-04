@@ -9,8 +9,8 @@ namespace ui {
 Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) : 
     Frame(master_, kwargs),
     stack(master_, stackStick),
-    buttons(master_, (barSide == Side::left || barSide == Side::right) ? Side::up : Side::left),
     functions(master_),
+    buttons(master_, (barSide == Side::left || barSide == Side::right) ? Side::up : Side::left),
     bar(master_, this, barSide),
     dot(master_),
     label(master_),
@@ -18,7 +18,6 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
 {
 
     set_border(0, 0, 0, 0);
-
     
     if(side == Side::left || side == Side::right){
         

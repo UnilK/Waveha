@@ -16,11 +16,10 @@ public:
 
     Recorder(App*);
 
-    void save(Saver&);
-    void load(Loader&);
+    void save(ui::Saver&);
+    void load(ui::Loader&);
 
     std::string content_type();
-    static const std::string type;
     
     void on_tick();
 

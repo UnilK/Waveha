@@ -169,6 +169,8 @@ vector<complex<float> > convolution(
 
 vector<complex<float> > bluestein(vector<complex<float> > v, bool inv){
     
+    if(v.empty()) return {};
+
     unsigned z = v.size(), n = 1;
     while(n < 2*z-1) n *= 2;
 

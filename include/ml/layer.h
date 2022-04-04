@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/session.h"
+#include "ui/fileio.h"
 
 #include <vector>
 #include <string>
@@ -27,8 +27,8 @@ public:
     virtual void change(double factor);
 
     // save and load state of layer to a file.
-    virtual void save(app::Saver &saver);
-    virtual void load(app::Loader &loader);
+    virtual void save(ui::Saver &saver);
+    virtual void load(ui::Loader &loader);
     virtual std::string get_type() = 0;
 
 protected:

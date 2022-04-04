@@ -32,6 +32,9 @@ public:
     // use for accessing data.
     virtual std::vector<float> get(unsigned amount, unsigned begin) = 0;
 
+    unsigned pull_loop(unsigned amount, std::vector<float> &samples);
+    std::vector<float> get_loop(unsigned amount, unsigned begin);
+
     std::string name;
 
     // use for access only

@@ -20,7 +20,7 @@ Graph::Graph(App *app, ui::Kwargs kwargs) :
     set_look(look);
 }
 
-void Graph::save(Saver &saver){
+void Graph::save(ui::Saver &saver){
     
     saver.write_float(origoX);
     saver.write_float(origoY);
@@ -28,7 +28,7 @@ void Graph::save(Saver &saver){
     saver.write_float(scaleY);
 }
 
-void Graph::load(Loader &loader){
+void Graph::load(ui::Loader &loader){
     
     origoX = loader.read_float();
     origoY = loader.read_float();

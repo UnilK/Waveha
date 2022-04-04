@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <math.h>
+#include <cassert>
 
 namespace wave {
 
@@ -13,6 +14,7 @@ Player::Player(Source *source_) {
 Player::~Player(){}
 
 void Player::open(Source *s){
+    assert(s != nullptr);
     source = s;
     initialize(source->channels, source->frameRate);
 }
@@ -20,39 +22,37 @@ void Player::open(Source *s){
 void Player::set_block(double d){
     blockSeconds = d;
 }
-    
-void Player::lock(){
-    sourceLock.lock();
-}
 
-void Player::unlock(){
-    sourceLock.unlock();
+void Player::set_loop(bool b){
+    looping = b;
 }
 
 bool Player::onGetData(sf::SoundStream::Chunk &data){
 
-    lock();
+    sourceLock.lock();
 
     unsigned amount = (unsigned)std::round(getSampleRate() * getChannelCount() * blockSeconds);
     
     std::vector<float> floats;
-    unsigned actual = source->pull(amount, floats);
     
-    unlock();
+    unsigned actual;
+    if(looping) actual = source->pull_loop(amount, floats);
+    else actual = source->pull(amount, floats);
+    
+    sourceLock.unlock();
 
     temp = float_to_int(floats);
     
     data.sampleCount = actual;
     data.samples = temp.data();
 
-
     return amount == actual;
 }
 
 void Player::onSeek(sf::Time timeOffset){
-    lock();
+    sourceLock.lock();
     source->seek(timeOffset.asSeconds() * getSampleRate() * getChannelCount());
-    unlock();
+    sourceLock.unlock();
 }
 
 

@@ -39,12 +39,11 @@ public:
     void onSeek(sf::Time timeOffset);
 
     void set_block(double);
-
-    void lock();
-    void unlock();
+    void set_loop(bool);
 
 private:
 
+    bool looping = 0;
     double blockSeconds = 0.5f;
 
     std::mutex sourceLock;

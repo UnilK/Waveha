@@ -3,18 +3,50 @@
 #include "wave/source.h"
 #include "wave/cache.h"
 #include "wave/file.h"
-#include "wave/loop.h"
 #include "ui/terminal.h"
 #include "app/session.h"
 
 #include <vector>
 #include <map>
 #include <set>
+#include <mutex>
 
 namespace app {
 
 class App;
 class Audio;
+
+class AudioLink : public wave::Source {
+
+public:
+
+    AudioLink(App&);
+    virtual ~AudioLink();
+
+    std::string source;
+    bool open(std::string link);
+
+    void seek(unsigned sample);
+    unsigned tell();
+    
+    // does not actually have a size. Returns size of source.
+    unsigned size();
+
+    unsigned pull(unsigned amount, std::vector<float> &samples);
+    std::vector<float> get(unsigned amount, unsigned begin);
+
+    bool pop_update();
+    bool is_updated();
+
+private:
+
+    App &app;
+    const std::string id;
+    unsigned position = 0;
+
+};
+
+
 
 class AudioDir : public ui::Directory {
 
@@ -40,14 +72,11 @@ class Audio : public Presistent {
 public:
 
     Audio(App*);
-    ~Audio();
+    virtual ~Audio();
 
-    void save(Saver&);
-    void load(Loader&);
+    void save(ui::Saver&);
+    void load(ui::Loader&);
     void reset();
-
-    bool pop_update(std::string name, std::string reciever);
-    bool is_updated(std::string name, std::string reciever);
 
     bool key_exists(std::string key);
 
@@ -55,11 +84,19 @@ public:
     int add_file(std::string name, std::string file);
     int remove_audio(std::string name);
 
-    wave::Source *get_source(std::string name, std::string reciever);
-    void detach_source(std::string name, std::string reciever);
+    unsigned audio_frameRate(std::string source);
+    unsigned audio_channels(std::string source);
+    unsigned audio_size(std::string source);
+    std::vector<float> get_audio(std::string source, unsigned amount, unsigned position);
+    std::vector<float> loop_audio(std::string source, unsigned amount, unsigned position);
 
-    static std::string generate_reciever_id();
+    bool pop_update(std::string name, std::string reciever);
+    bool is_updated(std::string name, std::string reciever);
+    bool set_link(std::string reciever, std::string source);
+    bool pop_link(std::string reciever, std::string source);
     
+    static std::string generate_reciever_id();
+
     AudioDir dir;
     friend class AudioDir;
 
@@ -71,6 +108,11 @@ private:
 
     std::map<std::string, std::string> files;
     std::map<std::string, wave::Audio*> caches;
+    std::map<std::string, wave::Source*> sources;
+
+    void set_lock(std::string source, bool state);
+    std::map<std::string, std::mutex*> locks;
+    std::map<std::string, unsigned> lockCount;
 
     static std::set<std::string> used_ids;
 

@@ -41,15 +41,15 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
                 && sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-                speed = speed / 16 * analyzer.source->frameRate * analyzer.source->channels;
+                speed = speed / 16 * analyzer.link.frameRate * analyzer.link.channels;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
                 speed /= 16;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                 speed *= 16;
 
-            if(analyzer.loop != nullptr){
-                analyzer.position = (analyzer.position + speed) % (int)analyzer.loop->size();
-                if(analyzer.position < 0) analyzer.position += analyzer.loop->size();
+            if(analyzer.link.size() != 0){
+                analyzer.position = (analyzer.position + speed) % (int)analyzer.link.size();
+                if(analyzer.position < 0) analyzer.position += analyzer.link.size();
                 analyzer.update_data();
             }
 
@@ -68,8 +68,8 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
         
         } else if(event.key.code == sf::Keyboard::I || event.key.code == sf::Keyboard::K){
            
-            if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
-                return Capture::pass;
+            if(currentMode != regularMode || !analyzer.clipping
+                    || analyzer.link.size() == 0) return Capture::pass;
 
             int speed = 16;
             if(event.key.code == sf::Keyboard::K) speed = -speed;
@@ -79,8 +79,8 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                 speed *= 16;
 
-            clipEnd = (clipEnd + speed) % analyzer.loop->size();
-            if(clipEnd < clipBegin) clipEnd += analyzer.loop->size();
+            clipEnd = (clipEnd + speed) % analyzer.link.size();
+            if(clipEnd < clipBegin) clipEnd += analyzer.link.size();
 
             if(clipBegin != analyzer.clipBegin || clipEnd != analyzer.clipEnd){
                 analyzer.clipBegin = clipBegin;
@@ -92,8 +92,8 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
         } else if(event.key.code == sf::Keyboard::J || event.key.code == sf::Keyboard::L){
             
-            if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
-                return Capture::pass;
+            if(currentMode != regularMode || !analyzer.clipping
+                    || analyzer.link.size() == 0) return Capture::pass;
             
             int speed = 16;
             if(event.key.code == sf::Keyboard::J) speed = -speed;
@@ -105,8 +105,8 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
             int length = clipEnd - clipBegin;
 
-            clipBegin = (clipBegin + speed) % (int)analyzer.loop->size();
-            if(clipBegin < 0) clipBegin += analyzer.loop->size();
+            clipBegin = (clipBegin + speed) % (int)analyzer.link.size();
+            if(clipBegin < 0) clipBegin += analyzer.link.size();
             
             clipEnd = clipBegin + length;
             
@@ -120,8 +120,7 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
         
         } else if(event.key.code == sf::Keyboard::U){
             
-            if(currentMode != regularMode || !analyzer.clipping || !analyzer.loop)
-                return Capture::pass;
+            if(currentMode != regularMode || !analyzer.clipping) return Capture::pass;
             
             float x = local_mouse()[0] / scaleX + origoX;
 
@@ -159,7 +158,7 @@ void AnalyzerGraph::on_refresh(){
     
     Graph::on_refresh();
     
-    if(currentMode == regularMode && analyzer.loop && analyzer.clipping){
+    if(currentMode == regularMode && analyzer.clipping){
         
         float beginX = (clipBegin - origoX - offsetX) * scaleX;
         beginLine[0].position = sf::Vector2f(beginX, 0);
@@ -174,7 +173,7 @@ void AnalyzerGraph::on_refresh(){
     }
 }
 
-void AnalyzerGraph::save(Saver &saver){
+void AnalyzerGraph::save(ui::Saver &saver){
 
     saver.write_int((int)last);
     
@@ -190,7 +189,7 @@ void AnalyzerGraph::save(Saver &saver){
 
 }
 
-void AnalyzerGraph::load(Loader &loader){
+void AnalyzerGraph::load(ui::Loader &loader){
     
     int modes = loader.read_int();
 
@@ -233,11 +232,12 @@ void AnalyzerGraph::set_view(Mode mode){
 Analyzer::Analyzer(App *a) :
     Content(a),
     app(*a),
-    linkId(Audio::generate_reciever_id()),
+    link(*a),
+    player(&link),
+    clipName("untitled"),
     slider(a, ui::Side::up, ui::Side::up, {.look = "basebox", .height = 100}),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}}),
     graph(*this, {.look = "agraph", .border = {0, 0, 0, 0}}),
-    clipName(linkId),
     buttons(a, {.height = 20}),
     sourceNameBox(a, "source: (none)", {.look = "basetext", .border = {0, 0, 0, 1}}),
     
@@ -266,6 +266,8 @@ Analyzer::Analyzer(App *a) :
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}})
 {
 
+    player.set_loop(1);
+
     setup_grid(2, 1);
     fill_width({1});
     fill_height({1, 0});
@@ -279,6 +281,7 @@ Analyzer::Analyzer(App *a) :
     slider.stack.update();
     slider.stack.fill_height({0, 1, 0});
     slider.stack.set_border(0, 0, 0, 0);
+    slider.functions.set_border(0, 0, 1, 1);
 
     buttons.setup_grid(1, 10);
     buttons.fill_height({1});
@@ -311,48 +314,19 @@ Analyzer::Analyzer(App *a) :
     terminal.document("scorr", "[variable] [value] set value to correlation variable.");
 }
 
-Analyzer::~Analyzer(){
-    if(source != nullptr){
-        app.audio.detach_source(sourceName, linkId);
-        delete source;
-    }
-    if(loop != nullptr) delete loop;
-    if(player != nullptr) delete player;
-}
+Analyzer::~Analyzer(){}
 
-std::string Analyzer::content_type(){ return type; }
-
-const std::string Analyzer::type = "analyze";
+namespace Factory { extern std::string analyzer; }
+std::string Analyzer::content_type(){ return Factory::analyzer; }
 
 void Analyzer::on_tick(){
-
-    if(playing && player->getStatus() != wave::Player::Playing){
-        playing = 0;
-    }
-    
-    if(!sourceName.empty() && app.audio.pop_update(sourceName, linkId)){
-
-        wave::Source *src = app.audio.get_source(sourceName, linkId);
-    
-        if(src){
-
-            if(playing) player->lock();
-            
-            if(source != nullptr) delete source;
-            source = src;
-
-            loop->open(source);
-
-            update_data();
-            
-            if(playing) player->unlock();
-        }
-    }
+    if(playing && player.getStatus() != wave::Player::Playing) playing = 0;
+    if(link.pop_update()) update_data();
 }
 
-void Analyzer::save(Saver &saver){
+void Analyzer::save(ui::Saver &saver){
 
-    saver.write_string(sourceName);
+    saver.write_string(link.source);
     saver.write_int(position);
     saver.write_int(length);
     saver.write_int(dataMode);
@@ -361,9 +335,9 @@ void Analyzer::save(Saver &saver){
     graph.save(saver);
 }
 
-void Analyzer::load(Loader &loader){
+void Analyzer::load(ui::Loader &loader){
     
-    sourceName = loader.read_string();
+    std::string sourceName = loader.read_string();
     int pos = loader.read_int();
     length = loader.read_int();
     dataMode = (Mode)loader.read_int();
@@ -390,57 +364,49 @@ void Analyzer::switch_mode(Mode mode){
 
 void Analyzer::update_data(){
 
-    if(source == nullptr){
-
-        graph.set_data(std::vector<float>(length, 0.0f));
-
-    } else {
-
-        if(dataMode == regularMode){
-            
-            graph.set_data(loop->get(length, position));
-            graph.set_offset_x(position);
-            graph.set_scalar_x(1);
+    if(dataMode == regularMode){
         
-        } else if(dataMode == frequencyMode){
-            
-            auto data = math::fft(loop->get(length, position));
-            data.resize(data.size()/2 + 1);
-
-            graph.set_data(data);
-            graph.set_offset_x(0);
-            graph.set_scalar_x((double)loop->frameRate / length);
-            
-        } else if(dataMode == peakMode){
-
-            graph.set_data(change::peak_match_graph(loop->get(length, position), peakVars));
-            graph.set_offset_x(0);
-            graph.set_scalar_x(1);
-
-        } else if(dataMode == correlationMode){
-            
-            graph.set_data(change::correlation_graph(loop->get(length, position), corrVars));
-            graph.set_offset_x(0);
-            graph.set_scalar_x(1);
-
-        }
+        graph.set_data(link.get_loop(length, position));
+        graph.set_offset_x(position);
+        graph.set_scalar_x(1);
+    
+    } else if(dataMode == frequencyMode){
         
-        graph.set_reconfig();
+        auto data = math::fft(link.get_loop(length, position));
+        data.resize(data.size()/2 + 1);
+
+        graph.set_data(data);
+        graph.set_offset_x(0);
+        graph.set_scalar_x((double)link.frameRate / length);
+        
+    } else if(dataMode == peakMode){
+
+        graph.set_data(change::peak_match_graph(link.get_loop(length, position), peakVars));
+        graph.set_offset_x(0);
+        graph.set_scalar_x(1);
+
+    } else if(dataMode == correlationMode){
+        
+        graph.set_data(change::correlation_graph(link.get_loop(length, position), corrVars));
+        graph.set_offset_x(0);
+        graph.set_scalar_x(1);
+
     }
-
+    
+    graph.set_reconfig();
 }
 
 void Analyzer::save_clip(){
     
-    if(loop != nullptr){
+    if(link.size() > 0 && link.channels > 0 && link.frameRate > 0){
 
         int length = clipEnd - clipBegin + 1;
         
         wave::Audio *audio = new wave::Audio();
         audio->name = clipName;
-        audio->channels = loop->channels;
-        audio->frameRate = loop->frameRate;
-        audio->data = loop->get(length, clipBegin);
+        audio->channels = link.channels;
+        audio->frameRate = link.frameRate;
+        audio->data = link.get(length, clipBegin);
 
         app.audio.add_cache(audio);
     
@@ -465,21 +431,16 @@ void Analyzer::switch_correlation(){
 
 void Analyzer::link_audio(ui::Command c){
     
-    sourceName = c.pop();
+    std::string source = c.pop();
 
     if(playing) switch_play(c);
 
-    wave::Source *src = app.audio.get_source(sourceName, linkId);
-    
-    if(src){
+    if(!source.empty()){
         
-        if(source != nullptr) delete source;
-        source = src;
+        link.open(source);
+        player.open(&link);
 
-        if(loop == nullptr) loop = new wave::Loop(source);
-        else loop->open(source);
-
-        sourceNameBox.set_text("source: " + sourceName);
+        sourceNameBox.set_text("source: " + source);
 
         position = 0;
 
@@ -487,7 +448,7 @@ void Analyzer::link_audio(ui::Command c){
         switch_mode(dataMode);
     }
     else {
-        c.source.push_error("audio source not found");
+        c.source.push_error("give a source");
     }
 }
 
@@ -495,24 +456,12 @@ void Analyzer::switch_play(ui::Command c){
     
     if(playing){
         playing = 0;
-        player->stop();
+        player.stop();
     }
     else {
-
-        if(source == nullptr){
-            c.source.push_error("no audio linked");
-        }
-        else {
-            
-            playing = 1;
-
-            if(player != nullptr) delete player;
-            player = new wave::Player(loop);
-            
-            loop->seek(position);
-
-            player->play();
-        }
+        playing = 1;
+        link.seek(position);
+        player.play();
     }
 }
 

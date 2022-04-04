@@ -19,8 +19,8 @@ public:
 
     virtual void set_look(std::string look_);
     
-    void save(Saver&);
-    void load(Loader&);
+    void save(ui::Saver&);
+    void load(ui::Loader&);
     void reset();
 
     void set_content(Content*);

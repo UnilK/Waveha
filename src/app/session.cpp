@@ -1,5 +1,8 @@
 #include "app/session.h"
 #include "app/app.h"
+#include "app/audio.h"
+#include "app/layout.h"
+#include "app/creations.h"
 
 #include <string>
 #include <string.h>
@@ -15,11 +18,12 @@ Session::Session(App *a) :
 
 void Session::save(){
     
-    Saver saver("sessions/" + name + ".was");
+    ui::Saver saver("sessions/" + name + ".was");
 
     if(saver.bad()) return;
 
     app.audio.save(saver);
+    app.creations.save(saver);
     app.layout.save(saver);
 
     saver.close();
@@ -27,11 +31,12 @@ void Session::save(){
 
 void Session::load(std::string file){
 
-    Loader loader("sessions/" + file + ".was");
+    ui::Loader loader("sessions/" + file + ".was");
 
     if(loader.bad()) return;
 
     app.audio.load(loader);
+    app.creations.load(loader);
     app.layout.load(loader);
 
     name = file;
@@ -121,129 +126,9 @@ void SessionDir::create_new(ui::Command c){
 
 // presistent /////////////////////////////////////////////////////////////////
 
-void Presistent::save(Saver&){}
+void Presistent::save(ui::Saver&){}
 
-void Presistent::load(Loader&){}
-
-// saver //////////////////////////////////////////////////////////////////////
-
-Saver::Saver(std::string file) : out(file) {}
-
-void Saver::write_byte(char c){
-    out.write(&c, 1);
-}
-
-void Saver::write_string(std::string s){
-    for(unsigned i=0; i<s.size(); i++) if(s[i] == '\0') s = s.substr(0, i);
-    out.write(s.data(), s.size());
-    out.put('\0');
-}
-
-void Saver::write_bool(bool b){
-    out.write((char*)&b, sizeof(bool));
-}
-
-void Saver::write_int(int i){
-    out.write((char*)&i, sizeof(int));
-}
-
-void Saver::write_unsigned(unsigned u){
-    out.write((char*)&u, sizeof(unsigned));
-}
-
-void Saver::write_float(float f){
-    out.write((char*)&f, sizeof(float));
-}
-
-void Saver::write_double(double d){
-    out.write((char*)&d, sizeof(double));
-}
-
-void Saver::write_complex(std::complex<float> c){
-    write_float(c.real());
-    write_float(c.imag());
-}
-
-void Saver::write_block(unsigned bytes, void *data){
-    write_unsigned(bytes);
-    out.write((char*)data, bytes);
-}
-
-void Saver::close(){
-    out.close();
-}
-
-bool Saver::bad(){
-    return out.bad();
-}
-
-// loader /////////////////////////////////////////////////////////////////////
-
-Loader::Loader(std::string file) : in(file) {}
-
-std::string Loader::read_string(){
-    std::string str;
-    std::getline(in, str, '\0');
-    return str;
-}
-
-char Loader::read_byte(){
-    char c;
-    in.read((char*)&c, 1);
-    return c;
-}
-
-bool Loader::read_bool(){
-    bool b;
-    in.read((char*)&b, sizeof(bool));
-    return b;
-}
-
-int Loader::read_int(){
-    int i;
-    in.read((char*)&i, sizeof(int));
-    return i;
-}
-
-unsigned Loader::read_unsigned(){
-    unsigned u;
-    in.read((char*)&u, sizeof(unsigned));
-    return u;
-}
-
-float Loader::read_float(){
-    float f;
-    in.read((char*)&f, sizeof(float));
-    return f;
-}
-
-double Loader::read_double(){
-    double d;
-    in.read((char*)&d, sizeof(double));
-    return d;
-}
-
-std::complex<float> Loader::read_complex(){
-    return {read_float(), read_float()};
-}
-
-std::vector<char> Loader::read_raw(unsigned size){
-    std::vector<char> data(size);
-    in.read(data.data(), size);
-    return data;
-}
-
-std::vector<char> Loader::read_block(){
-    return read_raw(read_unsigned());
-}
-
-void Loader::close(){
-    in.close();
-}
-
-bool Loader::bad(){
-    return in.bad();
-}
+void Presistent::load(ui::Loader&){}
 
 }
 

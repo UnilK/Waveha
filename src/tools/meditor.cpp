@@ -12,8 +12,7 @@ namespace app {
 Meditor::Meditor(App *a) : 
     Content(a),
     app(*a),
-    linkId(app.audio.generate_reciever_id()),
-    outputName(linkId),
+    link(*a),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}})
 {
     setup_grid(1, 1);
@@ -43,16 +42,11 @@ Meditor::Meditor(App *a) :
     terminal.document("magsuf", " [low] [high] shuffle the magnitude of matrix cells.");
 }
 
-Meditor::~Meditor(){
-    if(source != nullptr){
-        app.audio.detach_source(sourceName, linkId);
-        delete source;
-    }
-}
+Meditor::~Meditor(){}
 
-void Meditor::save(Saver &saver){
+void Meditor::save(ui::Saver &saver){
 
-    saver.write_string(sourceName);
+    saver.write_string(link.source);
     saver.write_string(outputName);
 
     saver.write_unsigned(matrix.size());
@@ -64,9 +58,9 @@ void Meditor::save(Saver &saver){
     }
 }
 
-void Meditor::load(Loader &loader){
+void Meditor::load(ui::Loader &loader){
     
-    sourceName = loader.read_string();
+    std::string sourceName = loader.read_string();
     outputName = loader.read_string();
     
     link_audio({terminal, {sourceName}});
@@ -82,29 +76,16 @@ void Meditor::load(Loader &loader){
     update_output();
 }
 
-std::string Meditor::content_type(){ return type; }
-
-const std::string Meditor::type = "medit";
+namespace Factory { extern std::string meditor; }
+std::string Meditor::content_type(){ return Factory::meditor; }
 
 void Meditor::on_tick(){
-    
-    if(!sourceName.empty() && app.audio.pop_update(sourceName, linkId)){
-
-        wave::Source *src = app.audio.get_source(sourceName, linkId);
-    
-        if(src){
-            if(source != nullptr) delete source;
-            source = src;
-            update_output();
-        }
-    }
+    if(link.pop_update()) update_output();
 }
 
 void Meditor::update_output(){
     
-    if(source == nullptr) return;
-
-    auto data = source->get(source->size(), 0);
+    auto data = link.get(link.size(), 0);
     
     for(unsigned i=0; i<data.size(); i++){
         float d = (float)i/data.size();
@@ -135,8 +116,8 @@ void Meditor::update_output(){
     
     wave::Audio *audio = new wave::Audio();
     audio->name = outputName;
-    audio->channels = source->channels;
-    audio->frameRate = source->frameRate;
+    audio->channels = link.channels;
+    audio->frameRate = link.frameRate;
     audio->data = data;
 
     app.audio.add_cache(audio);
@@ -183,24 +164,22 @@ void Meditor::rename_output(ui::Command c){
         update_output();
     }
     else {
-        c.source.push_error("name cannot be empty");
+        c.source.push_error("give a name");
     }
 
 }
 
 void Meditor::link_audio(ui::Command c){
 
-    sourceName = c.pop();
+    std::string newName = c.pop();
 
-    wave::Source *src = app.audio.get_source(sourceName, linkId);
-
-    if(src){
-        if(source != nullptr) delete source;
-        source = src;
+    if(!newName.empty()){
+        bool found = link.open(newName);
         update_output();
+        if(!found) c.source.push_error("source not found: " + newName);
     }
     else {
-        c.source.push_error("audio source not found");
+        c.source.push_error("give a name");
     }
 }
 

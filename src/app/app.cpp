@@ -1,15 +1,17 @@
 #include "app/app.h"
-
-#include <iostream>
+#include "app/audio.h"
+#include "app/layout.h"
+#include "app/creations.h"
+#include "app/session.h"
 
 namespace app {
 
 App::App() :
     Window(800, 800, "waveha"),
-    audio(this),
-    session(this),
-    creations(this),
-    layout(this),
+    audio(*(new Audio(this))),
+    session(*(new Session(this))),
+    creations(*(new Creations(this))),
+    layout(*(new Layout(this))),
     tools(this),
     terminal(this, {.look = "baseterminal"}),
     terminalBox(this, ui::Side::down, ui::Side::up, {.look = "basebox", .height = 400})
@@ -40,6 +42,11 @@ App::App() :
     update_grid();
 }
 
-App::~App(){}
+App::~App(){
+    delete &layout;
+    delete &creations;
+    delete &audio;
+    delete &session;
+}
 
 }

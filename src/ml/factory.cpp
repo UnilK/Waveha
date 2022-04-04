@@ -22,6 +22,11 @@ Layer *create_layer(
         std::vector<float> &right){
     
     if(type == Factory::matrix) return new Matrix(left, right);
+    if(type == Factory::v1) return new V1Field(left, right);
+    if(type == Factory::v2) return new V2Field(left, right);
+    if(type == Factory::average1) return new Average1Field(left, right);
+    if(type == Factory::average2) return new Average2Field(left, right);
+    
     return nullptr;
 }
 

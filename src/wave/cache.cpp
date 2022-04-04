@@ -2,6 +2,7 @@
 #include "wstream/wstream.h"
 
 #include <string.h>
+#include <cassert>
 
 namespace wave {
 
@@ -13,6 +14,7 @@ Cache::Cache(Audio *audio_){
 Cache::~Cache(){}
 
 void Cache::open(Audio *audio_){
+    assert(audio_ != nullptr);
     audio = audio_;
     channels = audio->channels;
     frameRate = audio->frameRate;
@@ -20,7 +22,8 @@ void Cache::open(Audio *audio_){
 }
 
 void Cache::seek(unsigned sample){
-    read = std::min(sample, (unsigned)audio->data.size());
+    if(audio->data.size() > 0)
+        read = std::min(sample, (unsigned)audio->data.size()-1);
 }
 
 unsigned Cache::tell(){

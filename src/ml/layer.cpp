@@ -16,9 +16,9 @@ Layer::~Layer(){}
 
 void Layer::change(double factor){}
 
-void Layer::save(app::Saver &saver){}
+void Layer::save(ui::Saver &saver){}
 
-void Layer::load(app::Loader &loader){}
+void Layer::load(ui::Loader &loader){}
 
 }
 

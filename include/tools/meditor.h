@@ -1,13 +1,11 @@
 #pragma once
 
 #include "app/content.h"
+#include "app/audio.h"
 #include "tools/graph.h"
 #include "ui/terminal.h"
 #include "ui/slider.h"
 #include "change/matrix.h"
-#include "wave/source.h"
-#include "wave/audio.h"
-#include "ml/stack.h"
 
 #include <SFML/Graphics/VertexArray.hpp>
 
@@ -22,13 +20,12 @@ public:
     Meditor(App*);
     ~Meditor();
     
-    void save(Saver&);
-    void load(Loader&);
+    void save(ui::Saver&);
+    void load(ui::Loader&);
 
     void on_tick();
 
     std::string content_type();
-    static const std::string type;
 
     void update_output();
 
@@ -46,15 +43,11 @@ private:
 
     App &app;
 
-    std::string linkId;
-    std::string outputName;
-    std::string sourceName;
-
-    wave::Source *source = nullptr;
+    AudioLink link;
 
     change::Matrix matrix;
 
-    ml::Stack stack;
+    std::string outputName = "untitled";
 
     ui::Terminal terminal;
 

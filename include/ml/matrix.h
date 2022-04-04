@@ -16,8 +16,8 @@ public:
     void pull();
     void change(double factor);
     
-    void save(app::Saver &saver);
-    void load(app::Loader &loader);
+    void save(ui::Saver &saver);
+    void load(ui::Loader &loader);
 
     std::string get_type();
 

@@ -2,8 +2,69 @@
 #include "app/app.h"
 
 #include <string.h>
+#include <algorithm>
 
 namespace app {
+
+// audio link /////////////////////////////////////////////////////////////////
+
+AudioLink::AudioLink(App &a) :
+    app(a), id(Audio::generate_reciever_id())
+{
+    frameRate = 44100;
+    channels = 1;
+}
+
+AudioLink::~AudioLink(){
+    app.audio.pop_link(id, source);
+}
+
+bool AudioLink::open(std::string link){
+    app.audio.pop_link(id, source);
+    position = 0;
+    source = link;
+    channels = app.audio.audio_channels(link);
+    frameRate = app.audio.audio_frameRate(link);
+    app.audio.set_link(id, source);
+    return app.audio.key_exists(source);
+}
+
+void AudioLink::seek(unsigned sample){
+    if(size() > 0) position = std::min(position, size()-1);
+}
+
+unsigned AudioLink::tell(){
+   return position;
+}
+
+unsigned AudioLink::size(){
+    return app.audio.audio_size(source);
+}
+
+unsigned AudioLink::pull(unsigned amount, std::vector<float> &samples){
+
+    good = 1;
+
+    unsigned actual = std::min(amount, (unsigned)size() - position);
+
+    if(amount != actual) good = 0;
+
+    samples = app.audio.get_audio(source, amount, position);
+
+    return actual;
+}
+
+std::vector<float> AudioLink::get(unsigned amount, unsigned begin){
+    return app.audio.get_audio(source, amount, begin);
+}
+    
+bool AudioLink::pop_update(){
+    return app.audio.pop_update(id, source);
+}
+
+bool AudioLink::is_updated(){
+    return app.audio.is_updated(id, source);
+}
 
 // audio //////////////////////////////////////////////////////////////////////
 
@@ -14,7 +75,7 @@ Audio::Audio(App *a) :
 
 Audio::~Audio(){}
 
-void Audio::save(Saver &saver){
+void Audio::save(ui::Saver &saver){
     
     saver.write_unsigned(files.size());
 
@@ -33,7 +94,7 @@ void Audio::save(Saver &saver){
     }
 }
 
-void Audio::load(Loader &loader){
+void Audio::load(ui::Loader &loader){
 
     reset();
 
@@ -71,57 +132,75 @@ void Audio::reset(){
     for(auto i : files) keys.push_back(i.first);
     for(auto i : caches) keys.push_back(i.first);
 
+    for(auto i : keys) set_lock(i, 1);
     for(auto i : keys) remove_audio(i);
-}
+    for(auto i : keys) set_lock(i, 0);
 
-bool Audio::pop_update(std::string name, std::string reciever){
-    bool ret = is_updated(name, reciever);
-    updates[name].erase(reciever);
-    return ret;
+    links.clear();
+    updates.clear();
 }
-
-bool Audio::is_updated(std::string name, std::string reciever){
-    return updates[name].count(reciever);
-}
-
 
 bool Audio::key_exists(std::string key){
-    return files.count(key) != 0 || caches.count(key) != 0;
+    return sources.count(key);
 }
 
 int Audio::add_cache(wave::Audio *audio){
 
+    set_lock(audio->name, 1);
+    
     int ret = key_exists(audio->name);
-
-    if(ret) remove_audio(audio->name);
+    if(ret){
+        set_lock(audio->name, 0);
+        remove_audio(audio->name);
+        set_lock(audio->name, 1);
+    }
 
     caches[audio->name] = audio;
+    sources[audio->name] = new wave::Cache(audio);
+    if(!ret) locks[audio->name] = new std::mutex();
     for(auto i : links[audio->name]) updates[audio->name].insert(i);
+
+    set_lock(audio->name, 0);
 
     return ret;
 }
 
 int Audio::add_file(std::string name, std::string file){
     
-    bool ret = key_exists(name);
-
-    if(ret) remove_audio(name);
+    set_lock(name, 1);
+    
+    int ret = key_exists(name);
+    if(ret){
+        set_lock(name, 0);
+        remove_audio(name);
+        set_lock(name, 1);
+    }
 
     iwstream I;
 
-    if(!I.open(file)) return 2;
+    if(!I.open(file)){
+        set_lock(name, 0);
+        return 2;
+    }
 
     files[name] = file;
+    sources[name] = new wave::File(file);
+    if(!ret) locks[name] = new std::mutex();
     for(auto i : links[name]) updates[name].insert(i);
 
+    set_lock(name, 0);
+    
     return ret;
 }
 
 int Audio::remove_audio(std::string name){
     
-    if(!key_exists(name)) return 1;
-    if(!links[name].empty()) return 2;
-    
+    set_lock(name, 1);
+    if(!key_exists(name)){
+        set_lock(name, 0);
+        return 1;
+    }
+
     if(files.count(name)){
         files.erase(name);
     }
@@ -130,27 +209,95 @@ int Audio::remove_audio(std::string name){
         caches.erase(name);
     }
 
-    return 1;
-}
-
-
-wave::Source *Audio::get_source(std::string name, std::string reciever){
+    delete sources[name];
+    sources.erase(name);
+    links.erase(name);
     
-    if(files.count(name)){
-        links[name].insert(reciever);
-        return new wave::File(files[name]);
-    }
+    set_lock(name, 0);
 
-    if(caches.count(name)){
-        links[name].insert(reciever);
-        return new wave::Cache(caches[name]);
-    }
-
-    return nullptr;
+    return 0;
 }
 
-void Audio::detach_source(std::string name, std::string reciever){
-    links[name].erase(reciever);
+unsigned Audio::audio_frameRate(std::string source){
+    if(sources.count(source) == 0) return 44100;
+    return sources[source]->frameRate;
+}
+
+unsigned Audio::audio_channels(std::string source){
+    if(sources.count(source) == 0) return 1;
+    return sources[source]->channels;
+}
+
+unsigned Audio::audio_size(std::string source){
+    if(sources.count(source) == 0) return 0;
+    return sources[source]->size();
+}
+
+std::vector<float> Audio::get_audio(std::string source, unsigned amount, unsigned position){
+    
+    if(sources.count(source) == 0){
+        return std::vector<float>(amount, 0.0f);
+    }
+    set_lock(source, 1);
+    std::vector<float> ret = sources[source]->get(amount, position);
+    set_lock(source, 0);
+    return ret;
+}
+
+std::vector<float> Audio::loop_audio(std::string source, unsigned amount, unsigned position){
+    
+    if(sources.count(source) == 0){
+        return std::vector<float>(amount, 0.0f);
+    }
+    set_lock(source, 1);
+    std::vector<float> ret = sources[source]->get_loop(amount, position);
+    set_lock(source, 0);
+    return ret;
+}
+
+bool Audio::pop_update(std::string reciever, std::string source){
+    bool ret = is_updated(source, reciever);
+    if(links.count(source)) updates[source].erase(reciever);
+    return ret;
+}
+
+bool Audio::is_updated(std::string reciever, std::string source){
+    if(!links.count(source)) return 0;
+    return updates[source].count(reciever);
+}
+
+bool Audio::set_link(std::string reciever, std::string source){
+    if(links.count(source)){
+        links[source].insert(reciever);
+        return 1;
+    }
+    return 0;
+}
+
+bool Audio::pop_link(std::string reciever, std::string source){
+    if(links.count(source)){
+        links[source].erase(reciever);
+        return 1;
+    }
+    return 0;
+}
+
+void Audio::set_lock(std::string source, bool state){
+    if(key_exists(source)){
+        if(state){
+            lockCount[source]++;
+            locks[source]->lock();
+        }
+        else {
+            locks[source]->unlock();
+            if(lockCount[source] > 0) lockCount[source]--;
+            if(lockCount[source] == 0 && !key_exists(source)){
+                lockCount.erase(source);
+                delete locks[source];
+                locks.erase(source);
+            }
+        }
+    }
 }
 
 std::string Audio::generate_reciever_id(){

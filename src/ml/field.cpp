@@ -24,16 +24,14 @@ void v1::g(float *in, float *out){
     float dx = in[0];
     
     if(x <= 1.0f){
-        out[0] = s * dx * x / 1.5f;
+        out[0] = dx * s * x / 1.5f;
     } else {
-        out[0] = s * dx / (x*x) / 1.5f;
+        out[0] = dx * s / (x*x) / 1.5f;
     }
 }
 
 
 
-// f(c) = abs(c)*c, abs(c) <= 1
-// otherwise f(c) = polar(arg(c)) * (1.5 - 1 / abs(c))
 void v2::f(float *in, float *out){
 
     float r = in[0];
@@ -41,9 +39,11 @@ void v2::f(float *in, float *out){
     float d = std::sqrt(r*r + i*i);
     
     if(d <= 1.0f){
+        // f(c) = abs(c)*c, abs(c) <= 1
         out[0] = 0.5f * r * d / 1.5f;
         out[1] = 0.5f * i * d / 1.5f;
     } else {
+        // f(c) = polar(arg(c)) * (1.5 - 1 / abs(c))
         float norm = (1.5f - 1.0f / d) / d / 1.5f;
         out[0] = r * norm;
         out[1] = i * norm;
@@ -72,34 +72,23 @@ void v2::g(float *in, float *out){
 
 
 void average1::f(float *in, float *out){
-    out[0] = in[0] * in[0];
+    out[0] = in[0];
 }
 
 void average1::g(float *in, float *out){
-    out[0] = 2 * out[0] * in[0];
+    out[0] = in[0];
 }
 
 
 
 void average2::f(float *in, float *out){
-    
-    float r = in[0];
-    float i = in[1];
-    float d = std::sqrt(r*r + i*i);
-    out[0] = r * d;
-    out[1] = i * d;
+    out[0] = in[0];
+    out[1] = in[1];
 }
 
 void average2::g(float *in, float *out){
-    
-    float r = out[0];
-    float i = out[1];
-    float dr = in[0];
-    float di = in[1];
-    float dot = r * dr + i * di;
-
-    out[0] = 2 * dot * dr;
-    out[1] = 2 * dot * di;
+    out[0] = in[0];
+    out[1] = in[1];
 }
 
 

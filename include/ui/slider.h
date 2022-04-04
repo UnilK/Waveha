@@ -47,6 +47,7 @@ public:
     std::string get_label();
 
     Stack stack;
+    Frame functions;
     
     // overload the stack with some other content.
     void overload_inner(Frame *content);
@@ -99,10 +100,10 @@ protected:
     };
 
     Stack buttons;
-    Frame functions;
     
     Bar bar;
     Dot dot;
+
     Text label;
     
     Side side;

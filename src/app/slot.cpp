@@ -47,7 +47,7 @@ void Slot::set_look(std::string look_){
     buttons.fit_content();
 }
 
-void Slot::save(Saver &saver){
+void Slot::save(ui::Saver &saver){
     
     saver.write_float(targetHeight);
 
@@ -62,7 +62,7 @@ void Slot::save(Saver &saver){
 
 }
 
-void Slot::load(Loader &loader){
+void Slot::load(ui::Loader &loader){
     
     reset();
     

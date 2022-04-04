@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <iostream>
 
 namespace ml {
 
@@ -23,12 +24,12 @@ bool Stack::construct(std::vector<unsigned> sizes, std::vector<std::string> type
     if(sizes.size() != types.size() || sizes.empty()) return 0;
 
     vectors.resize(sizes.size());
-    layers.resize(types.size());
+    layers.resize(types.size()-1);
 
     for(unsigned i=0; i<vectors.size(); i++)
         vectors[i].resize(sizes[i]);
     
-    for(unsigned i=0; i<types.size() - 1; i++)
+    for(unsigned i=0; i<layers.size(); i++)
         layers[i] = create_layer(types[i], vectors[i], vectors[i+1]);
 
     evaluate = create_layer(types.back(), vectors.back(), vectors.back());
@@ -99,14 +100,14 @@ void Stack::train(
     batch += 1;
 }
 
-void Stack::train_progam(const std::vector<InputLabel > &data, unsigned batches){
+void Stack::train_program(const TrainingData &data, unsigned batchSize, unsigned batches, double speed){
 
     for(unsigned i=0; i<batches; i++){
         for(unsigned j=0; j<batchSize; j++){
             unsigned pick = rand()%data.size();
             train(data[pick].first, data[pick].second);
         }
-        apply_changes();
+        apply_changes(speed);
     }
 }
 
@@ -117,10 +118,20 @@ Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
 
     for(auto &i : data){
         
+        if(!good() || i.second.size() != vectors.back().size()
+                || i.first.size() != vectors[0].size()){
+            return result;
+        }
+
         run(i.first);
         
-        if(!good() || i.second.size() != vectors.back().size()) return result;
-        
+        unsigned best = 0, right = 0;
+        for(unsigned j=0; j<i.second.size(); j++){
+            if(vectors.back()[j] > vectors.back()[best]) best = j;
+            if(i.second[j] > i.second[right]) right = j;
+        }
+        if(best == right) result.correct += 1;
+
         for(unsigned j=0; j<i.second.size(); j++){
             vectors.back()[j] = i.second[j] - vectors.back()[j];
         }
@@ -140,11 +151,7 @@ Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
     return result;
 }
 
-void Stack::set_batch_size(unsigned size){ batchSize = size; }
-
-void Stack::set_speed(double s){ speed = s; }
-
-void Stack::apply_changes(){
+void Stack::apply_changes(double speed){
 
     if(batch < 1) return;
 
@@ -153,7 +160,7 @@ void Stack::apply_changes(){
     batch = 0;
 }
 
-void Stack::save(app::Saver &saver){
+void Stack::save(ui::Saver &saver){
     
     if(!good()){
         saver.write_string("BAD");
@@ -162,15 +169,16 @@ void Stack::save(app::Saver &saver){
 
     saver.write_string("GOOD");
     
-    saver.write_unsigned(layers.size());
+    saver.write_unsigned(vectors.size());
     
     for(auto &i : vectors) saver.write_unsigned(i.size());
     for(auto i : layers) saver.write_string(i->get_type());
-    
+    saver.write_string(evaluate->get_type());
+
     for(auto i : layers) i->save(saver);
 }
 
-void Stack::load(app::Loader &loader){
+void Stack::load(ui::Loader &loader){
 
     clear();
 

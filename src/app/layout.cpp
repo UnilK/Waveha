@@ -43,7 +43,7 @@ void Layout::set_look(std::string look_){
     buttons.fit_content();
 }
 
-void Layout::save(Saver &saver){
+void Layout::save(ui::Saver &saver){
     
     saver.write_float(canvasX);
 
@@ -55,7 +55,7 @@ void Layout::save(Saver &saver){
     }
 }
 
-void Layout::load(Loader &loader){
+void Layout::load(ui::Loader &loader){
 
     reset();
 
