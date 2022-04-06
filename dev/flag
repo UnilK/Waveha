@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sed -i -e "s|CXXFLAGS :=|#TCXXFLAGS :=|g" Makefile
+sed -i -e "s|#ALTERNATIVE :=|CXXFLAGS :=|g" Makefile
+sed -i -e "s|#TCXXFLAGS :=|#ALTERNATIVE :=|g" Makefile
+

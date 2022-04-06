@@ -23,9 +23,9 @@ void Creations::save(ui::Saver &saver){
     
     saver.write_unsigned(datas.size());
     for(auto &i : datas){
+        saver.write_string(i.first);
         saver.write_string(std::get<0>(i.second));
         saver.write_string(std::get<1>(i.second));
-        saver.write_string(i.first);
     }
 
     saver.write_unsigned(stacks.size());
@@ -41,8 +41,12 @@ void Creations::load(ui::Loader &loader){
     reset();
     
     unsigned size = loader.read_unsigned();
-    for(unsigned i=0; i<size; i++)
-        load_mldata(loader.read_string(), loader.read_string(), loader.read_string());
+    for(unsigned i=0; i<size; i++){
+        auto name = loader.read_string();
+        auto type = loader.read_string();
+        auto file = loader.read_string();
+        load_mldata(type, file, name);
+    }
 
     size = loader.read_unsigned();
     for(unsigned i=0; i<size; i++){

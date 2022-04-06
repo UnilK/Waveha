@@ -36,7 +36,7 @@ public:
     Directory();
     virtual ~Directory();
 
-    // returns wether a function was found for the command
+    // returns whether a function was found for the command
     bool execute(Command);
 
     // soft construction, use during runtime. Keys can not be overridden.

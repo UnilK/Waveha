@@ -132,9 +132,7 @@ void Audio::reset(){
     for(auto i : files) keys.push_back(i.first);
     for(auto i : caches) keys.push_back(i.first);
 
-    for(auto i : keys) set_lock(i, 1);
     for(auto i : keys) remove_audio(i);
-    for(auto i : keys) set_lock(i, 0);
 
     links.clear();
     updates.clear();

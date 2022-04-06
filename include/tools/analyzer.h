@@ -97,6 +97,7 @@ private:
     void switch_clip(ui::Command);
     void setup_peaks(ui::Command);
     void setup_correlation(ui::Command);
+    void info(ui::Command);
 
     AudioLink link;
     wave::Player player;

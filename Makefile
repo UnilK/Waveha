@@ -10,8 +10,9 @@ MAINAPP := main
 TEST := test
 
 CXX := g++
-CXXFLAGS := -std=c++17 -g -Og -Wall
-#CXXFLAGS := -std=c++17 -O3 -Wall
+#ALTERNATIVE := -std=c++17 -g -Og -Wall
+CXXFLAGS := -std=c++17 -O3 -funroll-loops -msse -msse2 -msse3 -msse4 -mavx -mavx2 -Wall
+RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -msse -msse2 -msse3 -msse4 -mavx -mavx2 -Wall
 
 
 
@@ -39,6 +40,9 @@ $(BINDIR)/$(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MA
 	$(CXX) $(BUILDDIR)/$(MAINAPP).o $(OBJECTS) $(LLIB) $(LIB) -o $(BINDIR)/$(EXEC)
 	@mkdir -p audio
 	@mkdir -p sessions
+	@mkdir -p stacks
+	@mkdir -p stacks/sources
+	@mkdir -p stacks/saves
 	@ln -f $(BINDIR)/$(EXEC) $(EXEC)
 
 
@@ -73,7 +77,6 @@ clean:
 	rm -rf $(BINDIR)
 
 # lazy header dependency generation
-
 LLIBHINCDEP := $(patsubst $(LIBDIR)%,-I$(LIBDIR)%, $(LLIBH))
 
 .PHONY: depend
@@ -81,6 +84,13 @@ depend: $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 	makedepend -Y$(HEADIR) $(LLIBHINCDEP) $^
 	@sed -i -e "s/$(SRCDIR)\//$(BUILDDIR)\//g" Makefile
 	@sed -i -e "s/$(TESTDIR)\//$(BUILDDIR)\//g" Makefile
+
+# release build
+.PHONY: release
+release: $(SOURCES) $(HEADERS) $(SRCDIR)/$(MAINAPP).cpp
+	$(CXX) $(RELEASEFLAGS) $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(INC) $(LLIB) $(LIB) -o $(BINDIR)/$(EXEC)
+
+
 
 # DO NOT DELETE THIS LINE -- make depend depends on it. 
 
@@ -166,9 +176,13 @@ build/app/creations.o: include/app/creations.h include/ui/terminal.h
 build/app/creations.o: include/ui/frame.h include/ui/borders.h
 build/app/creations.o: include/ui/style.h include/ui/window.h
 build/app/creations.o: include/app/session.h include/ui/fileio.h
-build/app/creations.o: include/ml/mnist.h include/ml/stack.h include/ml/layer.h
+build/app/creations.o: include/app/app.h include/ui/box.h include/ui/slider.h
+build/app/creations.o: include/ui/stack.h include/ui/text.h include/ui/button.h
+build/app/creations.o: include/app/tools.h include/ml/mnist.h
+build/app/creations.o: include/ml/stack.h include/ml/layer.h
 build/ml/factory.o: include/ml/factory.h include/ml/field.h include/ml/layer.h
 build/ml/factory.o: include/ui/fileio.h include/ml/matrix.h
+build/ml/factory.o: include/ml/cmatrix.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/util.h
 build/ml/util.o: include/ml/util.h
@@ -178,6 +192,8 @@ build/ml/mnist.o: include/ml/mnist.h include/ui/fileio.h
 build/ml/layer.o: include/ml/layer.h include/ui/fileio.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/ml/stack.o: include/ml/factory.h
+build/ml/cmatrix.o: include/ml/cmatrix.h include/ml/layer.h include/ui/fileio.h
+build/ml/cmatrix.o: include/ml/util.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
 build/math/fft.o: include/math/fft.h include/math/constants.h
 build/tools/recorder.o: include/tools/recorder.h include/app/content.h

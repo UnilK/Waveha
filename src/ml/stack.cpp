@@ -54,6 +54,8 @@ bool Stack::construct_from_file(std::string file){
 
     construct(sizes, types);
 
+    loader.close();
+
     return good();
 }
 
@@ -72,18 +74,24 @@ Layer *Stack::get_layer(unsigned index){
 
 std::vector<float > Stack::run(const std::vector<float> &input){
 
+    lock.lock();
+
     if(!good() || input.size() != vectors[0].size()) return {};
 
     for(unsigned i=0; i<input.size(); i++) vectors[0][i] = input[i];
     for(Layer *layer : layers) layer->push();
     
+    lock.unlock();
+
     return vectors.back();
 }
 
 void Stack::train(
         const std::vector<float> &input,
         const std::vector<float> &output){
-   
+
+    lock.lock();
+
     if(!good() || input.size() != vectors[0].size()
             || output.size() != vectors.back().size()) return;
 
@@ -93,11 +101,13 @@ void Stack::train(
     for(unsigned i=0; i<output.size(); i++){
         vectors.back()[i] = output[i] - vectors.back()[i];
     }
-    evaluate->push();
+    evaluate->pull();
 
     for(unsigned i=layers.size(); i-- > 0;) layers[i]->pull();
 
     batch += 1;
+    
+    lock.unlock();
 }
 
 void Stack::train_program(const TrainingData &data, unsigned batchSize, unsigned batches, double speed){
@@ -124,7 +134,7 @@ Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
         }
 
         run(i.first);
-        
+
         unsigned best = 0, right = 0;
         for(unsigned j=0; j<i.second.size(); j++){
             if(vectors.back()[j] > vectors.back()[best]) best = j;

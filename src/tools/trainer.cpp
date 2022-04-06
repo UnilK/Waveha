@@ -38,11 +38,13 @@ Trainer::Trainer(App *a) :
     terminal.put_function("train", [&](ui::Command c){ train(c); });
     terminal.put_function("test", [&](ui::Command c){ test(c); });
     terminal.put_function("clean", [&](ui::Command c){ clean(c); });
+    terminal.put_function("info", [&](ui::Command c){ info(c); });
 
     terminal.document("config", "[variable] [value] set training config variable");
     terminal.document("train", "switch training");
     terminal.document("test", "test stack");
     terminal.document("clean", "clear result data");
+    terminal.document("info", "list the configuration");
 }
 
 Trainer::~Trainer(){
@@ -85,12 +87,16 @@ void Trainer::on_reconfig(){
         std::vector<float> points(results.size());
         for(unsigned i=0; i<points.size(); i++) points[i] = results[i].correct;
         graph.set_data(points);
+        graph.fit_x();
+        graph.fit_y();
         graph.set_reconfig();
     }
     else if(mode == 1){
         std::vector<float> points(results.size());
         for(unsigned i=0; i<points.size(); i++) points[i] = results[i].error;
         graph.set_data(points);
+        graph.fit_x();
+        graph.fit_y();
         graph.set_reconfig();
     }
     dataLock.unlock();
@@ -117,20 +123,21 @@ void Trainer::config(ui::Command c){
         unsigned n = std::stoul(c.pop());
         if(n > 0 && n < (1<<20)) bsize = n;
     }
-    else if(var == "tint"){
+    else if(var == "interval"){
         unsigned n = std::stoul(c.pop());
         if(n > 0 && n < (1<<20)) tinterval = n;
     }
     else if(var == "speed"){
         double n = std::stod(c.pop());
-        if(n > 0 && n < 1000) speed = n;
+        if(n >= 0 && n < 1e15) speed = n;
     }
     else if(var == "mode"){
         mode = std::stoi(c.pop());
         set_reconfig();
     }
     else {
-        c.source.push_error("variable not recognized: " + var);
+        c.source.push_error("variable not recognized: " + var + "\n"
+                "options are: data, stack, test, bsize, interval, speed, mode");
     }
 
 }
@@ -154,6 +161,18 @@ void Trainer::clean(ui::Command c){
     results.clear();
     set_reconfig();
     dataLock.unlock();
+}
+
+void Trainer::info(ui::Command c){
+    std::string message;
+    message += "mode: " + std::to_string(mode) + "\n";
+    message += "stack: " + stackName + "\n";
+    message += "data: " + dataName + "\n";
+    message += "test: " + testName + "\n";
+    message += "batch size: " + std::to_string(bsize) + "\n";
+    message += "test interval: " + std::to_string(tinterval) + "\n";
+    message += "change speed: " + std::to_string(speed);
+    c.source.push_output(message);
 }
 
 void Trainer::train_on_thread(){

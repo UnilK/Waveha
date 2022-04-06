@@ -2,13 +2,15 @@
 
 #include "ml/layer.h"
 
+#include <complex>
+
 namespace ml {
 
-class Matrix : public Layer {
+class CMatrix : public Layer {
 
 public:
 
-    Matrix(
+    CMatrix(
             std::vector<float> &source,
             std::vector<float> &destination);
 
@@ -20,12 +22,13 @@ public:
     void load(ui::Loader &loader);
 
     static bool ok(std::vector<float> &left, std::vector<float> &right);
-
+    
     std::string get_type();
 
 private:
-
-    std::vector<std::vector<float> > matrix, changes;
+    
+    std::vector<std::complex<float> > cleft, cright;
+    std::vector<std::vector<std::complex<float> > > matrix, changes;
 
 };
 

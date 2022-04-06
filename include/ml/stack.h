@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 
 namespace ml {
 
@@ -54,6 +55,8 @@ private:
     std::vector<std::vector<float> > vectors;
     std::vector<Layer*> layers;
     Layer *evaluate = nullptr;
+
+    std::mutex lock;
 
 };
 

@@ -28,17 +28,18 @@ void Matrix::push(){
 
 void Matrix::pull(){
 
-    for(auto &i : left) i = 0.0f;
-
     for(unsigned i=0; i<left.size(); i++){
+        float feedback = 0;
         for(unsigned j=0; j<right.size(); j++){
-            left[i] += right[j] * matrix[i][j];
+            feedback += right[j] * matrix[i][j];
             changes[i][j] += left[i] * right[j];
         }
+        left[i] = feedback;
     }
 }
 
 void Matrix::change(double factor){
+    
     for(unsigned i=0; i<left.size(); i++){
         for(unsigned j=0; j<right.size(); j++){
             matrix[i][j] += changes[i][j] * (float)factor;
@@ -61,6 +62,10 @@ void Matrix::load(ui::Loader &loader){
     assert(loader.read_unsigned() == right.size());
     for(auto &i : matrix) for(auto &j : i) j = loader.read_float();
 
+}
+
+bool Matrix::ok(std::vector<float> &left, std::vector<float> &right){
+    return 1;
 }
 
 namespace Factory { extern std::string matrix; }

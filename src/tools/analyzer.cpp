@@ -10,6 +10,8 @@
 
 namespace app {
 
+// graph //////////////////////////////////////////////////////////////////////
+
 AnalyzerGraph::AnalyzerGraph(Analyzer &a, ui::Kwargs kwargs) :
     Graph((App*)a.get_master(), kwargs),
     beginLine(sf::LineStrip, 2),
@@ -229,6 +231,8 @@ void AnalyzerGraph::set_view(Mode mode){
     set_reconfig();
 }
 
+// analyzer ///////////////////////////////////////////////////////////////////
+
 Analyzer::Analyzer(App *a) :
     Content(a),
     app(*a),
@@ -304,6 +308,7 @@ Analyzer::Analyzer(App *a) :
     terminal.put_function("play", [&](ui::Command c){ switch_play(c); });
     terminal.put_function("speak", [&](ui::Command c){ setup_peaks(c); });
     terminal.put_function("scorr", [&](ui::Command c){ setup_correlation(c); });
+    terminal.put_function("info", [&](ui::Command c){ info(c); });
 
     terminal.document("link", "[name] link audio to this analyzer");
     terminal.document("name", "[name] set clip name");
@@ -312,6 +317,7 @@ Analyzer::Analyzer(App *a) :
     terminal.document("play", "switch source audio playback.");
     terminal.document("speak", "[variable] [value] set value to peak match variable.");
     terminal.document("scorr", "[variable] [value] set value to correlation variable.");
+    terminal.document("info", "list the configuration");
 }
 
 Analyzer::~Analyzer(){}
@@ -515,6 +521,19 @@ void Analyzer::setup_correlation(ui::Command c){
     else {
         c.source.push_error(var + " not in {exp, sign}");
     }
+}
+
+void Analyzer::info(ui::Command c){
+    
+    std::string message;
+    message += "source: " + link.source + "\n";
+    message += "view position: " + std::to_string(position) + "\n";
+    message += "view length: " + std::to_string(length) + "\n";
+    message += "mode: " + std::to_string(dataMode) + "\n";
+    message += "clip name: " + clipName + "\n";
+    message += "clip begin: " + std::to_string(clipBegin) + "\n";
+    message += "clip end: " + std::to_string(clipEnd);
+    c.source.push_output(message);
 }
 
 }

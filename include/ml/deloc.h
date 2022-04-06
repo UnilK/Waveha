@@ -4,28 +4,24 @@
 
 namespace ml {
 
-class Matrix : public Layer {
+class Deloc : public Layer {
 
 public:
 
-    Matrix(
+    Deloc(
             std::vector<float> &source,
             std::vector<float> &destination);
 
     void push();
     void pull();
-    void change(double factor);
     
-    void save(ui::Saver &saver);
-    void load(ui::Loader &loader);
-
     static bool ok(std::vector<float> &left, std::vector<float> &right);
 
     std::string get_type();
 
 private:
 
-    std::vector<std::vector<float> > matrix, changes;
+    unsigned offset;
 
 };
 

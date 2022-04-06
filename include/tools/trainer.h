@@ -35,6 +35,7 @@ private:
     void config(ui::Command);
     void test(ui::Command);
     void clean(ui::Command);
+    void info(ui::Command);
 
     App &app;
 
