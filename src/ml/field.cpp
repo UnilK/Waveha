@@ -5,6 +5,40 @@
 
 namespace ml {
 
+// a1 /////////////////////////////////////////////////////////////////////////
+
+void a1::f(float *in, float *out){
+    
+    float x = std::abs(in[0]);
+    float s = sign(in[0]);
+
+    float y;
+
+    if(x <= 1.0f){
+        y = x / 1.5f;
+    } else {
+        y = (1.5f - 0.5f / (x*x)) / 1.5f;
+    }
+    
+    out[0] = s * y;
+}
+
+void a1::df(float *in, float *out){
+    
+    float x = std::abs(out[0]);
+    float dx = in[0];
+
+    float y;
+
+    if(x <= 1.0f){
+        y = 1.0f / 1.5f;
+    } else {
+        y = 1.0f / 1.5f / (x*x*x);
+    }
+
+    out[0] = dx * y;
+}
+
 // v1 /////////////////////////////////////////////////////////////////////////
 
 void v1::f(float *in, float *out){
@@ -67,7 +101,41 @@ void s1::df(float *in, float *out){
     if(x <= 1.0f){
         y = x*x;
     } else {
-        y = 1.0f / x / 3.0f;
+        y = 1.0f / x;
+    }
+
+    out[0] = dx * y;
+}
+
+// e11 ////////////////////////////////////////////////////////////////////////
+
+void e11::f(float *in, float *out){
+    
+    float x = std::abs(in[0]);
+    float s = sign(in[0]);
+
+    float y;
+
+    if(x <= 1.0f){
+        y = x / 1.5f;
+    } else {
+        y = (1.5f - 0.5f / (x*x)) / 1.5f;
+    }
+    
+    out[0] = s * y;
+}
+
+void e11::df(float *in, float *out){
+    
+    float x = std::abs(out[0]);
+    float dx = in[0];
+
+    float y;
+
+    if(x <= 1.0f){
+        y = 1.0f / 1.5f;
+    } else {
+        y = 1.0f / 1.5f / (x*x*x);
     }
 
     out[0] = dx * y;
@@ -184,13 +252,29 @@ void up2::df(float *in, float *out){
     out[0] = in[0];
 }
 
+// relu ///////////////////////////////////////////////////////////////////////
+
+void relu::f(float *in, float *out){
+    out[0] = std::max(0.0f, in[0]);
+}
+
+void relu::df(float *in, float *out){
+    out[0] = in[0] * (out[0] >= 0);
+}
+
 // boilerplate ////////////////////////////////////////////////////////////////
+
+namespace Factory { extern std::string a1; }
+std::string A1Field::get_type(){ return Factory::a1; };
 
 namespace Factory { extern std::string v1; }
 std::string V1Field::get_type(){ return Factory::v1; };
 
 namespace Factory { extern std::string s1; }
 std::string S1Field::get_type(){ return Factory::s1; };
+
+namespace Factory { extern std::string e11; }
+std::string E11Field::get_type(){ return Factory::e11; };
 
 namespace Factory { extern std::string v2; }
 std::string V2Field::get_type(){ return Factory::v2; };
@@ -209,6 +293,9 @@ std::string Abs2Field::get_type(){ return Factory::abs2; };
 
 namespace Factory { extern std::string up2; }
 std::string Up2Field::get_type(){ return Factory::up2; };
+
+namespace Factory { extern std::string relu; }
+std::string ReluField::get_type(){ return Factory::relu; };
 
 }
 

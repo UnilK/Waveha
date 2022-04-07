@@ -166,9 +166,21 @@ void Trainer::clean(ui::Command c){
 void Trainer::info(ui::Command c){
     std::string message;
     message += "mode: " + std::to_string(mode) + "\n";
-    message += "stack: " + stackName + "\n";
-    message += "data: " + dataName + "\n";
-    message += "test: " + testName + "\n";
+    
+    message += "stack: " + stackName + " ";
+    if(app.creations.get_stack(stackName)){
+        if(app.creations.get_stack(stackName)->good()) message += "ok\n";
+        else message += "broken :(\n";
+    } else message += "not found\n";
+    
+    message += "data: " + dataName + " ";
+    if(app.creations.get_mldata(dataName)) message += "ok\n";
+    else message += "not found\n";
+    
+    message += "test: " + testName + " ";
+    if(app.creations.get_mldata(testName)) message += "ok\n";
+    else message += "not found\n";
+    
     message += "batch size: " + std::to_string(bsize) + "\n";
     message += "test interval: " + std::to_string(tinterval) + "\n";
     message += "change speed: " + std::to_string(speed);

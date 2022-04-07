@@ -121,7 +121,7 @@ int Creations::remove_stack(std::string name){
     
     if(stacks.count(name)) return 1;
     delete stacks[name];
-    datas.erase(name);
+    stacks.erase(name);
 
     return 0;
 }

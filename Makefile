@@ -18,6 +18,7 @@ RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -msse -msse2 -msse3 -msse4 -mavx -
 
 # gather the file names
 HEADERS := $(shell find $(HEADIR) -type f -name *.h -o -name *.hpp)
+INLINES := $(shell find $(SRCDIR) -type f -name *.inl)
 SOURCES := $(shell find $(SRCDIR) -type f -name *.cpp -not -name $(MAINAPP).cpp)
 OBJECTS := $(patsubst $(SRCDIR)%,$(BUILDDIR)%, $(SOURCES:.cpp=.o))
 
@@ -80,7 +81,7 @@ clean:
 LLIBHINCDEP := $(patsubst $(LIBDIR)%,-I$(LIBDIR)%, $(LLIBH))
 
 .PHONY: depend
-depend: $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
+depend: $(INLINES) $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 	makedepend -Y$(HEADIR) $(LLIBHINCDEP) $^
 	@sed -i -e "s/$(SRCDIR)\//$(BUILDDIR)\//g" Makefile
 	@sed -i -e "s/$(TESTDIR)\//$(BUILDDIR)\//g" Makefile
@@ -181,10 +182,11 @@ build/app/creations.o: include/ui/stack.h include/ui/text.h include/ui/button.h
 build/app/creations.o: include/app/tools.h include/ml/mnist.h
 build/app/creations.o: include/ml/stack.h include/ml/layer.h
 build/ml/factory.o: include/ml/factory.h include/ml/field.h include/ml/layer.h
-build/ml/factory.o: include/ui/fileio.h include/ml/matrix.h
-build/ml/factory.o: include/ml/cmatrix.h
+build/ml/factory.o: include/ui/fileio.h include/ml/field.inl
+build/ml/factory.o: include/ml/matrix.h include/ml/cmatrix.h include/ml/deloc.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
-build/ml/field.o: include/ml/util.h
+build/ml/field.o: include/ml/field.inl include/ml/util.h
+build/ml/deloc.o: include/ml/deloc.h include/ml/layer.h include/ui/fileio.h
 build/ml/util.o: include/ml/util.h
 build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/matrix.o: include/ml/util.h
