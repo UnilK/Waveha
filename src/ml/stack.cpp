@@ -44,15 +44,42 @@ bool Stack::construct_from_file(std::string file){
 
     clear();
 
-    unsigned size;
-    loader >> size;
+    std::vector<std::vector<unsigned> > sizes{{}};
+    std::vector<std::vector<std::string> > types{{}};
 
-    std::vector<unsigned> sizes(size);
-    std::vector<std::string> types(size);
+    auto num = [](std::string n) -> bool {
+        bool ok = 1;
+        for(char i : n) ok &= std::isdigit(i);
+        return ok;
+    };
 
-    for(unsigned i=0; i<size; i++) loader >> sizes[i] >> types[i];
+    std::string s;
+    while(loader >> s){
+        if(s == "{"){
+            sizes.push_back({});
+            types.push_back({});
+        }
+        else if(s == "}"){
+            if(sizes.size() == 1) return 0;
+            loader >> s;
+            if(!num(s)) return 0;
+            unsigned copies = std::stoul(s), n = sizes.size();
+            while(copies--){
+                sizes[n-2].insert(sizes[n-2].end(), sizes[n-1].begin(), sizes[n-1].end());
+                types[n-2].insert(types[n-2].end(), types[n-1].begin(), types[n-1].end());
+            }
+            sizes.pop_back();
+            types.pop_back();
+        }
+        else {
+            if(!num(s)) return 0;
+            sizes.back().push_back(std::stoul(s));
+            loader >> s;
+            types.back().push_back(s);
+        }
+    }
 
-    construct(sizes, types);
+    construct(sizes[0], types[0]);
 
     loader.close();
 

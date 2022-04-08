@@ -7,10 +7,10 @@ namespace ml {
 
 // a1 /////////////////////////////////////////////////////////////////////////
 
-void a1::f(float *in, float *out){
+void a1::f(float *left, float *right, float *var){
     
-    float x = std::abs(in[0]);
-    float s = sign(in[0]);
+    float x = std::abs(left[0]);
+    float s = sign(left[0]);
 
     float y;
 
@@ -20,13 +20,13 @@ void a1::f(float *in, float *out){
         y = (1.5f - 0.5f / (x*x)) / 1.5f;
     }
     
-    out[0] = s * y;
+    right[0] = s * y;
 }
 
-void a1::df(float *in, float *out){
+void a1::df(float *left, float *right, float *var, float *change){
     
-    float x = std::abs(out[0]);
-    float dx = in[0];
+    float x = std::abs(left[0]);
+    float dx = right[0];
 
     float y;
 
@@ -36,15 +36,15 @@ void a1::df(float *in, float *out){
         y = 1.0f / 1.5f / (x*x*x);
     }
 
-    out[0] = dx * y;
+    left[0] = dx * y;
 }
 
 // v1 /////////////////////////////////////////////////////////////////////////
 
-void v1::f(float *in, float *out){
+void v1::f(float *left, float *right, float *var){
     
-    float x = std::abs(in[0]);
-    float s = sign(in[0]);
+    float x = std::abs(left[0]);
+    float s = sign(left[0]);
 
     float y;
 
@@ -54,13 +54,13 @@ void v1::f(float *in, float *out){
         y = (1.5f - 1.0f / x) / 1.5f;
     }
     
-    out[0] = s * y;
+    right[0] = s * y;
 }
 
-void v1::df(float *in, float *out){
+void v1::df(float *left, float *right, float *var, float *change){
     
-    float x = std::abs(out[0]);
-    float dx = in[0];
+    float x = std::abs(left[0]);
+    float dx = right[0];
 
     float y;
 
@@ -70,15 +70,51 @@ void v1::df(float *in, float *out){
         y = 1.0f / (x*x) / 1.5f;
     }
 
-    out[0] = dx * y;
+    left[0] = dx * y;
+}
+
+// vv1 ////////////////////////////////////////////////////////////////////////
+
+void vv1::f(float *left, float *right, float *var){
+    
+    float x = std::abs(left[0] * var[0] + var[1]);
+    float s = sign(left[0]);
+
+    float y;
+
+    if(x <= 1.0f){
+        y = x*x / 3.0f;
+    } else {
+        y = (1.5f - 1.0f / x) / 1.5f;
+    }
+    
+    right[0] = s * y;
+}
+
+void vv1::df(float *left, float *right, float *var, float *change){
+    
+    float x = std::abs(left[0] * var[0] + var[1]);
+    float dx = right[0];
+
+    float y;
+
+    if(x <= 1.0f){
+        y = x / 1.5f;
+    } else {
+        y = 1.0f / (x*x) / 1.5f;
+    }
+
+    change[0] += left[0] * dx * y * 0.01;
+    change[1] += dx * y;
+    left[0] = var[0] * dx * y;
 }
 
 // s1 /////////////////////////////////////////////////////////////////////////
 
-void s1::f(float *in, float *out){
+void s1::f(float *left, float *right, float *var){
     
-    float x = std::abs(in[0]);
-    float s = sign(in[0]);
+    float x = std::abs(left[0]);
+    float s = sign(left[0]);
 
     float y;
 
@@ -88,13 +124,13 @@ void s1::f(float *in, float *out){
         y = std::log(x) + 1.0f / 3.0f;
     }
     
-    out[0] = s * y;
+    right[0] = s * y;
 }
 
-void s1::df(float *in, float *out){
+void s1::df(float *left, float *right, float *var, float *change){
     
-    float x = std::abs(out[0]);
-    float dx = in[0];
+    float x = std::abs(left[0]);
+    float dx = right[0];
 
     float y;
 
@@ -104,15 +140,15 @@ void s1::df(float *in, float *out){
         y = 1.0f / x;
     }
 
-    out[0] = dx * y;
+    left[0] = dx * y;
 }
 
 // e11 ////////////////////////////////////////////////////////////////////////
 
-void e11::f(float *in, float *out){
+void e11::f(float *left, float *right, float *var){
     
-    float x = std::abs(in[0]);
-    float s = sign(in[0]);
+    float x = std::abs(left[0]);
+    float s = sign(left[0]);
 
     float y;
 
@@ -122,13 +158,13 @@ void e11::f(float *in, float *out){
         y = (1.5f - 0.5f / (x*x)) / 1.5f;
     }
     
-    out[0] = s * y;
+    right[0] = s * y;
 }
 
-void e11::df(float *in, float *out){
+void e11::df(float *left, float *right, float *var, float *change){
     
-    float x = std::abs(out[0]);
-    float dx = in[0];
+    float x = std::abs(left[0]);
+    float dx = right[0];
 
     float y;
 
@@ -138,17 +174,17 @@ void e11::df(float *in, float *out){
         y = 1.0f / 1.5f / (x*x*x);
     }
 
-    out[0] = dx * y;
+    left[0] = dx * y;
 }
 
 // v2 /////////////////////////////////////////////////////////////////////////
 
-void v2::f(float *in, float *out){
+void v2::f(float *left, float *right, float *var){
 
-    float d = std::sqrt(in[0]*in[0] + in[1]*in[1]);
+    float d = std::sqrt(left[0]*left[0] + left[1]*left[1]);
     
-    float nr = in[0];
-    float ni = in[1];
+    float nr = left[0];
+    float ni = left[1];
     if(d != 0.0f){ nr /= d; ni /= d; }
 
     float y;
@@ -159,16 +195,16 @@ void v2::f(float *in, float *out){
         y = (1.5f - 1.0f / d) / 1.5f;
     }
 
-    out[0] = y * nr;
-    out[1] = y * ni;
+    right[0] = y * nr;
+    right[1] = y * ni;
 }
 
-void v2::df(float *in, float *out){
+void v2::df(float *left, float *right, float *var, float *change){
 
-    float d = std::sqrt(out[0]*out[0] + out[1]*out[1]);
+    float d = std::sqrt(left[0]*left[0] + left[1]*left[1]);
     
-    float nr = out[0];
-    float ni = out[1];
+    float nr = left[0];
+    float ni = left[1];
     if(d != 0.0f){ nr /= d; ni /= d; }
     
     float y;
@@ -179,87 +215,87 @@ void v2::df(float *in, float *out){
         y = 1.0f / (d*d) / 1.5f;
     }
 
-    float dd = std::sqrt(in[0]*in[0] + in[1]*in[1]);
+    float dd = std::sqrt(right[0]*right[0] + right[1]*right[1]);
     
-    float dr = in[0];
-    float di = in[1];
+    float dr = right[0];
+    float di = right[1];
    
     float dot = std::abs(nr * dr + ni * di);
     
     if(dd != 0.0f){ dr /= dd; di /= dd; }
 
-    out[0] = dr * y * dot;
-    out[1] = di * y * dot;
+    left[0] = dr * y * dot;
+    left[1] = di * y * dot;
 }
 
 // average1 ///////////////////////////////////////////////////////////////////
 
-void average1::f(float *in, float *out){
-    out[0] = in[0] * in[0];
+void average1::f(float *left, float *right, float *var){
+    right[0] = left[0] * left[0];
 }
 
-void average1::df(float *in, float *out){
-    out[0] = 2.0 * in[0];
+void average1::df(float *left, float *right, float *var, float *change){
+    left[0] = 2.0 * right[0];
 }
 
 // average2 ///////////////////////////////////////////////////////////////////
 
-void average2::f(float *in, float *out){
-    float d = std::sqrt(in[0]*in[0] + in[1]*in[1]);
-    out[0] = d*d;
-    out[1] = 0.0f;
+void average2::f(float *left, float *right, float *var){
+    float d = std::sqrt(left[0]*left[0] + left[1]*left[1]);
+    right[0] = d*d;
+    right[1] = 0.0f;
 }
 
-void average2::df(float *in, float *out){
-    out[0] = 2.0 * in[0];
-    out[1] = 2.0 * in[1];
+void average2::df(float *left, float *right, float *var, float *change){
+    left[0] = 2.0 * right[0];
+    left[1] = 2.0 * right[1];
 }
 
 // abs1 ///////////////////////////////////////////////////////////////////////
 
-void abs1::f(float *in, float *out){
-    out[0] = in[0] * sign(in[0]);
+void abs1::f(float *left, float *right, float *var){
+    right[0] = left[0] * sign(left[0]);
 }
 
-void abs1::df(float *in, float *out){
-    out[0] = in[0] * sign(out[0]);
+void abs1::df(float *left, float *right, float *var, float *change){
+    left[0] = right[0] * sign(left[0]);
 }
 
 // abs2 ///////////////////////////////////////////////////////////////////////
 
-void abs2::f(float *in, float *out){
-    out[0] = std::sqrt(in[0]*in[0] + in[1]*in[1]);
+void abs2::f(float *left, float *right, float *var){
+    right[0] = std::sqrt(left[0]*left[0] + left[1]*left[1]);
 }
 
-void abs2::df(float *in, float *out){
+void abs2::df(float *left, float *right, float *var, float *change){
     
-    float d = std::sqrt(out[0]*out[0] + out[1]*out[1]);
+    float d = std::sqrt(left[0]*left[0] + left[1]*left[1]);
     
     if(d == 0.0f) d = 1.0f;
 
-    out[0] = in[0] * out[0] / d;
-    out[1] = in[0] * out[1] / d;
+    left[0] = right[0] * left[0] / d;
+    left[1] = right[0] * left[1] / d;
 }
 
 // up2 ////////////////////////////////////////////////////////////////////////
 
-void up2::f(float *in, float *out){
-    out[0] = in[0];
-    out[1] = 0.0f;
+void up2::f(float *left, float *right, float *var){
+    right[0] = left[0];
+    right[1] = 0.0f;
 }
 
-void up2::df(float *in, float *out){
-    out[0] = in[0];
+void up2::df(float *left, float *right, float *var, float *change){
+    left[0] = right[0];
 }
 
 // relu ///////////////////////////////////////////////////////////////////////
 
-void relu::f(float *in, float *out){
-    out[0] = std::max(0.0f, in[0]);
+void relu::f(float *left, float *right, float *var){
+    right[0] = std::max(0.0f, left[0]);
 }
 
-void relu::df(float *in, float *out){
-    out[0] = in[0] * (out[0] >= 0);
+void relu::df(float *left, float *right, float *var, float *change){
+    left[0] = right[0] * (left[0] >= 0);
 }
 
 // boilerplate ////////////////////////////////////////////////////////////////
@@ -269,6 +305,11 @@ std::string A1Field::get_type(){ return Factory::a1; };
 
 namespace Factory { extern std::string v1; }
 std::string V1Field::get_type(){ return Factory::v1; };
+
+VV1Field::VV1Field(std::vector<float> &source, std::vector<float> &destination) :
+    Field(source, destination, {1, 0}) {}
+namespace Factory { extern std::string vv1; }
+std::string VV1Field::get_type(){ return Factory::vv1; };
 
 namespace Factory { extern std::string s1; }
 std::string S1Field::get_type(){ return Factory::s1; };

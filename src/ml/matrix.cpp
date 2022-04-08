@@ -49,19 +49,11 @@ void Matrix::change(double factor){
 }
 
 void Matrix::save(ui::Saver &saver){
-    
-    saver.write_unsigned(left.size());
-    saver.write_unsigned(right.size());
     for(auto &i : matrix) for(auto &j : i) saver.write_float(j);
-
 }
 
 void Matrix::load(ui::Loader &loader){
-
-    assert(loader.read_unsigned() == left.size());
-    assert(loader.read_unsigned() == right.size());
     for(auto &i : matrix) for(auto &j : i) j = loader.read_float();
-
 }
 
 bool Matrix::ok(std::vector<float> &left, std::vector<float> &right){

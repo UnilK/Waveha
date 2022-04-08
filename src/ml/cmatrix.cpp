@@ -64,19 +64,11 @@ void CMatrix::change(double factor){
 }
 
 void CMatrix::save(ui::Saver &saver){
-    
-    saver.write_unsigned(cleft.size());
-    saver.write_unsigned(cright.size());
     for(auto &i : matrix) for(auto &j : i) saver.write_complex(j);
-
 }
 
 void CMatrix::load(ui::Loader &loader){
-
-    assert(loader.read_unsigned() == cleft.size());
-    assert(loader.read_unsigned() == cright.size());
     for(auto &i : matrix) for(auto &j : i) j = loader.read_complex();
-
 }
 
 bool CMatrix::ok(std::vector<float> &left, std::vector<float> &right){
