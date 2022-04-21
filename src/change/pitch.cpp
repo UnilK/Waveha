@@ -1,5 +1,7 @@
 #include "change/pitch.h"
 #include "math/fft.h"
+#include "math/ft.h"
+#include "math/constants.h"
 
 #include <math.h>
 #include <algorithm>
@@ -53,6 +55,24 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     auto plot = math::convolution(copy, reverseCopy);
 
     return plot;
+}
+
+std::vector<std::complex<float> > phase_graph(const std::vector<float> &audio){
+
+    std::vector<std::complex<float> > phases(audio.size());
+
+    std::vector<std::complex<float> > cleft = math::ft(audio, 64);
+
+    std::complex<float> phase = cleft[0] * std::abs(cleft[0]);
+
+    for(unsigned i=1; i<cleft.size(); i++){
+        phase += cleft[i] * std::conj(cleft[i-1]);
+    }
+    
+    for(auto &i : phases) i = phase;
+
+    return phases;
+
 }
 
 }

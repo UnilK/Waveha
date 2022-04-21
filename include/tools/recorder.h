@@ -29,7 +29,10 @@ public:
     void set_fuze(ui::Command);
     void switch_record(ui::Command);
     void switch_playback(ui::Command);
-    void save_audio(ui::Command);
+
+    void cache_audio(ui::Command);
+    void write_audio(ui::Command);
+    void write_link_audio(ui::Command);
 
 private:
 

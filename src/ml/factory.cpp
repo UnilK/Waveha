@@ -3,6 +3,9 @@
 #include "ml/matrix.h"
 #include "ml/cmatrix.h"
 #include "ml/deloc.h"
+#include "ml/fdeco.h"
+#include "ml/freco.h"
+#include "ml/ft.h"
 
 #include <assert.h>
 
@@ -12,6 +15,11 @@ namespace Factory {
 
 std::string matrix = "matrix";
 std::string cmatrix = "cmatrix";
+std::string fdeco = "fdeco";
+std::string freco = "freco";
+std::string deloc = "deloc";
+std::string ft = "ft";
+
 std::string a1 = "a1";
 std::string v1 = "v1";
 std::string vv1 = "vv1";
@@ -23,7 +31,6 @@ std::string average2 = "average2";
 std::string abs1 = "abs1";
 std::string abs2 = "abs2";
 std::string up2 = "up2";
-std::string deloc = "deloc";
 std::string relu = "relu";
 
 }
@@ -38,6 +45,18 @@ Layer *create_layer(
     
     if(type == Factory::cmatrix && CMatrix::ok(left, right))
         return new CMatrix(left, right);
+    
+    if(type == Factory::fdeco && Fdeco::ok(left, right))
+        return new Fdeco(left, right);
+    
+    if(type == Factory::freco && Freco::ok(left, right))
+        return new Freco(left, right);
+    
+    if(type == Factory::deloc && Deloc::ok(left, right))
+        return new Deloc(left, right);
+    
+    if(type == Factory::ft && FT::ok(left, right))
+        return new FT(left, right);
     
     if(type == Factory::v1 && V1Field::ok(left, right))
         return new V1Field(left, right);
@@ -71,9 +90,6 @@ Layer *create_layer(
     
     if(type == Factory::up2 && Up2Field::ok(left, right))
         return new Up2Field(left, right);
-    
-    if(type == Factory::deloc && Deloc::ok(left, right))
-        return new Deloc(left, right);
     
     if(type == Factory::relu && ReluField::ok(left, right))
         return new ReluField(left, right);

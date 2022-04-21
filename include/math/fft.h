@@ -6,35 +6,32 @@
 
 namespace math {
 
-using std::vector;
-using std::complex;
-
 // calculate discrete fourier transform of v. only sizes
 // that are powers of 2 are supported.
 
-void in_place_fft(complex<float> *v, unsigned n, bool inv = 0);
-void in_place_fft(vector<complex<float> > &v, bool inv = 0);
+void in_place_fft(std::complex<float> *v, unsigned n, bool inv = 0);
+void in_place_fft(std::vector<std::complex<float> > &v, bool inv = 0);
 
-vector<complex<float> > fft(const float *v, unsigned n);
-vector<complex<float> > fft(const vector<float> &v);
+std::vector<std::complex<float> > fft(const float *v, unsigned n);
+std::vector<std::complex<float> > fft(const std::vector<float> &v);
 
-vector<float> inverse_fft(const complex<float> *v, unsigned n);
-vector<float> inverse_fft(const vector<complex<float> > &v);
+std::vector<float> inverse_fft(const std::complex<float> *v, unsigned n);
+std::vector<float> inverse_fft(const std::vector<std::complex<float> > &v);
 
-vector<complex<float> > fft(vector<complex<float> > v, bool inv = 0);
-vector<complex<float> > fft(complex<float> *v, unsigned n, bool inv = 0);
+std::vector<std::complex<float> > fft(std::vector<std::complex<float> > v, bool inv = 0);
+std::vector<std::complex<float> > fft(std::complex<float> *v, unsigned n, bool inv = 0);
 
-vector<float> convolution(vector<float> &a, vector<float> &b, unsigned size = 0);
-vector<complex<float> > convolution(
-        vector<complex<float> > a,
-        vector<complex<float> > b,
+std::vector<float> convolution(std::vector<float> &a, std::vector<float> &b, unsigned size = 0);
+std::vector<std::complex<float> > convolution(
+        std::vector<std::complex<float> > a,
+        std::vector<std::complex<float> > b,
         unsigned size = 0);
 
-vector<complex<float> > bluestein(vector<complex<float> > v, bool inv = 0); 
-vector<complex<float> > bluestein(vector<float> &v);
-vector<float> inverse_bluestein(vector<complex<float> > &v); 
+std::vector<std::complex<float> > bluestein(std::vector<std::complex<float> > v, bool inv = 0); 
+std::vector<std::complex<float> > bluestein(std::vector<float> &v);
+std::vector<float> inverse_bluestein(std::vector<std::complex<float> > &v); 
 
-// default precalc table size is 18 -> vectors of size 2^18 max can be processed
+// default precalc table size is 18 -> std::vectors of size 2^18 max can be processed
 
 struct FFTPrecalc {
 
@@ -43,8 +40,8 @@ struct FFTPrecalc {
 
     unsigned B;
 
-    vector<vector<complex<float> > > w;
-    vector<unsigned> invbit;
+    std::vector<std::vector<std::complex<float> > > w;
+    std::vector<unsigned> invbit;
 
 };
 

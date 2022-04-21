@@ -2,12 +2,6 @@
 
 namespace ml {
 
-Deloc::Deloc(
-        std::vector<float> &source,
-        std::vector<float> &destination) :
-    Layer(source, destination)
-{}
-
 void Deloc::push(){
     if(left.size() == 0) return;
     offset = rand() % left.size();

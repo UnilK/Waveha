@@ -233,10 +233,12 @@ Frame::Capture Terminal::on_event(sf::Event event, int priority){
 
             push_command(prefix + cmd);
             
-            bool ok = execute({*this, create_command(cmd)});
-            
-            if(!ok) push_error("unrecognized: " + cmd);
+            auto cmdlist = create_command(cmd);
 
+            if(!cmdlist.empty()){
+                bool ok = execute({*this, cmdlist});
+                if(!ok) push_error("unrecognized: " + cmd);
+            }
         }
         else if(event.key.code == sf::Keyboard::Backspace){
             if(editX > 0){
@@ -463,7 +465,6 @@ void Terminal::ls(Command c){
     auto list = address;
     list.push_back(LIST);
     execute({*this, list});
-
 }
 
 void Terminal::cd(Command c){
@@ -502,7 +503,6 @@ void Terminal::pwd(Command c){
     std::string list = "--";
     for(auto i : address) list += " " + i;
     push_output(list);
-
 }
 
 void Terminal::help(Command c){
@@ -511,7 +511,6 @@ void Terminal::help(Command c){
     list.push_back(HELP);
     list.push_back(c.pop());
     execute({*this, list});
-
 }
 
 void Terminal::clear(Command c){
@@ -519,7 +518,6 @@ void Terminal::clear(Command c){
     buffer.clear();
     bufferOffset = 0;
     set_refresh();
-
 }
 
 }

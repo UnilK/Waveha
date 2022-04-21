@@ -22,7 +22,8 @@ public:
     virtual unsigned size() = 0;
 
     // get amount samples starting from an internal pointer and move it.
-    // vector is padded with zeros if no real samples are found.
+    // The values are added to the end of the vector. If no real samples
+    // are found, zero padding is the default behaviour.
     // returns the amount of actual samples read.
     // use for playing audio.
     virtual unsigned pull(unsigned amount, std::vector<float> &samples) = 0;

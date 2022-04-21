@@ -35,6 +35,7 @@ public:
     void unit_matrix(ui::Command);
     void rename_output(ui::Command);
     void link_audio(ui::Command);
+    void info(ui::Command);
 
     void set_slant(ui::Command);
     void set_pitch(ui::Command);

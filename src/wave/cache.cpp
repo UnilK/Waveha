@@ -38,16 +38,18 @@ unsigned Cache::pull(unsigned amount, std::vector<float> &samples){
 
     good = 1;
 
-    samples = std::vector<float>(amount, 0.0f);
+    unsigned begin = samples.size();
 
-    amount = std::min(amount, (unsigned)audio->data.size() - read);
+    samples.resize(samples.size() + amount, 0.0f);
+
+    unsigned actual = std::min(amount, (unsigned)audio->data.size() - read);
 
     if(amount != samples.size()) good = 0;
 
-    memcpy(samples.data(), audio->data.data() + read, sizeof(float) * amount);
+    memcpy(samples.data() + begin, audio->data.data() + read, sizeof(float) * actual);
     read += amount;
 
-    return amount;
+    return actual;
 }
 
 std::vector<float> Cache::get(unsigned amount, unsigned begin){

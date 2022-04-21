@@ -23,8 +23,10 @@ public:
     AudioLink(App&);
     virtual ~AudioLink();
 
-    std::string source;
     bool open(std::string link);
+    
+    // for clarity. returns the name of this source i.e. the link.
+    std::string source();
 
     void seek(unsigned sample);
     unsigned tell();
@@ -83,6 +85,7 @@ public:
     int add_cache(wave::Audio*);
     int add_file(std::string name, std::string file);
     int remove_audio(std::string name);
+    int write_cache(std::string name, std::string file);
 
     unsigned audio_frameRate(std::string source);
     unsigned audio_channels(std::string source);

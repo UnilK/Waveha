@@ -26,7 +26,7 @@ public:
     // apply changes that have been accumulated in this layer
     virtual void change(double factor);
 
-    // save and load state of layer to a file.
+    // save and load the state of the layer to a file.
     virtual void save(ui::Saver &saver);
     virtual void load(ui::Loader &loader);
     virtual std::string get_type() = 0;

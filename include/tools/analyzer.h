@@ -22,6 +22,7 @@ enum Mode {
     frequencyMode,
     peakMode,
     correlationMode,
+    phaseMode,
     last
 };
 
@@ -86,11 +87,6 @@ private:
 
     App &app;
 
-    void switch_regular();
-    void switch_frequency();
-    void switch_peak();
-    void switch_correlation();
-
     void link_audio(ui::Command);
     void switch_play(ui::Command);
     void set_name(ui::Command);
@@ -117,7 +113,8 @@ private:
 
     ui::Frame buttons;
     ui::Text sourceNameBox;
-    ui::Button switchRegular, switchFrequency, switchPeak, switchCorrelation;
+    ui::Button switchRegular, switchFrequency, switchPeak,
+        switchCorrelation, switchPhase;
 
     bool playing = 0;
 

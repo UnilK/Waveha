@@ -10,9 +10,9 @@ MAINAPP := main
 TEST := test
 
 CXX := g++
-#ALTERNATIVE := -std=c++17 -g -Og -Wall
-CXXFLAGS := -std=c++17 -O3 -funroll-loops -msse -msse2 -msse3 -msse4 -mavx -mavx2 -Wall
-RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -msse -msse2 -msse3 -msse4 -mavx -mavx2 -Wall
+CXXFLAGS := -std=c++17 -g -Og -Wall
+#ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
+RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 
 
 
@@ -108,6 +108,7 @@ build/wave/sound.o: include/wave/source.h include/wave/util.h
 build/wave/util.o: include/wave/util.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
+build/change/pitch.o: include/math/ft.h include/math/constants.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
 build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
@@ -184,6 +185,7 @@ build/app/creations.o: include/ml/stack.h include/ml/layer.h
 build/ml/factory.o: include/ml/factory.h include/ml/field.h include/ml/layer.h
 build/ml/factory.o: include/ui/fileio.h include/ml/field.inl
 build/ml/factory.o: include/ml/matrix.h include/ml/cmatrix.h include/ml/deloc.h
+build/ml/factory.o: include/ml/fdeco.h include/ml/freco.h include/ml/ft.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/field.inl include/ml/util.h
 build/ml/deloc.o: include/ml/deloc.h include/ml/layer.h include/ui/fileio.h
@@ -192,8 +194,14 @@ build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/matrix.o: include/ml/util.h
 build/ml/mnist.o: include/ml/mnist.h include/ui/fileio.h
 build/ml/layer.o: include/ml/layer.h include/ui/fileio.h
+build/ml/fdeco.o: include/ml/fdeco.h include/ml/cmatrix.h include/ml/layer.h
+build/ml/fdeco.o: include/ui/fileio.h
+build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h
+build/ml/ft.o: include/math/ft.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/ml/stack.o: include/ml/factory.h
+build/ml/freco.o: include/ml/freco.h include/ml/cmatrix.h include/ml/layer.h
+build/ml/freco.o: include/ui/fileio.h
 build/ml/cmatrix.o: include/ml/cmatrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/cmatrix.o: include/ml/util.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
@@ -233,7 +241,8 @@ build/tools/meditor.o: include/tools/graph.h include/ui/slider.h
 build/tools/meditor.o: include/ui/stack.h include/ui/text.h
 build/tools/meditor.o: include/change/matrix.h include/app/app.h
 build/tools/meditor.o: include/ui/box.h include/ui/button.h include/app/tools.h
-build/tools/meditor.o: include/math/fft.h include/math/constants.h
+build/tools/meditor.o: include/math/fft.h include/math/ft.h
+build/tools/meditor.o: include/math/constants.h
 build/tools/analyzer.o: include/tools/analyzer.h include/ui/button.h
 build/tools/analyzer.o: include/ui/text.h include/ui/frame.h
 build/tools/analyzer.o: include/ui/borders.h include/ui/style.h

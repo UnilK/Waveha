@@ -4,7 +4,6 @@
 
 namespace ml {
 
-
 Layer::Layer(
         std::vector<float> &source,
         std::vector<float> &destination) :

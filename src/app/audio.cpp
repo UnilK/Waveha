@@ -1,5 +1,6 @@
 #include "app/audio.h"
 #include "app/app.h"
+#include "wstream/constants.h"
 
 #include <string.h>
 #include <algorithm>
@@ -16,21 +17,25 @@ AudioLink::AudioLink(App &a) :
 }
 
 AudioLink::~AudioLink(){
-    app.audio.pop_link(id, source);
+    app.audio.pop_link(id, source());
 }
 
 bool AudioLink::open(std::string link){
-    app.audio.pop_link(id, source);
+    app.audio.pop_link(id, source());
     position = 0;
-    source = link;
+    name = link;
     channels = app.audio.audio_channels(link);
     frameRate = app.audio.audio_frameRate(link);
-    app.audio.set_link(id, source);
-    return app.audio.key_exists(source);
+    app.audio.set_link(id, source());
+    return app.audio.key_exists(source());
+}
+
+std::string AudioLink::source(){
+    return name;
 }
 
 void AudioLink::seek(unsigned sample){
-    if(size() > 0) position = std::min(position, size()-1);
+    if(size() > 0) position = std::min(sample, size()-1);
 }
 
 unsigned AudioLink::tell(){
@@ -38,7 +43,7 @@ unsigned AudioLink::tell(){
 }
 
 unsigned AudioLink::size(){
-    return app.audio.audio_size(source);
+    return app.audio.audio_size(source());
 }
 
 unsigned AudioLink::pull(unsigned amount, std::vector<float> &samples){
@@ -49,21 +54,23 @@ unsigned AudioLink::pull(unsigned amount, std::vector<float> &samples){
 
     if(amount != actual) good = 0;
 
-    samples = app.audio.get_audio(source, amount, position);
+    samples = app.audio.get_audio(source(), amount, position);
+
+    position += actual;
 
     return actual;
 }
 
 std::vector<float> AudioLink::get(unsigned amount, unsigned begin){
-    return app.audio.get_audio(source, amount, begin);
+    return app.audio.get_audio(source(), amount, begin);
 }
     
 bool AudioLink::pop_update(){
-    return app.audio.pop_update(id, source);
+    return app.audio.pop_update(id, source());
 }
 
 bool AudioLink::is_updated(){
-    return app.audio.is_updated(id, source);
+    return app.audio.is_updated(id, source());
 }
 
 // audio //////////////////////////////////////////////////////////////////////
@@ -209,10 +216,26 @@ int Audio::remove_audio(std::string name){
 
     delete sources[name];
     sources.erase(name);
-    links.erase(name);
     
     set_lock(name, 0);
 
+    return 0;
+}
+
+int Audio::write_cache(std::string name, std::string file){
+    
+    set_lock(name, 1);
+    if(!caches.count(name)){
+        set_lock(name, 0);
+        return 1;
+    }
+
+    owstream O("audio/"+file+".wav", PCM, caches[name]->channels, 16, caches[name]->frameRate);
+
+    O.write_file(caches[name]->data);
+
+    set_lock(name, 0);
+    
     return 0;
 }
 
@@ -254,18 +277,19 @@ std::vector<float> Audio::loop_audio(std::string source, unsigned amount, unsign
 }
 
 bool Audio::pop_update(std::string reciever, std::string source){
-    bool ret = is_updated(source, reciever);
-    if(links.count(source)) updates[source].erase(reciever);
+    if(!sources.count(source)) return 0;
+    bool ret = updates[source].count(reciever);
+    updates[source].erase(reciever);
     return ret;
 }
 
 bool Audio::is_updated(std::string reciever, std::string source){
-    if(!links.count(source)) return 0;
+    if(!sources.count(source)) return 0;
     return updates[source].count(reciever);
 }
 
 bool Audio::set_link(std::string reciever, std::string source){
-    if(links.count(source)){
+    if(sources.count(source)){
         links[source].insert(reciever);
         return 1;
     }
@@ -273,7 +297,7 @@ bool Audio::set_link(std::string reciever, std::string source){
 }
 
 bool Audio::pop_link(std::string reciever, std::string source){
-    if(links.count(source)){
+    if(sources.count(source)){
         links[source].erase(reciever);
         return 1;
     }
@@ -326,7 +350,7 @@ AudioDir::AudioDir(Audio &a) : audio(a) {
 
     document("list", "list currently stored caches and linked files");
     document("link", "[file] {name} link a .wav file");
-    document("save", "[name] save a cache to a .wav file");
+    document("save", "[name] [file] save a cache to a .wav file");
     document("del", "[name] delete a cache or unlink a file");
 }
 
@@ -362,7 +386,16 @@ void AudioDir::link_audio(ui::Command c){
 }
 
 void AudioDir::write_cache(ui::Command c){
-    c.source.push_output("not implemented yet.");
+    
+    auto name = c.pop(), file = c.pop();
+    
+    if(name.empty() || file.empty()){
+        c.source.push_error("give a name and a file");
+    }
+    else {
+        int ret = audio.write_cache(name, file);
+        if(ret) c.source.push_error("cache not found");
+    }
 }
 
 void AudioDir::delete_audio(ui::Command c){

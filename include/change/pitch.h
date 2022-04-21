@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <cstdint>
+#include <complex>
 
 namespace change {
 
@@ -31,6 +31,8 @@ extern CorrelationVars defaultCorrelationVars;
 std::vector<float> correlation_graph(
         const std::vector<float> &audio,
         CorrelationVars = defaultCorrelationVars);
+
+std::vector<std::complex<float> > phase_graph(const std::vector<float> &audio);
 
 }
 

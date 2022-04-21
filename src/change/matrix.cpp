@@ -18,7 +18,8 @@ Matrix::Matrix(){}
 
 void Matrix::resize(unsigned size){
     x.resize(size);
-    for(auto &i : x) i.resize(size, 0.0f);
+    for(auto &i : x) i.resize(size);
+    set_unit();
 }
 
 unsigned Matrix::size() const {

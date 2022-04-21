@@ -32,6 +32,8 @@ Trainer::Trainer(App *a) :
     slider.functions.set_border(0, 0, 1, 1);
     graph.set_border(0, 0, 0, 0);
 
+    terminal.put_directory("re", &app.creations.dir);
+    
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
     terminal.put_function("config", [&](ui::Command c){ config(c); });

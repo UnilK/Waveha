@@ -1,6 +1,7 @@
 #include "tools/meditor.h"
 #include "app/app.h"
 #include "math/fft.h"
+#include "math/ft.h"
 #include "math/constants.h"
 
 #include <math.h>
@@ -20,6 +21,8 @@ Meditor::Meditor(App *a) :
     fill_height(0, 1);
 
     put(0, 0, &terminal);
+    
+    terminal.put_directory("au", &app.audio.dir);
 
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
@@ -29,6 +32,7 @@ Meditor::Meditor(App *a) :
     terminal.put_function("unit", [&](ui::Command c){ unit_matrix(c); });
     terminal.put_function("phasesuf", [&](ui::Command c){ shuffle_phase(c); });
     terminal.put_function("magsuf", [&](ui::Command c){ shuffle_magnitude(c); });
+    terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("slant", [&](ui::Command c){ set_slant(c); });
     terminal.put_function("pitch", [&](ui::Command c){ set_pitch(c); });
@@ -39,14 +43,15 @@ Meditor::Meditor(App *a) :
     terminal.document("resize", "resize edit matrix.");
     terminal.document("unit", "make edit matrix a unit matrix.");
     terminal.document("phasesuf", "shuffle the phase of matrix cells.");
-    terminal.document("magsuf", " [low] [high] shuffle the magnitude of matrix cells.");
+    terminal.document("magsuf", "[low] [high] shuffle the magnitude of matrix cells.");
+    terminal.document("info", "list configuration.");
 }
 
 Meditor::~Meditor(){}
 
 void Meditor::save(ui::Saver &saver){
 
-    saver.write_string(link.source);
+    saver.write_string(link.source());
     saver.write_string(outputName);
 
     saver.write_unsigned(matrix.size());
@@ -92,22 +97,11 @@ void Meditor::update_output(){
         data[i] /= (1-d)+d*slantIn;
     }
     
-    auto freq = math::bluestein(data);
+    auto freq = math::ft(data, matrix.size());
 
-    std::vector<std::complex<float> > edits(matrix.size(), 0.0f);
-    for(unsigned i=1; i <= freq.size() / 2 && i <= matrix.size(); i++) edits[i-1] = freq[i];
+    freq = matrix*freq;
 
-    edits = matrix*edits;
-
-    unsigned nsize = (unsigned)std::round(pitch*freq.size());
-
-    freq = std::vector<std::complex<float> >(nsize, 0.0f);
-    for(unsigned i=1; i <= nsize / 2 && i <= matrix.size(); i++){
-        freq[nsize - i] = std::conj(edits[i-1]);
-        freq[i] = edits[i-1];
-    }
-
-    data = math::inverse_bluestein(freq);
+    data = math::ift(freq, (unsigned)std::round(pitch*data.size()));
     
     for(unsigned i=0; i<data.size(); i++){
         float d = (float)i/data.size();
@@ -124,8 +118,13 @@ void Meditor::update_output(){
 }
 
 void Meditor::resize_matrix(ui::Command c){
-    matrix.resize(std::stoi(c.pop()));
-    update_output();
+    try {
+        matrix.resize(std::stoi(c.pop()));
+        update_output();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 void Meditor::shuffle_phase(ui::Command c){
@@ -138,16 +137,21 @@ void Meditor::shuffle_phase(ui::Command c){
 }
 
 void Meditor::shuffle_magnitude(ui::Command c){
-    float low = std::stof(c.pop());
-    float high = std::stof(c.pop());
+    try {
+        float low = std::stof(c.pop());
+        float high = std::stof(c.pop());
 
-    for(unsigned i=0; i<matrix.size(); i++){
-        for(unsigned j=0; j<matrix.size(); j++){
-            matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
+        for(unsigned i=0; i<matrix.size(); i++){
+            for(unsigned j=0; j<matrix.size(); j++){
+                matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
+            }
         }
-    }
 
-    update_output();
+        update_output();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 void Meditor::unit_matrix(ui::Command c){
@@ -183,15 +187,33 @@ void Meditor::link_audio(ui::Command c){
     }
 }
 
+void Meditor::info(ui::Command c){
+    std::string message =
+        "in: " + link.source() + "\n"
+        + "size: " + std::to_string(matrix.size()) + "\n"
+        + "out: " + outputName;
+    c.source.push_output(message);
+}
+
 void Meditor::set_slant(ui::Command c){
-    slantIn = std::stof(c.pop());
-    slantOut = std::stof(c.pop());
-    update_output();
+    try {
+        slantIn = std::stof(c.pop());
+        slantOut = std::stof(c.pop());
+        update_output();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 void Meditor::set_pitch(ui::Command c){
-    pitch = std::stof(c.pop());
-    update_output();
+    try {
+        pitch = std::stof(c.pop());
+        update_output();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 }

@@ -2,14 +2,18 @@
 
 #include "ml/layer.h"
 
+#include <complex>
+
 namespace ml {
 
-class Deloc : public Layer {
+class FT : public Layer {
 
 public:
-    
-    using Layer::Layer;
 
+    FT(
+        std::vector<float> &source,
+        std::vector<float> &destination);
+    
     void push();
     void pull();
     
@@ -19,9 +23,8 @@ public:
 
 private:
 
-    unsigned offset;
+    std::vector<std::complex<float> > freq;
 
 };
 
 }
-

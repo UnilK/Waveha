@@ -247,26 +247,31 @@ Analyzer::Analyzer(App *a) :
     
     switchRegular(
             a,
-            [&](){ switch_regular(); },
+            [&](){ switch_mode(regularMode); },
             "time",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
     
     switchFrequency(
             a,
-            [&](){ switch_frequency(); },
+            [&](){ switch_mode(frequencyMode); },
             "freq",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
     
     switchPeak(
             a,
-            [&](){ switch_peak(); },
+            [&](){ switch_mode(peakMode); },
             "peak",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
     
     switchCorrelation(
             a,
-            [&](){ switch_correlation(); },
+            [&](){ switch_mode(correlationMode); },
             "corr",
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
+    switchPhase(
+            a,
+            [&](){ switch_mode(phaseMode); },
+            "phase",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}})
 {
 
@@ -295,11 +300,14 @@ Analyzer::Analyzer(App *a) :
     buttons.put(0, 1, &switchFrequency);
     buttons.put(0, 2, &switchPeak);
     buttons.put(0, 3, &switchCorrelation);
+    buttons.put(0, 4, &switchPhase);
 
     buttons.put(0, 9, &sourceNameBox);
     sourceNameBox.text_stick(ui::Text::left);
     sourceNameBox.text_offset(1, -0.1);
 
+    terminal.put_directory("au", &app.audio.dir);
+    
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
     terminal.put_function("link", [&](ui::Command c){ link_audio(c); });
@@ -332,7 +340,7 @@ void Analyzer::on_tick(){
 
 void Analyzer::save(ui::Saver &saver){
 
-    saver.write_string(link.source);
+    saver.write_string(link.source());
     saver.write_int(position);
     saver.write_int(length);
     saver.write_int(dataMode);
@@ -397,6 +405,12 @@ void Analyzer::update_data(){
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
+    } else if(dataMode == phaseMode){
+
+        graph.set_data(change::phase_graph(link.get_loop(std::min(1<<10, clipEnd-clipBegin), position)));
+        graph.set_offset_x(0);
+        graph.set_scalar_x(1);
+
     }
     
     graph.set_reconfig();
@@ -417,22 +431,6 @@ void Analyzer::save_clip(){
         app.audio.add_cache(audio);
     
     }
-}
-
-void Analyzer::switch_regular(){
-    switch_mode(regularMode);
-}
-
-void Analyzer::switch_frequency(){
-    switch_mode(frequencyMode);
-}
-
-void Analyzer::switch_peak(){
-    switch_mode(peakMode);
-}
-
-void Analyzer::switch_correlation(){
-    switch_mode(correlationMode);
 }
 
 void Analyzer::link_audio(ui::Command c){
@@ -492,16 +490,21 @@ void Analyzer::setup_peaks(ui::Command c){
     
     auto var = c.pop();
 
-    if(var == "peaks"){
-        peakVars.peaks = std::stoi(c.pop());
-        update_data();
+    try {
+        if(var == "peaks"){
+            peakVars.peaks = std::stoi(c.pop());
+            update_data();
+        }
+        else if(var == "exp"){
+            peakVars.exponent = std::stof(c.pop());
+            update_data();
+        }
+        else {
+            c.source.push_error(var + " not in {peaks, exp}");
+        }
     }
-    else if(var == "exp"){
-        peakVars.exponent = std::stof(c.pop());
-        update_data();
-    }
-    else {
-        c.source.push_error(var + " not in {peaks, exp}");
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
     }
 
 }
@@ -509,24 +512,29 @@ void Analyzer::setup_peaks(ui::Command c){
 void Analyzer::setup_correlation(ui::Command c){
 
     auto var = c.pop();
-
-    if(var == "exp"){
-        corrVars.exponent = std::stof(c.pop());
-        update_data();
+    
+    try {
+        if(var == "exp"){
+            corrVars.exponent = std::stof(c.pop());
+            update_data();
+        }
+        else if(var == "sign"){
+            corrVars.sign = std::stoi(c.pop());
+            update_data();
+        }
+        else {
+            c.source.push_error(var + " not in {exp, sign}");
+        }
     }
-    else if(var == "sign"){
-        corrVars.sign = std::stoi(c.pop());
-        update_data();
-    }
-    else {
-        c.source.push_error(var + " not in {exp, sign}");
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
     }
 }
 
 void Analyzer::info(ui::Command c){
     
     std::string message;
-    message += "source: " + link.source + "\n";
+    message += "source: " + link.source() + "\n";
     message += "view position: " + std::to_string(position) + "\n";
     message += "view length: " + std::to_string(length) + "\n";
     message += "mode: " + std::to_string(dataMode) + "\n";

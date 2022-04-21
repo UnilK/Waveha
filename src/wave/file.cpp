@@ -42,8 +42,6 @@ unsigned File::pull(unsigned amount, std::vector<float> &samples){
     
     good = 1;
     
-    samples = std::vector<float>(amount, 0.0f);
-    
     unsigned actual = file.read_move(samples, amount);
 
     if(actual != amount) good = 0;

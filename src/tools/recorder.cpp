@@ -1,6 +1,8 @@
 #include "tools/recorder.h"
 #include "app/app.h"
 #include "app/audio.h"
+#include "wstream/wstream.h"
+#include "wstream/constants.h"
 
 #include <assert.h>
 #include <string>
@@ -18,6 +20,7 @@ Recorder::Recorder(App *a) :
     player(&cache),
     clock(1)
 {
+    player.set_loop(1);
 
     setup_grid(2, 1);
     fill_width(0, 1);
@@ -29,6 +32,8 @@ Recorder::Recorder(App *a) :
     put(0, 0, &timeDisplay);
     put(1, 0, &terminal);
 
+    terminal.put_directory("au", &app.audio.dir);
+    
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
 
@@ -38,7 +43,9 @@ Recorder::Recorder(App *a) :
     terminal.put_function("fuze", [&](ui::Command c){ set_fuze(c); });
     terminal.put_function("rec", [&](ui::Command c){ switch_record(c); });
     terminal.put_function("play", [&](ui::Command c){ switch_playback(c); });
-    terminal.put_function("save", [&](ui::Command c){ save_audio(c); });
+    terminal.put_function("cache", [&](ui::Command c){ cache_audio(c); });
+    terminal.put_function("file", [&](ui::Command c){ write_audio(c); });
+    terminal.put_function("lfile", [&](ui::Command c){ write_link_audio(c); });
 
     terminal.document("list", "list audio sources");
     terminal.document("info", "list info of current source");
@@ -47,6 +54,8 @@ Recorder::Recorder(App *a) :
     terminal.document("rec", "switch recording on/off");
     terminal.document("play", "switch playback on/off");
     terminal.document("save", "[name] save the audio to caches");
+    terminal.document("file", "[file] save the audio to a file");
+    terminal.document("lfile", "[name] [file] save the audio to a file and link it.");
 
 }
 
@@ -98,22 +107,33 @@ void Recorder::source_info(ui::Command c){
 }
 
 void Recorder::set_source(ui::Command c){
-    
-    auto devices = sf::SoundRecorder::getAvailableDevices();
+   
+    try {
+        
+        auto devices = sf::SoundRecorder::getAvailableDevices();
 
-    unsigned src = std::stoi(c.pop());
+        unsigned src = std::stoi(c.pop());
 
-    if(src > devices.size()){
-        c.source.push_error("device index out of bounds.");
+        if(src > devices.size()){
+            c.source.push_error("device index out of bounds.");
+        }
+        else {
+            recorder.setDevice(devices[src]);
+        }
     }
-    else {
-        recorder.setDevice(devices[src]);
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
     }
 
 }
 
 void Recorder::set_fuze(ui::Command c){
-    fuze = std::stof(c.pop());
+    try {
+        fuze = std::stof(c.pop());
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 void Recorder::switch_record(ui::Command c){
@@ -130,16 +150,12 @@ void Recorder::switch_record(ui::Command c){
         audio.data = recorder.pull(recorder.max());
 
         cache.open(&audio);
-
     }
     else {
-        
         recording = 1;
         isRecording = 0;
         clock.force_sync_tick();
-
     }
-
 }
 
 void Recorder::switch_playback(ui::Command c){
@@ -147,23 +163,18 @@ void Recorder::switch_playback(ui::Command c){
     if(recording) switch_record(c);
 
     if(playing){
-
         playing = 0;
         player.stop();
-
     }
     else {
-        
         playing = 1;
         cache.seek(0);
         player.play();
         clock.force_sync_tick();
-
     }
-
 }
 
-void Recorder::save_audio(ui::Command c){
+void Recorder::cache_audio(ui::Command c){
 
     std::string name = c.pop();
 
@@ -178,7 +189,42 @@ void Recorder::save_audio(ui::Command c){
             c.source.push_output("source overriden");
         }
     }
+}
 
+void Recorder::write_audio(ui::Command c){
+
+    std::string file = c.pop();
+
+    if(file.empty()){
+        c.source.push_output("give a file name");
+    }
+    else {
+        owstream O("audio/"+file+".wav", PCM, audio.channels, 16, audio.frameRate);
+        O.write_file(audio.data);
+    }
+}
+
+void Recorder::write_link_audio(ui::Command c){
+
+    std::string name = c.pop(), file = c.pop();
+
+    if(name.empty() || file.empty()){
+        c.source.push_output("give a link and a file name");
+    }
+    else {
+        
+        owstream O("audio/"+file+".wav", PCM, audio.channels, 16, audio.frameRate);
+        O.write_file(audio.data);
+
+        int ret = app.audio.add_file(name, "audio/"+file+".wav");
+
+        if(ret == 1){
+            c.source.push_output("source overriden");
+        }
+        else if(ret == 2){
+            c.source.push_error("error reading file");
+        }
+    }
 }
 
 }

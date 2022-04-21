@@ -8,11 +8,11 @@ Source::~Source(){}
 
 unsigned Source::pull_loop(unsigned amount, std::vector<float> &samples){
 
-    samples = std::vector<float>(amount, 0.0f);
+    samples.resize(samples.size() + amount, 0.0f);
 
     if(!good || size() == 0) return 0;
 
-    unsigned position = 0, left = amount;
+    unsigned position = samples.size() - amount, left = amount;
 
     while(left){
         

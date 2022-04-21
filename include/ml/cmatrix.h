@@ -14,8 +14,8 @@ public:
             std::vector<float> &source,
             std::vector<float> &destination);
 
-    void push();
-    void pull();
+    virtual void push();
+    virtual void pull();
     void change(double factor);
     
     void save(ui::Saver &saver);
@@ -23,9 +23,9 @@ public:
 
     static bool ok(std::vector<float> &left, std::vector<float> &right);
     
-    std::string get_type();
+    virtual std::string get_type();
 
-private:
+protected:
     
     std::vector<std::complex<float> > cleft, cright;
     std::vector<std::vector<std::complex<float> > > matrix, changes;
