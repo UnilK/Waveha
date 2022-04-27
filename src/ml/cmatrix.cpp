@@ -14,7 +14,13 @@ CMatrix::CMatrix(
     matrix(left.size() / 2, std::vector<std::complex<float> >(right.size() / 2)),
     changes(left.size() / 2, std::vector<std::complex<float> >(right.size() / 2, 0.0f))
 {
-    for(auto &i : matrix) for(auto &j : i) j = random_float();
+    for(auto &i : matrix){
+        for(auto &j : i){
+            do {
+                j = {random_float(), random_float()};
+            } while(std::abs(j) > 1.0f);
+        }
+    }
 }
 
 void CMatrix::push(){
@@ -41,8 +47,8 @@ void CMatrix::pull(){
     for(unsigned i=0; i<cleft.size(); i++){
         std::complex<float> feedback = 0.0f;
         for(unsigned j=0; j<cright.size(); j++){
-            feedback += cright[j] * matrix[i][j];
-            changes[i][j] += cleft[i] * cright[j];
+            feedback += cright[j] * std::conj(matrix[i][j]);
+            changes[i][j] += cright[j] * std::conj(cleft[i]);
         }
         cleft[i] = feedback;
     }

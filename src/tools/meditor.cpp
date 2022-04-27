@@ -3,6 +3,8 @@
 #include "math/fft.h"
 #include "math/ft.h"
 #include "math/constants.h"
+#include "app/audio.h"
+#include "app/creations.h"
 
 #include <math.h>
 #include <algorithm>
@@ -32,6 +34,7 @@ Meditor::Meditor(App *a) :
     terminal.put_function("unit", [&](ui::Command c){ unit_matrix(c); });
     terminal.put_function("phasesuf", [&](ui::Command c){ shuffle_phase(c); });
     terminal.put_function("magsuf", [&](ui::Command c){ shuffle_magnitude(c); });
+    terminal.put_function("stack", [&](ui::Command c){ set_stack(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("slant", [&](ui::Command c){ set_slant(c); });
@@ -44,6 +47,7 @@ Meditor::Meditor(App *a) :
     terminal.document("unit", "make edit matrix a unit matrix.");
     terminal.document("phasesuf", "shuffle the phase of matrix cells.");
     terminal.document("magsuf", "[low] [high] shuffle the magnitude of matrix cells.");
+    terminal.document("stack", "[stack] use this stack to transform the waves.");
     terminal.document("info", "list configuration.");
 }
 
@@ -130,7 +134,7 @@ void Meditor::resize_matrix(ui::Command c){
 void Meditor::shuffle_phase(ui::Command c){
     for(unsigned i=0; i<matrix.size(); i++){
         for(unsigned j=0; j<matrix.size(); j++){
-            matrix.multiply(i, j, std::polar(1.0f, 0.1f*(float)rand()/RAND_MAX*2*PIF));
+            matrix.multiply(i, j, std::polar(1.0f, (float)rand()/RAND_MAX*2*PIF));
         }
     }
     update_output();
@@ -143,7 +147,7 @@ void Meditor::shuffle_magnitude(ui::Command c){
 
         for(unsigned i=0; i<matrix.size(); i++){
             for(unsigned j=0; j<matrix.size(); j++){
-                matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
+                if(i < 10) matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
             }
         }
 
@@ -185,6 +189,11 @@ void Meditor::link_audio(ui::Command c){
     else {
         c.source.push_error("give a name");
     }
+}
+
+void Meditor::set_stack(ui::Command c){
+    stack = c.pop();
+    update_output();
 }
 
 void Meditor::info(ui::Command c){

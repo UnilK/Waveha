@@ -2,6 +2,7 @@
 #include "math/fft.h"
 #include "math/ft.h"
 #include "math/constants.h"
+#include "ml/stack.h"
 
 #include <math.h>
 #include <algorithm>
@@ -57,22 +58,54 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     return plot;
 }
 
-std::vector<std::complex<float> > phase_graph(const std::vector<float> &audio){
-
-    std::vector<std::complex<float> > phases(audio.size());
-
-    std::vector<std::complex<float> > cleft = math::ft(audio, 64);
-
-    std::complex<float> phase = cleft[0] * std::abs(cleft[0]);
-
-    for(unsigned i=1; i<cleft.size(); i++){
-        phase += cleft[i] * std::conj(cleft[i-1]);
-    }
+unsigned pitch(const std::vector<float> &audio, CorrelationVars vars){
     
-    for(auto &i : phases) i = phase;
+    auto copy = audio;
 
-    return phases;
+    if(vars.sign) for(float &i : copy) i = sign(i) * std::pow(std::abs(i), vars.exponent);
+    else for(float &i : copy) i = std::pow(std::abs(i), vars.exponent);
 
+    auto reverseCopy = copy;
+    std::reverse(reverseCopy.begin(), reverseCopy.end());
+
+    auto plot = math::convolution(copy, reverseCopy);
+
+    unsigned max = 50;
+    float m = 0.0f;
+    unsigned n = audio.size()-1;
+    
+    for(unsigned i=50; n+i<plot.size() && i < 800; i++){
+        if(m < plot[n+i]){
+            m = plot[n+i];
+            max = i;
+        }
+    }
+
+    return max;
+}
+
+unsigned pitch(const float *audio, unsigned size, CorrelationVars vars){
+    std::vector<float> aa(size);
+    for(unsigned i=0; i<size; i++) aa[i] = audio[i];
+    return pitch(aa, vars);
+}
+
+std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio){
+
+    if(stack == nullptr || !stack->good()) return std::vector<float>(audio.size(), 3.14f);
+    
+    int N = stack->in_size();
+    auto f = math::ft(audio, N/2);
+    std::vector<float> freqs(N);
+    for(int i=0; i<N/2; i++){
+        freqs[2*i] = f[i].real();
+        freqs[2*i+1] = f[i].imag();
+    }
+
+    freqs = stack->run(freqs);
+    for(int i=0; i<N/2; i++) f[i] = {freqs[2*i], freqs[2*i+1]};
+
+    return math::ift(f, audio.size());
 }
 
 }

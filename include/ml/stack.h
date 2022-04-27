@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ml/layer.h"
+#include "ml/judge.h"
 
 #include <vector>
 #include <string>
@@ -23,6 +24,9 @@ public:
     bool construct_from_file(std::string file);
     bool good();
     
+    unsigned in_size();
+    unsigned out_size();
+
     Layer *get_layer(unsigned index);
 
     std::vector<float> run(const std::vector<float> &input);
@@ -54,7 +58,7 @@ private:
 
     std::vector<std::vector<float> > vectors;
     std::vector<Layer*> layers;
-    Layer *evaluate = nullptr;
+    Judge *judge = nullptr;
 
     std::mutex lock;
 

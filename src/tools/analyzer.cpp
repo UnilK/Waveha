@@ -1,7 +1,9 @@
 #include "tools/analyzer.h"
 #include "app/app.h"
 #include "app/audio.h"
+#include "app/creations.h"
 #include "math/fft.h"
+#include "math/ft.h"
 
 #include <algorithm>
 #include <math.h>
@@ -151,6 +153,11 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             }
             return Capture::capture;
         }
+        else if(event.key.code == sf::Keyboard::C){
+            analyzer.clipping ^= 1;
+            set_refresh();
+            return Capture::capture;
+        }
     }
 
     return Capture::pass;
@@ -192,7 +199,7 @@ void AnalyzerGraph::save(ui::Saver &saver){
 }
 
 void AnalyzerGraph::load(ui::Loader &loader){
-    
+
     int modes = loader.read_int();
 
     for(int mode=regularMode; mode<modes; mode++){
@@ -203,6 +210,9 @@ void AnalyzerGraph::load(ui::Loader &loader){
             loader.read_float()
         };
     }
+
+    clipBegin = analyzer.clipBegin;
+    clipEnd = analyzer.clipEnd;
 }
 
 void AnalyzerGraph::set_view(Mode mode){
@@ -218,6 +228,9 @@ void AnalyzerGraph::set_view(Mode mode){
         set_unit_x("");
         set_unit_y("");
     } else if(mode == correlationMode){
+        set_unit_x("");
+        set_unit_y("");
+    } else if(mode == mlMode){
         set_unit_x("");
         set_unit_y("");
     }
@@ -268,10 +281,10 @@ Analyzer::Analyzer(App *a) :
             [&](){ switch_mode(correlationMode); },
             "corr",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
-    switchPhase(
+    switchMl(
             a,
-            [&](){ switch_mode(phaseMode); },
-            "phase",
+            [&](){ switch_mode(mlMode); },
+            "ml",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}})
 {
 
@@ -300,7 +313,7 @@ Analyzer::Analyzer(App *a) :
     buttons.put(0, 1, &switchFrequency);
     buttons.put(0, 2, &switchPeak);
     buttons.put(0, 3, &switchCorrelation);
-    buttons.put(0, 4, &switchPhase);
+    buttons.put(0, 4, &switchMl);
 
     buttons.put(0, 9, &sourceNameBox);
     sourceNameBox.text_stick(ui::Text::left);
@@ -312,20 +325,26 @@ Analyzer::Analyzer(App *a) :
     terminal.erase_entry("pwd");
     terminal.put_function("link", [&](ui::Command c){ link_audio(c); });
     terminal.put_function("name", [&](ui::Command c){ set_name(c); });
+    terminal.put_function("stack", [&](ui::Command c){ set_stack(c); });
     terminal.put_function("clip", [&](ui::Command c){ switch_clip(c); });
     terminal.put_function("play", [&](ui::Command c){ switch_play(c); });
     terminal.put_function("speak", [&](ui::Command c){ setup_peaks(c); });
     terminal.put_function("scorr", [&](ui::Command c){ setup_correlation(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
+    
+    terminal.put_function("check", [&](ui::Command c){ check_ml_data(c); });
 
     terminal.document("link", "[name] link audio to this analyzer");
     terminal.document("name", "[name] set clip name");
+    terminal.document("stack", "[name] set stack name");
     terminal.document("clip", "start clipping. A portion of the source"
             "is automatically cached.");
     terminal.document("play", "switch source audio playback.");
     terminal.document("speak", "[variable] [value] set value to peak match variable.");
     terminal.document("scorr", "[variable] [value] set value to correlation variable.");
     terminal.document("info", "list the configuration");
+    
+    terminal.document("check", "[data] check wave training data");
 }
 
 Analyzer::~Analyzer(){}
@@ -345,6 +364,8 @@ void Analyzer::save(ui::Saver &saver){
     saver.write_int(length);
     saver.write_int(dataMode);
     saver.write_string(clipName);
+    saver.write_int(clipBegin);
+    saver.write_int(clipEnd);
 
     graph.save(saver);
 }
@@ -356,6 +377,8 @@ void Analyzer::load(ui::Loader &loader){
     length = loader.read_int();
     dataMode = (Mode)loader.read_int();
     clipName = loader.read_string();
+    clipBegin = loader.read_int();
+    clipEnd = loader.read_int();
 
     switch_mode(dataMode);
 
@@ -405,9 +428,10 @@ void Analyzer::update_data(){
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
-    } else if(dataMode == phaseMode){
+    } else if(dataMode == mlMode){
 
-        graph.set_data(change::phase_graph(link.get_loop(std::min(1<<10, clipEnd-clipBegin), position)));
+        graph.set_data(change::ml_graph(app.creations.get_stack(stackName),
+                    link.get_loop(clipEnd-clipBegin, position)));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
@@ -473,13 +497,16 @@ void Analyzer::set_name(ui::Command c){
     
     std::string name = c.pop();
 
-    if(name.empty()){
-        c.source.push_error("name cannot be empty");
-    }
-    else {
-        clipName = name;
-    }
+    if(name.empty()) c.source.push_error("clip name cannot be empty");
+    else clipName = name;
+}
 
+void Analyzer::set_stack(ui::Command c){
+    
+    std::string name = c.pop();
+
+    if(name.empty()) c.source.push_error("stack name cannot be empty");
+    else stackName = name;
 }
 
 void Analyzer::switch_clip(ui::Command c){
@@ -542,6 +569,20 @@ void Analyzer::info(ui::Command c){
     message += "clip begin: " + std::to_string(clipBegin) + "\n";
     message += "clip end: " + std::to_string(clipEnd);
     c.source.push_output(message);
+}
+
+void Analyzer::check_ml_data(ui::Command c){
+    
+    ml::TrainingData *all = app.creations.get_mldata(c.pop());
+    if(all == nullptr) return;
+
+    std::vector<std::complex<float> > freq;
+    std::vector<float> rnd = (*all)[rand()%all->size()].first;
+    freq.resize(rnd.size()/2);
+    for(unsigned i=0; i<freq.size(); i++) freq[i] = {rnd[2*i], rnd[2*i+1]};
+    graph.set_data(math::ift(freq, length));
+
+    graph.set_reconfig();
 }
 
 }

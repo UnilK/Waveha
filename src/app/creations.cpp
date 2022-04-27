@@ -3,6 +3,7 @@
 #include "app/session.h"
 #include "ml/mnist.h"
 #include "ml/stack.h"
+#include "ml/waves.h"
 
 #include <iostream>
 
@@ -63,10 +64,20 @@ void Creations::reset(){
     stacks.clear();
 }
 
+int Creations::create_waves(std::string directory, std::string output, unsigned density){
+    return ml::create_wave_data(directory, output, density);
+}
+
 int Creations::load_mldata(std::string type, std::string file, std::string name){
 
     if(type == "mnist"){
         ml::TrainingData *data = ml::mnist_data(file);
+        if(data == nullptr) return 1;
+        remove_mldata(name);
+        datas[name] = {type, file, data};
+    }
+    else if(type == "wave"){
+        ml::TrainingData *data = ml::wave_data(file);
         if(data == nullptr) return 1;
         remove_mldata(name);
         datas[name] = {type, file, data};
@@ -143,6 +154,7 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     put_function("list", [&](ui::Command c){ list_stuff(c); });
     put_function("dload", [&](ui::Command c){ load_mldata(c); });
     put_function("ddel", [&](ui::Command c){ remove_mldata(c); });
+    put_function("wcreate", [&](ui::Command c){ create_waves(c); });
     put_function("screate", [&](ui::Command c){ create_stack(c); });
     put_function("sload", [&](ui::Command c){ load_stack(c); });
     put_function("ssave", [&](ui::Command c){ save_stack(c); });
@@ -151,10 +163,32 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     document("list", "list creations");
     document("dload", "[type] [file] {name} load data for ml stacks");
     document("ddel", "[name] delete ml data");
+    document("wcreate", "[directory] [output] create wave data from directory of .wav files");
     document("screate", "[file] {name} create a ml stack from a file");
     document("sload", "[file] {name} load a ml stack");
     document("ssave", "[name] {file} save a ml stack");
     document("sdel", "[name] delete a ml stack");
+}
+
+void CreationsDir::create_waves(ui::Command c){
+    
+    try {
+        std::string dir = c.pop();
+        std::string out = c.pop();
+        unsigned d = std::stoul(c.pop());
+
+        if(dir.empty() || out.empty()){
+            c.source.push_error("give a directory and the output file name");
+            return;
+        }
+
+        int ret = creations.create_waves(dir, out, d);
+
+        if(ret) c.source.push_error("error");
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 void CreationsDir::load_mldata(ui::Command c){

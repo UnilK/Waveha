@@ -32,7 +32,7 @@ vector<complex<float> > ft(const float *waves, unsigned size, unsigned n){
 
     for(unsigned i=0; i<size; i++){
         for(unsigned j=0; j<n; j++){
-            frequencies[j] += waves[i] * exp[(long unsigned)i * j % size];
+            frequencies[j] += waves[i] * exp[(long unsigned)i * (j+1) % size];
         }
     }
 
@@ -56,7 +56,7 @@ vector<float> ift(const vector<complex<float> > &frequencies, unsigned size){
 
     for(unsigned j=0; j<n; j++){
         for(unsigned i=0; i<size; i++){
-            waves[i] += (frequencies[j]*exp[(long unsigned)i * j % size]).real();
+            waves[i] += (frequencies[j]*exp[(long unsigned)i * (j+1) % size]).real();
         }
     }
 

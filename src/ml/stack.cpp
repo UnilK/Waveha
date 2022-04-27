@@ -32,7 +32,7 @@ bool Stack::construct(std::vector<unsigned> sizes, std::vector<std::string> type
     for(unsigned i=0; i<layers.size(); i++)
         layers[i] = create_layer(types[i], vectors[i], vectors[i+1]);
 
-    evaluate = create_layer(types.back(), vectors.back(), vectors.back());
+    judge = create_judge(types.back(), vectors.back());
 
     return good();
 }
@@ -88,11 +88,20 @@ bool Stack::construct_from_file(std::string file){
 
 bool Stack::good(){
     
-    bool ok = layers.size() != 0;
-    ok &= evaluate != nullptr;
-    for(Layer *layer : layers) ok &= layer != nullptr;
+    bool ok = (layers.size() != 0) & (judge != nullptr);
+    for(Layer *layer : layers) ok &= (layer != nullptr);
 
     return ok;
+}
+    
+unsigned Stack::in_size(){
+    if(!good()) return 0;
+    return vectors[0].size();
+}
+
+unsigned Stack::out_size(){
+    if(!good()) return 0;
+    return vectors.back().size();
 }
 
 Layer *Stack::get_layer(unsigned index){
@@ -125,10 +134,7 @@ void Stack::train(
     for(unsigned i=0; i<input.size(); i++) vectors[0][i] = input[i];
     for(Layer *layer : layers) layer->push();
     
-    for(unsigned i=0; i<output.size(); i++){
-        vectors.back()[i] = output[i] - vectors.back()[i];
-    }
-    evaluate->pull();
+    judge->feedback(output);
 
     for(unsigned i=layers.size(); i-- > 0;) layers[i]->pull();
 
@@ -169,11 +175,7 @@ Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
         }
         if(best == right) result.correct += 1;
 
-        for(unsigned j=0; j<i.second.size(); j++){
-            vectors.back()[j] = i.second[j] - vectors.back()[j];
-        }
-
-        evaluate->push();
+        judge->score(i.second);
 
         for(unsigned j=0; j<i.second.size(); j++){
             result.errors[j] += std::abs(vectors.back()[j]);
@@ -210,7 +212,7 @@ void Stack::save(ui::Saver &saver){
     
     for(auto &i : vectors) saver.write_unsigned(i.size());
     for(auto i : layers) saver.write_string(i->get_type());
-    saver.write_string(evaluate->get_type());
+    saver.write_string(judge->get_type());
 
     for(auto i : layers) i->save(saver);
 }
@@ -242,8 +244,8 @@ void Stack::clear(){
     for(Layer *layer : layers) if(layer != nullptr) delete layer;
     layers.clear();
 
-    if(evaluate != nullptr) delete evaluate;
-    evaluate = nullptr;
+    if(judge != nullptr) delete judge;
+    judge = nullptr;
 }
 
 }

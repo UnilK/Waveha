@@ -228,29 +228,6 @@ void v2::df(float *left, float *right, float *var, float *change){
     left[1] = di * y * dot;
 }
 
-// average1 ///////////////////////////////////////////////////////////////////
-
-void average1::f(float *left, float *right, float *var){
-    right[0] = left[0] * left[0];
-}
-
-void average1::df(float *left, float *right, float *var, float *change){
-    left[0] = 2.0 * right[0];
-}
-
-// average2 ///////////////////////////////////////////////////////////////////
-
-void average2::f(float *left, float *right, float *var){
-    float d = std::sqrt(left[0]*left[0] + left[1]*left[1]);
-    right[0] = d*d;
-    right[1] = 0.0f;
-}
-
-void average2::df(float *left, float *right, float *var, float *change){
-    left[0] = 2.0 * right[0];
-    left[1] = 2.0 * right[1];
-}
-
 // abs1 ///////////////////////////////////////////////////////////////////////
 
 void abs1::f(float *left, float *right, float *var){
@@ -319,12 +296,6 @@ std::string E11Field::get_type(){ return Factory::e11; };
 
 namespace Factory { extern std::string v2; }
 std::string V2Field::get_type(){ return Factory::v2; };
-
-namespace Factory { extern std::string average1; }
-std::string Average1Field::get_type(){ return Factory::average1; };
-
-namespace Factory { extern std::string average2; }
-std::string Average2Field::get_type(){ return Factory::average2; };
 
 namespace Factory { extern std::string abs1; }
 std::string Abs1Field::get_type(){ return Factory::abs1; };

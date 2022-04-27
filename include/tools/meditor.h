@@ -35,6 +35,7 @@ public:
     void unit_matrix(ui::Command);
     void rename_output(ui::Command);
     void link_audio(ui::Command);
+    void set_stack(ui::Command);
     void info(ui::Command);
 
     void set_slant(ui::Command);
@@ -49,6 +50,8 @@ private:
     change::Matrix matrix;
 
     std::string outputName = "untitled";
+
+    std::string stack = "";
 
     ui::Terminal terminal;
 

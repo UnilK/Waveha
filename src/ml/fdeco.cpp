@@ -1,6 +1,7 @@
 #include "ml/fdeco.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace ml {
 
@@ -10,7 +11,20 @@ void Fdeco::push(){
     
     for(unsigned i=0; i<cleft.size(); i++) cleft[i] = {left[2*i], left[2*i+1]};
 
-    phase = cleft[0] * std::abs(cleft[0]);
+    /*
+    phase = {1.0f, 0.0f};
+    if(std::abs(cleft[0]) != 0.0f) phase = cleft[0] / std::abs(cleft[0]);
+    
+    std::complex<float> sum = std::conj(phase);
+    for(unsigned i=1; i<cleft.size(); i++){
+        cleft[i] *= sum;
+        sum *= std::conj(phase);
+    }
+    
+    */
+
+    phase = {0.0f, 0.0f};
+    if(std::abs(cleft[0]) != 0.0f) phase = cleft[0] / std::abs(cleft[0]);
 
     for(unsigned i=1; i<cleft.size(); i++){
          phase += cleft[i] * std::conj(cleft[i-1]);
@@ -47,9 +61,11 @@ void Fdeco::pull(){
         cleft[i] = feedback;
     }
     
-    float a = std::arg(phase);
-    
-    for(unsigned i=1; i<cleft.size(); i++) cleft[i] *= std::polar(1.0f, a*i);
+    std::complex<float> sum = phase;
+    for(unsigned i=1; i<cleft.size(); i++){
+        cleft[i] *= sum;
+        sum *= phase;
+    }
 
     for(unsigned i=0; i<cleft.size(); i++){
         left[2*i] = cleft[i].real();

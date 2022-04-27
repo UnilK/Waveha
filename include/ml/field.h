@@ -71,16 +71,6 @@ struct v2 { // velocity analog in complex plane
     static void df(float *left, float *right, float *var, float *change);
 };
 
-struct average1 { // average analog for 1d. use for evaluation
-    static void f(float *left, float *right, float *var);
-    static void df(float *left, float *right, float *var, float *change);
-};
-
-struct average2 { // average analog for complex plane. use for evaluation
-    static void f(float *left, float *right, float *var);
-    static void df(float *left, float *right, float *var, float *change);
-};
-
 struct abs1 { // absolute value, distance from origo
     static void f(float *left, float *right, float *var);
     static void df(float *left, float *right, float *var, float *change);
@@ -135,20 +125,6 @@ public:
 };
 
 class V2Field : public Field<2, 2, 0, v2> {
-public:
-    using Field::Field;
-    using Field::ok;
-    std::string get_type();
-};
-
-class Average1Field : public Field<1, 1, 0, average1> {
-public:
-    using Field::Field;
-    using Field::ok;
-    std::string get_type();
-};
-
-class Average2Field : public Field<2, 2, 0, average2> {
 public:
     using Field::Field;
     using Field::ok;

@@ -29,6 +29,8 @@ public:
 private:
 
     Creations &creations;
+    
+    void create_waves(ui::Command);
 
     void load_mldata(ui::Command);
     void remove_mldata(ui::Command);
@@ -52,6 +54,8 @@ public:
     void save(ui::Saver&);
     void load(ui::Loader&);
     void reset();
+
+    int create_waves(std::string directory, std::string output, unsigned density);
     
     int load_mldata(std::string type, std::string name, std::string file);
     int remove_mldata(std::string name);

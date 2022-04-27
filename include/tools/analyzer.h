@@ -22,7 +22,7 @@ enum Mode {
     frequencyMode,
     peakMode,
     correlationMode,
-    phaseMode,
+    mlMode,
     last
 };
 
@@ -90,10 +90,13 @@ private:
     void link_audio(ui::Command);
     void switch_play(ui::Command);
     void set_name(ui::Command);
+    void set_stack(ui::Command);
     void switch_clip(ui::Command);
     void setup_peaks(ui::Command);
     void setup_correlation(ui::Command);
     void info(ui::Command);
+
+    void check_ml_data(ui::Command);
 
     AudioLink link;
     wave::Player player;
@@ -114,9 +117,10 @@ private:
     ui::Frame buttons;
     ui::Text sourceNameBox;
     ui::Button switchRegular, switchFrequency, switchPeak,
-        switchCorrelation, switchPhase;
+        switchCorrelation, switchMl;
 
     bool playing = 0;
+    std::string stackName = "";
 
     change::PeakMatchVars peakVars;
     change::CorrelationVars corrVars;

@@ -6,6 +6,7 @@
 #include "ml/fdeco.h"
 #include "ml/freco.h"
 #include "ml/ft.h"
+#include "ml/judge.h"
 
 #include <assert.h>
 
@@ -26,12 +27,13 @@ std::string vv1 = "vv1";
 std::string s1 = "s1";
 std::string e11 = "e11";
 std::string v2 = "v2";
-std::string average1 = "average1";
-std::string average2 = "average2";
 std::string abs1 = "abs1";
 std::string abs2 = "abs2";
 std::string up2 = "up2";
 std::string relu = "relu";
+
+std::string average1 = "average1";
+std::string average2 = "average2";
 
 }
 
@@ -76,12 +78,6 @@ Layer *create_layer(
     if(type == Factory::v2 && V2Field::ok(left, right))
         return new V2Field(left, right);
     
-    if(type == Factory::average1 && Average1Field::ok(left, right))
-        return new Average1Field(left, right);
-    
-    if(type == Factory::average2 && Average2Field::ok(left, right))
-        return new Average2Field(left, right);
-    
     if(type == Factory::abs1 && Abs1Field::ok(left, right))
         return new Abs1Field(left, right);
     
@@ -94,6 +90,17 @@ Layer *create_layer(
     if(type == Factory::relu && ReluField::ok(left, right))
         return new ReluField(left, right);
     
+    return nullptr;
+}
+
+Judge *create_judge(std::string type, std::vector<float> &result){
+
+    if(type == Factory::average1 && Average1::ok(result))
+        return new Average1(result);
+    
+    if(type == Factory::average2 && Average2::ok(result))
+        return new Average2(result);
+   
     return nullptr;
 }
 

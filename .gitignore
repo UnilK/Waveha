@@ -6,6 +6,7 @@ sessions
 stacks
 waveha
 res/mnist
+res/waves
 dev/.undo
 *.swp
 *.wav

@@ -109,37 +109,42 @@ void Trainer::train(ui::Command c){
 }
 
 void Trainer::config(ui::Command c){
-    
-    std::string var = c.pop();
+   
+    try {
+        std::string var = c.pop();
 
-    if(var == "data"){
-        dataName = c.pop();
+        if(var == "data"){
+            dataName = c.pop();
+        }
+        else if(var == "stack"){
+            stackName = c.pop();
+        }
+        else if(var == "test"){
+            testName = c.pop();
+        }
+        else if(var == "bsize"){
+            unsigned n = std::stoul(c.pop());
+            if(n > 0 && n < (1<<20)) bsize = n;
+        }
+        else if(var == "interval"){
+            unsigned n = std::stoul(c.pop());
+            if(n > 0 && n < (1<<20)) tinterval = n;
+        }
+        else if(var == "speed"){
+            double n = std::stod(c.pop());
+            speed = n;
+        }
+        else if(var == "mode"){
+            mode = std::stoi(c.pop());
+            set_reconfig();
+        }
+        else {
+            c.source.push_error("variable not recognized: " + var + "\n"
+                    "options are: data, stack, test, bsize, interval, speed, mode");
+        }
     }
-    else if(var == "stack"){
-        stackName = c.pop();
-    }
-    else if(var == "test"){
-        testName = c.pop();
-    }
-    else if(var == "bsize"){
-        unsigned n = std::stoul(c.pop());
-        if(n > 0 && n < (1<<20)) bsize = n;
-    }
-    else if(var == "interval"){
-        unsigned n = std::stoul(c.pop());
-        if(n > 0 && n < (1<<20)) tinterval = n;
-    }
-    else if(var == "speed"){
-        double n = std::stod(c.pop());
-        if(n >= 0 && n < 1e15) speed = n;
-    }
-    else if(var == "mode"){
-        mode = std::stoi(c.pop());
-        set_reconfig();
-    }
-    else {
-        c.source.push_error("variable not recognized: " + var + "\n"
-                "options are: data, stack, test, bsize, interval, speed, mode");
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
     }
 
 }

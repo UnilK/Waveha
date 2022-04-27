@@ -2,7 +2,6 @@
 #include "math/constants.h"
 
 #include <assert.h>
-#include <stdlib.h>
 
 namespace change {
 
