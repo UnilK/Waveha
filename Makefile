@@ -186,10 +186,11 @@ build/app/creations.o: include/ui/stack.h include/ui/text.h include/ui/button.h
 build/app/creations.o: include/app/tools.h include/ml/mnist.h
 build/app/creations.o: include/ml/stack.h include/ml/layer.h include/ml/judge.h
 build/app/creations.o: include/ml/waves.h
+build/ml/roll.o: include/ml/roll.h include/ml/layer.h include/ui/fileio.h
 build/ml/factory.o: include/ml/factory.h include/ml/field.h include/ml/layer.h
 build/ml/factory.o: include/ui/fileio.h include/ml/field.inl
 build/ml/factory.o: include/ml/matrix.h include/ml/cmatrix.h include/ml/deloc.h
-build/ml/factory.o: include/ml/fdeco.h include/ml/freco.h include/ml/ft.h
+build/ml/factory.o: include/ml/fcon.h include/ml/roll.h include/ml/ft.h
 build/ml/factory.o: include/ml/judge.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/field.inl include/ml/util.h
@@ -200,16 +201,14 @@ build/ml/matrix.o: include/ml/util.h
 build/ml/mnist.o: include/ml/mnist.h include/ui/fileio.h
 build/ml/layer.o: include/ml/layer.h include/ui/fileio.h
 build/ml/judge.o: include/ml/judge.h
-build/ml/fdeco.o: include/ml/fdeco.h include/ml/cmatrix.h include/ml/layer.h
-build/ml/fdeco.o: include/ui/fileio.h
 build/ml/waves.o: include/ml/waves.h include/math/ft.h include/change/pitch.h
 build/ml/waves.o: lib/Wstream/include/wstream/wstream.h include/ui/fileio.h
+build/ml/fcon.o: include/ml/fcon.h include/ml/cmatrix.h include/ml/layer.h
+build/ml/fcon.o: include/ui/fileio.h
 build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h
 build/ml/ft.o: include/math/ft.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/ml/stack.o: include/ml/judge.h include/ml/factory.h
-build/ml/freco.o: include/ml/freco.h include/ml/cmatrix.h include/ml/layer.h
-build/ml/freco.o: include/ui/fileio.h
 build/ml/cmatrix.o: include/ml/cmatrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/cmatrix.o: include/ml/util.h
 build/math/ft.o: include/math/ft.h include/math/constants.h

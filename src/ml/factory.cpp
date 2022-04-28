@@ -3,8 +3,8 @@
 #include "ml/matrix.h"
 #include "ml/cmatrix.h"
 #include "ml/deloc.h"
-#include "ml/fdeco.h"
-#include "ml/freco.h"
+#include "ml/fcon.h"
+#include "ml/roll.h"
 #include "ml/ft.h"
 #include "ml/judge.h"
 
@@ -18,6 +18,8 @@ std::string matrix = "matrix";
 std::string cmatrix = "cmatrix";
 std::string fdeco = "fdeco";
 std::string freco = "freco";
+std::string unroll = "unroll";
+std::string reroll = "reroll";
 std::string deloc = "deloc";
 std::string ft = "ft";
 
@@ -34,6 +36,7 @@ std::string relu = "relu";
 
 std::string average1 = "average1";
 std::string average2 = "average2";
+std::string phaselax = "phaselax";
 
 }
 
@@ -54,12 +57,20 @@ Layer *create_layer(
     if(type == Factory::freco && Freco::ok(left, right))
         return new Freco(left, right);
     
+    if(type == Factory::unroll && Unroll::ok(left, right))
+        return new Unroll(left, right);
+    
+    if(type == Factory::reroll && Reroll::ok(left, right))
+        return new Reroll(left, right);
+    
     if(type == Factory::deloc && Deloc::ok(left, right))
         return new Deloc(left, right);
     
     if(type == Factory::ft && FT::ok(left, right))
         return new FT(left, right);
-    
+   
+
+
     if(type == Factory::v1 && V1Field::ok(left, right))
         return new V1Field(left, right);
     
@@ -100,6 +111,9 @@ Judge *create_judge(std::string type, std::vector<float> &result){
     
     if(type == Factory::average2 && Average2::ok(result))
         return new Average2(result);
+    
+    if(type == Factory::phaselax && Phaselax::ok(result))
+        return new Phaselax(result);
    
     return nullptr;
 }
