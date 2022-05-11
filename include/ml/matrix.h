@@ -8,9 +8,7 @@ class Matrix : public Layer {
 
 public:
 
-    Matrix(
-            std::vector<float> &source,
-            std::vector<float> &destination);
+    Matrix(arrays in, arrays out, args);
 
     void push();
     void pull();
@@ -19,13 +17,40 @@ public:
     void save(ui::Saver &saver);
     void load(ui::Loader &loader);
 
-    static bool ok(std::vector<float> &left, std::vector<float> &right);
+    static bool ok(arrays in, arrays out, args);
 
     std::string get_type();
 
-private:
+protected:
 
+    array &l, &r;
     std::vector<std::vector<float> > matrix, changes;
+
+};
+
+
+
+class CMatrix : public Layer {
+
+public:
+
+    CMatrix(arrays in, arrays out, args);
+
+    virtual void push();
+    virtual void pull();
+    void change(double factor);
+    
+    void save(ui::Saver &saver);
+    void load(ui::Loader &loader);
+
+    static bool ok(arrays in, arrays out, args);
+    
+    virtual std::string get_type();
+
+protected:
+    
+    array &l, &r;
+    std::vector<std::vector<std::complex<float> > > matrix, changes;
 
 };
 

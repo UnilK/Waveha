@@ -7,15 +7,19 @@ namespace ml {
 class Unroll : public Layer {
 
 public:
-    
-    using Layer::Layer;
+
+    Unroll(arrays in, arrays out, args);
 
     void push();
     void pull();
     
-    static bool ok(std::vector<float> &left, std::vector<float> &right);
+    static bool ok(arrays in, arrays out, args);
     
     virtual std::string get_type();
+
+private:
+
+    array &l, &r;
 
 };
 
@@ -25,14 +29,18 @@ class Reroll : public Layer {
 
 public:
     
-    using Layer::Layer;
+    Reroll(arrays in, arrays out, args);
     
     void push();
     void pull();
     
-    static bool ok(std::vector<float> &left, std::vector<float> &right);
+    static bool ok(arrays in, arrays out, args);
     
     virtual std::string get_type();
+
+private:
+
+    array &l, &r;
 
 };
 

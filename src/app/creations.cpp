@@ -163,7 +163,7 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     document("list", "list creations");
     document("dload", "[type] [file] {name} load data for ml stacks");
     document("ddel", "[name] delete ml data");
-    document("wcreate", "[directory] [output] create wave data from directory of .wav files");
+    document("wcreate", "[directory] [output] [density] create wave data from directory of .wav files");
     document("screate", "[file] {name} create a ml stack from a file");
     document("sload", "[file] {name} load a ml stack");
     document("ssave", "[name] {file} save a ml stack");

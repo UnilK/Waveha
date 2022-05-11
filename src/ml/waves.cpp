@@ -42,9 +42,20 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
 
         for(unsigned i=0; i<N && i*step+M < waves.size(); i++){
 
-            unsigned length = change::pitch(waves.data()+i*step, M);
+            std::vector<float> clip(M, 0.0f);
+            for(unsigned j=0; j<M; j++)  clip[j] = waves[i*step+j];
 
-            datas.push_back(math::ft(waves.data()+i*step, length, F));
+            unsigned length = change::pitch(clip);
+            clip.resize(length);
+
+            auto freqs = math::ft(clip, F);
+
+            float sum = 0.0f;
+            for(auto &i : freqs) sum += std::abs(i);
+            if(sum != 0.0f) sum = freqs.size() / sum;
+            for(auto &i : freqs) i *= sum;
+
+            datas.push_back(freqs);
         }
     }
 

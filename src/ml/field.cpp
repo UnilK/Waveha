@@ -215,17 +215,14 @@ void v2::df(float *left, float *right, float *var, float *change){
         y = 1.0f / (d*d) / 1.5f;
     }
 
-    float dd = std::sqrt(right[0]*right[0] + right[1]*right[1]);
-    
-    float dr = right[0];
-    float di = right[1];
+    const float dr = right[0];
+    const float di = right[1];
    
-    float dot = std::abs(nr * dr + ni * di);
+    float dotn = nr * dr + ni * di;
+    float dotp = -ni * dr + nr * di;
     
-    if(dd != 0.0f){ dr /= dd; di /= dd; }
-
-    left[0] = dr * y * dot;
-    left[1] = di * y * dot;
+    left[0] = dotn * nr * y - dotp * ni;
+    left[1] = dotn * ni * y + dotp * nr;
 }
 
 // abs1 ///////////////////////////////////////////////////////////////////////
@@ -283,8 +280,8 @@ std::string A1Field::get_type(){ return Factory::a1; };
 namespace Factory { extern std::string v1; }
 std::string V1Field::get_type(){ return Factory::v1; };
 
-VV1Field::VV1Field(std::vector<float> &source, std::vector<float> &destination) :
-    Field(source, destination, {1, 0}) {}
+VV1Field::VV1Field(arrays in, arrays out, args a) :
+    Field(in, out, a, {1, 0}) {}
 namespace Factory { extern std::string vv1; }
 std::string VV1Field::get_type(){ return Factory::vv1; };
 

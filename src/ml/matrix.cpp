@@ -5,43 +5,45 @@
 
 namespace ml {
 
-Matrix::Matrix(
-        std::vector<float> &source,
-        std::vector<float> &destination) :
-    Layer(source, destination)
+// matrix /////////////////////////////////////////////////////////////////////
+
+Matrix::Matrix(arrays in, arrays out, args a) :
+    Layer(in, out, a), l(in[0]), r(out[0]),
+    matrix(l.size, std::vector<float>(r.size)),
+    changes(l.size, std::vector<float>(r.size, 0.0f))
 {
-    matrix.resize(left.size(), std::vector<float>(right.size()));
-    changes.resize(left.size(), std::vector<float>(right.size(), 0.0f));
     for(auto &i : matrix) for(auto &j : i) j = random_float();
 }
 
 void Matrix::push(){
     
-    for(auto &i : right) i = 0.0f;
+    for(unsigned i=0; i<r.size; i++) r[i] = 0.0f;
 
-    for(unsigned i=0; i<left.size(); i++){
-        for(unsigned j=0; j<right.size(); j++){
-            right[j] += left[i] * matrix[i][j];
+    for(unsigned i=0; i<l.size; i++){
+        for(unsigned j=0; j<r.size; j++){
+            r[j] += l[i] * matrix[i][j];
         }
     }
 }
 
 void Matrix::pull(){
 
-    for(unsigned i=0; i<left.size(); i++){
+    if(nopull) return;
+
+    for(unsigned i=0; i<l.size; i++){
         float feedback = 0;
-        for(unsigned j=0; j<right.size(); j++){
-            feedback += right[j] * matrix[i][j];
-            changes[i][j] += left[i] * right[j];
+        for(unsigned j=0; j<r.size; j++){
+            feedback += r[j] * matrix[i][j];
+            changes[i][j] += l[i] * r[j];
         }
-        left[i] = feedback;
+        l[i] = feedback;
     }
 }
 
 void Matrix::change(double factor){
     
-    for(unsigned i=0; i<left.size(); i++){
-        for(unsigned j=0; j<right.size(); j++){
+    for(unsigned i=0; i<l.size; i++){
+        for(unsigned j=0; j<r.size; j++){
             matrix[i][j] += changes[i][j] * (float)factor;
             changes[i][j] = 0.0f;
         }
@@ -56,12 +58,81 @@ void Matrix::load(ui::Loader &loader){
     for(auto &i : matrix) for(auto &j : i) j = loader.read_float();
 }
 
-bool Matrix::ok(std::vector<float> &left, std::vector<float> &right){
-    return 1;
+bool Matrix::ok(arrays in, arrays out, args a){
+    return in.size() == 1 && out.size() == 1
+        && in[0].size > 0 && out[0].size > 0;
 }
 
 namespace Factory { extern std::string matrix; }
 std::string Matrix::get_type(){ return Factory::matrix; };
+
+// cmatrix ////////////////////////////////////////////////////////////////////
+
+CMatrix::CMatrix(arrays in, arrays out, args a) :
+    Layer(in, out, a), l(in[0]), r(out[0]),
+    matrix(l.csize(), std::vector<std::complex<float> >(r.csize())),
+    changes(l.csize(), std::vector<std::complex<float> >(r.csize(), 0.0f))
+{
+    for(auto &i : matrix){
+        for(auto &j : i){
+            do { 
+                j = {random_float(), random_float()};
+            } while(std::abs(j) > 1.0f);
+        }
+    }
+}
+
+void CMatrix::push(){
+    
+    for(unsigned i=0; i<r.size; i++) r[i] = 0.0f;
+
+    for(unsigned i=0; i<l.csize(); i++){
+        for(unsigned j=0; j<r.csize(); j++){
+            r(j) += l(i) * matrix[i][j];
+        }
+    }
+}
+
+void CMatrix::pull(){
+   
+    if(nopull) return;
+
+    for(unsigned i=0; i<l.csize(); i++){
+        std::complex<float> feedback = 0.0f;
+        for(unsigned j=0; j<r.csize(); j++){
+            feedback += r(j) * std::conj(matrix[i][j]);
+            changes[i][j] += r(j) * std::conj(l(i));
+        }
+        l(i) = feedback;
+    }
+}
+
+void CMatrix::change(double factor){
+
+    for(unsigned i=0; i<l.csize(); i++){
+        for(unsigned j=0; j<r.csize(); j++){
+            matrix[i][j] += changes[i][j] * (float)factor;
+            changes[i][j] = 0.0f;
+        }
+    }
+}
+
+void CMatrix::save(ui::Saver &saver){
+    for(auto &i : matrix) for(auto &j : i) saver.write_complex(j);
+}
+
+void CMatrix::load(ui::Loader &loader){
+    for(auto &i : matrix) for(auto &j : i) j = loader.read_complex();
+}
+
+bool CMatrix::ok(arrays in, arrays out, args a){
+    return in.size() == 1 && out.size() == 1 &&
+        in[0].size % 2 == 0 && out[0].size % 2 == 0 &&
+        in[0].size > 0 && out[0].size > 0;
+}
+
+namespace Factory { extern std::string cmatrix; }
+std::string CMatrix::get_type(){ return Factory::cmatrix; };
 
 }
 

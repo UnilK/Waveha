@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <tuple>
 
 namespace ml {
 
@@ -17,10 +18,15 @@ class Stack {
 public:
 
     Stack();
-    Stack(std::vector<unsigned> sizes, std::vector<std::string> types);
+    Stack(
+            std::vector<std::vector<std::string> > trans,
+            std::vector<std::tuple<std::string, std::string, unsigned> > links);
     ~Stack();
 
-    bool construct(std::vector<unsigned> sizes, std::vector<std::string> types);
+    bool construct(
+            std::vector<std::vector<std::string> > trans,
+            std::vector<std::tuple<std::string, std::string, unsigned> > links);
+    
     bool construct_from_file(std::string file);
     bool good();
     

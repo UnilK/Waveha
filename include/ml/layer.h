@@ -1,19 +1,22 @@
 #pragma once
 
 #include "ui/fileio.h"
+#include "ml/util.h"
 
 #include <vector>
 #include <string>
 
 namespace ml {
 
+typedef std::vector<array>& arrays;
+typedef const std::vector<std::string>& args;
+
 class Layer {
 
 public:
 
-    Layer(
-            std::vector<float> &source,
-            std::vector<float> &destination);
+    // left is in, right is out
+    Layer(arrays in, arrays out, args);
 
     virtual ~Layer();
 
@@ -29,11 +32,15 @@ public:
     // save and load the state of the layer to a file.
     virtual void save(ui::Saver &saver);
     virtual void load(ui::Loader &loader);
+    
     virtual std::string get_type() = 0;
+    static bool ok(arrays in, arrays out, args a);
 
 protected:
     
-    std::vector<float> &left, &right;
+    // left is in, right is out
+    std::vector<array> left, right;
+    bool nopull = 0;
 
 };
 

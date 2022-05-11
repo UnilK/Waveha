@@ -3,18 +3,24 @@
 namespace ml {
 
 void Deloc::push(){
-    if(left.size() == 0) return;
-    offset = rand() % left.size();
-    for(unsigned i=0; i<left.size(); i++) right[i] = left[(i+offset)%left.size()];
+
+    if(left[0].size == 0) return;
+    
+    offset = rand() % left[0].size;
+    for(unsigned i=0; i<left[0].size; i++) right[0][i] = left[0][(i+offset)%left[0].size];
 }
 
 void Deloc::pull(){
-    if(left.size() == 0) return;
-    for(unsigned i=0; i<left.size(); i++) left[(i+offset)%left.size()] = right[i];
+
+    if(nopull) return;
+
+    if(left[0].size == 0) return;
+
+    for(unsigned i=0; i<left[0].size; i++) left[0][(i+offset)%left[0].size] = right[0][i];
 }
 
-bool Deloc::ok(std::vector<float> &left, std::vector<float> &right){
-    return left.size() == right.size();
+bool Deloc::ok(arrays in, arrays out, args a){
+    return in.size() == 1 && out.size() == 1 && in[0].size == out[0].size;
 }
 
 namespace Factory { extern std::string deloc; }

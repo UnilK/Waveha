@@ -230,9 +230,6 @@ void AnalyzerGraph::set_view(Mode mode){
     } else if(mode == correlationMode){
         set_unit_x("");
         set_unit_y("");
-    } else if(mode == mlMode){
-        set_unit_x("");
-        set_unit_y("");
     }
 
     View view = views[mode];
@@ -280,11 +277,6 @@ Analyzer::Analyzer(App *a) :
             a,
             [&](){ switch_mode(correlationMode); },
             "corr",
-            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
-    switchMl(
-            a,
-            [&](){ switch_mode(mlMode); },
-            "ml",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}})
 {
 
@@ -313,7 +305,6 @@ Analyzer::Analyzer(App *a) :
     buttons.put(0, 1, &switchFrequency);
     buttons.put(0, 2, &switchPeak);
     buttons.put(0, 3, &switchCorrelation);
-    buttons.put(0, 4, &switchMl);
 
     buttons.put(0, 9, &sourceNameBox);
     sourceNameBox.text_stick(ui::Text::left);
@@ -325,7 +316,6 @@ Analyzer::Analyzer(App *a) :
     terminal.erase_entry("pwd");
     terminal.put_function("link", [&](ui::Command c){ link_audio(c); });
     terminal.put_function("name", [&](ui::Command c){ set_name(c); });
-    terminal.put_function("stack", [&](ui::Command c){ set_stack(c); });
     terminal.put_function("clip", [&](ui::Command c){ switch_clip(c); });
     terminal.put_function("play", [&](ui::Command c){ switch_play(c); });
     terminal.put_function("speak", [&](ui::Command c){ setup_peaks(c); });
@@ -336,7 +326,6 @@ Analyzer::Analyzer(App *a) :
 
     terminal.document("link", "[name] link audio to this analyzer");
     terminal.document("name", "[name] set clip name");
-    terminal.document("stack", "[name] set stack name");
     terminal.document("clip", "start clipping. A portion of the source"
             "is automatically cached.");
     terminal.document("play", "switch source audio playback.");
@@ -428,13 +417,6 @@ void Analyzer::update_data(){
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
-    } else if(dataMode == mlMode){
-
-        graph.set_data(change::ml_graph(app.creations.get_stack(stackName),
-                    link.get_loop(clipEnd-clipBegin, position)));
-        graph.set_offset_x(0);
-        graph.set_scalar_x(1);
-
     }
     
     graph.set_reconfig();
@@ -499,14 +481,6 @@ void Analyzer::set_name(ui::Command c){
 
     if(name.empty()) c.source.push_error("clip name cannot be empty");
     else clipName = name;
-}
-
-void Analyzer::set_stack(ui::Command c){
-    
-    std::string name = c.pop();
-
-    if(name.empty()) c.source.push_error("stack name cannot be empty");
-    else stackName = name;
 }
 
 void Analyzer::switch_clip(ui::Command c){

@@ -15,5 +15,14 @@ std::vector<std::complex<float> > ft(const float *waves, unsigned size, unsigned
 std::vector<std::complex<float> > ft(const std::vector<float> &waves, unsigned n);
 std::vector<float> ift(const std::vector<std::complex<float> > &frequencies, unsigned size);
 
+struct FTPrecalc {
+    FTPrecalc();
+    static const unsigned N = 1<<17;
+    std::complex<float> exp[N+1];
+};
+
+extern FTPrecalc ftPrecalc;
+std::complex<float> cexp(double radians);
+
 }
 

@@ -170,7 +170,16 @@ void Trainer::clean(ui::Command c){
     dataLock.unlock();
 }
 
+void Trainer::save_stack(ui::Command c){
+    // TODO
+}
+
+void Trainer::load_stack(ui::Command c){
+    // TODO
+}
+
 void Trainer::info(ui::Command c){
+
     std::string message;
     message += "mode: " + std::to_string(mode) + "\n";
     

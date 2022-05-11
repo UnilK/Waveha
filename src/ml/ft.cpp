@@ -3,28 +3,27 @@
 
 namespace ml {
 
-FT::FT(std::vector<float> &source, std::vector<float> &destination) :
-    Layer(source, destination),
-    freq(destination.size()/2)
+FT::FT(arrays in, arrays out, args a) :
+    Layer(in, out, a), l(in[0]), r(out[0]), freq(r.csize())
 {}
 
 void FT::push(){
-    freq = math::ft(left, right.size()/2);
-    for(unsigned i=0; i<freq.size(); i++){
-        right[2*i] = freq[i].real();
-        right[2*i+1] = freq[i].imag();
-    }
+
+    freq = math::ft(l.data, l.size, r.csize());
+    for(unsigned i=0; i<freq.size(); i++) r(i) = freq[i];
 }
 
 void FT::pull(){
-    /*
-    for(unsigned i=0; i<freq.size(); i++) freq[i] = {right[2*i], right[2*i+1]};
-    left = math::ift(freq, left.size());
-    */
+    
+    if(nopull) return;
+
+    for(unsigned i=0; i<freq.size(); i++) freq[i] = r(i);
+    std::vector<float> rev = math::ift(freq, l.size);
+    for(unsigned i=0; i<l.size; i++) l[i] = rev[i];
 }
 
-bool FT::ok(std::vector<float> &left, std::vector<float> &right){
-    return right.size()%2 == 0;
+bool FT::ok(arrays in, arrays out, args a){
+    return in.size() == 1 && out.size() == 1 && out[0].size % 2 == 0;
 }
 
 namespace Factory { extern std::string ft; };

@@ -10,19 +10,18 @@ class FT : public Layer {
 
 public:
 
-    FT(
-        std::vector<float> &source,
-        std::vector<float> &destination);
+    FT(arrays in, arrays out, args a);
     
     void push();
     void pull();
     
-    static bool ok(std::vector<float> &left, std::vector<float> &right);
+    static bool ok(arrays in, arrays out, args a);
 
     std::string get_type();
 
 private:
-
+    
+    array &l, &r;
     std::vector<std::complex<float> > freq;
 
 };

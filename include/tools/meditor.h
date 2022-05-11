@@ -36,6 +36,8 @@ public:
     void rename_output(ui::Command);
     void link_audio(ui::Command);
     void set_stack(ui::Command);
+    void set_mode(ui::Command);
+    void set_refresh(ui::Command);
     void info(ui::Command);
 
     void set_slant(ui::Command);
@@ -51,6 +53,8 @@ private:
 
     std::string outputName = "untitled";
 
+    bool autoRefresh = 0;
+    int mode = 0;
     std::string stack = "";
 
     ui::Terminal terminal;

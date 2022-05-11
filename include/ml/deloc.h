@@ -13,7 +13,7 @@ public:
     void push();
     void pull();
     
-    static bool ok(std::vector<float> &left, std::vector<float> &right);
+    static bool ok(arrays in, arrays out, args);
 
     std::string get_type();
 

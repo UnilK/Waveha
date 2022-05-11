@@ -110,7 +110,7 @@ build/change/matrix.o: include/change/matrix.h include/math/constants.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/constants.h
 build/change/pitch.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
-build/change/pitch.o: include/ml/judge.h
+build/change/pitch.o: include/ml/util.h include/ml/judge.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
 build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
@@ -135,7 +135,8 @@ build/app/content.o: include/wave/buffer.h include/change/pitch.h
 build/app/content.o: include/tools/meditor.h include/change/matrix.h
 build/app/content.o: include/tools/recorder.h include/ui/clock.h
 build/app/content.o: include/wave/mic.h include/tools/trainer.h
-build/app/content.o: include/ml/stack.h include/ml/layer.h include/ml/judge.h
+build/app/content.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
+build/app/content.o: include/ml/judge.h
 build/app/slot.o: include/app/slot.h include/ui/box.h include/ui/slider.h
 build/app/slot.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
 build/app/slot.o: include/ui/style.h include/ui/window.h include/ui/text.h
@@ -184,33 +185,32 @@ build/app/creations.o: include/app/session.h include/ui/fileio.h
 build/app/creations.o: include/app/app.h include/ui/box.h include/ui/slider.h
 build/app/creations.o: include/ui/stack.h include/ui/text.h include/ui/button.h
 build/app/creations.o: include/app/tools.h include/ml/mnist.h
-build/app/creations.o: include/ml/stack.h include/ml/layer.h include/ml/judge.h
-build/app/creations.o: include/ml/waves.h
+build/app/creations.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
+build/app/creations.o: include/ml/judge.h include/ml/waves.h
 build/ml/roll.o: include/ml/roll.h include/ml/layer.h include/ui/fileio.h
-build/ml/factory.o: include/ml/factory.h include/ml/field.h include/ml/layer.h
-build/ml/factory.o: include/ui/fileio.h include/ml/field.inl
-build/ml/factory.o: include/ml/matrix.h include/ml/cmatrix.h include/ml/deloc.h
-build/ml/factory.o: include/ml/fcon.h include/ml/roll.h include/ml/ft.h
-build/ml/factory.o: include/ml/judge.h
+build/ml/roll.o: include/ml/util.h
+build/ml/factory.o: include/ml/factory.h include/ml/util.h include/ml/field.h
+build/ml/factory.o: include/ml/layer.h include/ui/fileio.h include/ml/field.inl
+build/ml/factory.o: include/ml/matrix.h include/ml/deloc.h include/ml/roll.h
+build/ml/factory.o: include/ml/ft.h include/ml/judge.h include/ml/norm.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
-build/ml/field.o: include/ml/field.inl include/ml/util.h
+build/ml/field.o: include/ml/util.h include/ml/field.inl
+build/ml/norm.o: include/ml/norm.h include/ml/layer.h include/ui/fileio.h
+build/ml/norm.o: include/ml/util.h
 build/ml/deloc.o: include/ml/deloc.h include/ml/layer.h include/ui/fileio.h
+build/ml/deloc.o: include/ml/util.h
 build/ml/util.o: include/ml/util.h
 build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/matrix.o: include/ml/util.h
 build/ml/mnist.o: include/ml/mnist.h include/ui/fileio.h
-build/ml/layer.o: include/ml/layer.h include/ui/fileio.h
+build/ml/layer.o: include/ml/layer.h include/ui/fileio.h include/ml/util.h
 build/ml/judge.o: include/ml/judge.h
 build/ml/waves.o: include/ml/waves.h include/math/ft.h include/change/pitch.h
 build/ml/waves.o: lib/Wstream/include/wstream/wstream.h include/ui/fileio.h
-build/ml/fcon.o: include/ml/fcon.h include/ml/cmatrix.h include/ml/layer.h
-build/ml/fcon.o: include/ui/fileio.h
 build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h
-build/ml/ft.o: include/math/ft.h
+build/ml/ft.o: include/ml/util.h include/math/ft.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
-build/ml/stack.o: include/ml/judge.h include/ml/factory.h
-build/ml/cmatrix.o: include/ml/cmatrix.h include/ml/layer.h include/ui/fileio.h
-build/ml/cmatrix.o: include/ml/util.h
+build/ml/stack.o: include/ml/util.h include/ml/judge.h include/ml/factory.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
 build/math/fft.o: include/math/fft.h include/math/constants.h
 build/tools/recorder.o: include/tools/recorder.h include/app/content.h
@@ -232,11 +232,11 @@ build/tools/trainer.o: include/ui/frame.h include/ui/borders.h
 build/tools/trainer.o: include/ui/style.h include/ui/window.h
 build/tools/trainer.o: include/app/session.h include/ui/terminal.h
 build/tools/trainer.o: include/ui/fileio.h include/tools/graph.h
-build/tools/trainer.o: include/ml/stack.h include/ml/layer.h include/ml/judge.h
-build/tools/trainer.o: include/ui/slider.h include/ui/stack.h include/ui/text.h
-build/tools/trainer.o: include/app/app.h include/ui/box.h include/ui/button.h
-build/tools/trainer.o: include/app/tools.h include/app/creations.h
-build/tools/trainer.o: include/ui/clock.h
+build/tools/trainer.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
+build/tools/trainer.o: include/ml/judge.h include/ui/slider.h
+build/tools/trainer.o: include/ui/stack.h include/ui/text.h include/app/app.h
+build/tools/trainer.o: include/ui/box.h include/ui/button.h include/app/tools.h
+build/tools/trainer.o: include/app/creations.h include/ui/clock.h
 build/tools/meditor.o: include/tools/meditor.h include/app/content.h
 build/tools/meditor.o: include/ui/frame.h include/ui/borders.h
 build/tools/meditor.o: include/ui/style.h include/ui/window.h
@@ -251,6 +251,7 @@ build/tools/meditor.o: include/change/matrix.h include/app/app.h
 build/tools/meditor.o: include/ui/box.h include/ui/button.h include/app/tools.h
 build/tools/meditor.o: include/math/fft.h include/math/ft.h
 build/tools/meditor.o: include/math/constants.h include/app/creations.h
+build/tools/meditor.o: include/change/pitch.h
 build/tools/analyzer.o: include/tools/analyzer.h include/ui/button.h
 build/tools/analyzer.o: include/ui/text.h include/ui/frame.h
 build/tools/analyzer.o: include/ui/borders.h include/ui/style.h

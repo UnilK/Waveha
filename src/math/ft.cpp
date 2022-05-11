@@ -28,11 +28,11 @@ vector<complex<float> > ft(const float *waves, unsigned size, unsigned n){
     vector<complex<float> > frequencies(n, {0, 0});
     
     vector<complex<float> > exp(size);
-    for(unsigned i=0; i<size; i++) exp[i] = std::polar(1.0f, -2 * PIF / size * i);
+    for(unsigned i=0; i<size; i++) exp[i] = cexp((double)(size - i) / size);
 
     for(unsigned i=0; i<size; i++){
         for(unsigned j=0; j<n; j++){
-            frequencies[j] += waves[i] * exp[(long unsigned)i * (j+1) % size];
+            frequencies[j] += exp[i * (j+1) % size] * waves[i];
         }
     }
 
@@ -50,7 +50,7 @@ vector<float> ift(const vector<complex<float> > &frequencies, unsigned size){
     std::vector<float> waves(size, 0);
     
     vector<complex<float> > exp(size);
-    for(unsigned i=0; i<size; i++) exp[i] = std::polar(1.0f, 2 * PIF / size * i);
+    for(unsigned i=0; i<size; i++) exp[i] = cexp((double)i / size);
 
     unsigned n = frequencies.size();
 
@@ -61,6 +61,20 @@ vector<float> ift(const vector<complex<float> > &frequencies, unsigned size){
     }
 
     return waves;
+}
+
+FTPrecalc::FTPrecalc(){
+    for(unsigned i=0; i<N; i++){
+        exp[i] = std::polar(1.0f, 2.0f*PIF*i/N);
+    }
+    exp[N] = exp[0];
+}
+
+FTPrecalc ftPrecalc;
+
+complex<float> cexp(double radians){
+    double dummy;
+    return ftPrecalc.exp[(unsigned)(std::modf(radians, &dummy)*ftPrecalc.N)];
 }
 
 }

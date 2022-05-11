@@ -94,6 +94,8 @@ std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio){
 
     if(stack == nullptr || !stack->good()) return std::vector<float>(audio.size(), 3.14f);
     
+    std::vector<float> clip = audio;
+            
     int N = stack->in_size();
     auto f = math::ft(audio, N/2);
     std::vector<float> freqs(N);
@@ -101,11 +103,20 @@ std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio){
         freqs[2*i] = f[i].real();
         freqs[2*i+1] = f[i].imag();
     }
-
+    
+    float sum = 0.0f;
+    for(auto &i : f) sum += std::abs(i);
+    sum /= f.size();
+    
     freqs = stack->run(freqs);
-    for(int i=0; i<N/2; i++) f[i] = {freqs[2*i], freqs[2*i+1]};
 
-    return math::ift(f, audio.size());
+    for(int i=0; i<N/2; i++) f[i] = {freqs[2*i], freqs[2*i+1]};
+    
+    for(auto &i : f) i *= sum;
+
+    clip = math::ift(f, audio.size());
+
+    return clip;
 }
 
 }

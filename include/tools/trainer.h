@@ -35,6 +35,8 @@ private:
     void config(ui::Command);
     void test(ui::Command);
     void clean(ui::Command);
+    void save_stack(ui::Command);
+    void load_stack(ui::Command);
     void info(ui::Command);
 
     App &app;

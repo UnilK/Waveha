@@ -4,12 +4,9 @@
 
 namespace ml {
 
-Layer::Layer(
-        std::vector<float> &source,
-        std::vector<float> &destination) :
-    left(source),
-    right(destination)
-{}
+Layer::Layer(arrays in, arrays out, args a) : left(in), right(out) {
+    for(auto &i : a) if(i == "nopull") nopull = 1;
+}
 
 Layer::~Layer(){}
 
@@ -18,6 +15,8 @@ void Layer::change(double factor){}
 void Layer::save(ui::Saver &saver){}
 
 void Layer::load(ui::Loader &loader){}
+
+bool Layer::ok(arrays in, arrays out, args a){ return 1; }
 
 }
 

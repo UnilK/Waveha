@@ -18,10 +18,7 @@ class Field : public Layer {
 
 public:
 
-    Field(
-            std::vector<float> &source,
-            std::vector<float> &destination,
-            std::array<float, V> initial = {});
+    Field(arrays in, arrays out, args, std::array<float, V> initial = {});
 
     void push();
     void pull();
@@ -30,9 +27,11 @@ public:
     void save(ui::Saver &saver);
     void load(ui::Loader &loader);
 
-    static bool ok(std::vector<float> &left, std::vector<float> &right);
+    static bool ok(arrays in, arrays out, args a);
 
 protected:
+
+    array &l, &r;
 
     std::vector<std::array<float, V> > variables, changes;
 
@@ -107,7 +106,7 @@ public:
 
 class VV1Field : public Field<1, 1, 2, vv1> {
 public:
-    VV1Field(std::vector<float> &source, std::vector<float> &destination);
+    VV1Field(arrays in, arrays out, args a);
     using Field::ok;
     std::string get_type();
 };

@@ -1,12 +1,11 @@
 #include "ml/factory.h"
 #include "ml/field.h"
 #include "ml/matrix.h"
-#include "ml/cmatrix.h"
 #include "ml/deloc.h"
-#include "ml/fcon.h"
 #include "ml/roll.h"
 #include "ml/ft.h"
 #include "ml/judge.h"
+#include "ml/norm.h"
 
 #include <assert.h>
 
@@ -16,12 +15,12 @@ namespace Factory {
 
 std::string matrix = "matrix";
 std::string cmatrix = "cmatrix";
-std::string fdeco = "fdeco";
-std::string freco = "freco";
 std::string unroll = "unroll";
 std::string reroll = "reroll";
 std::string deloc = "deloc";
 std::string ft = "ft";
+std::string norm = "norm";
+std::string cnorm = "cnorm";
 
 std::string a1 = "a1";
 std::string v1 = "v1";
@@ -40,66 +39,63 @@ std::string phaselax = "phaselax";
 
 }
 
-Layer *create_layer(
-        std::string type, 
-        std::vector<float> &left,
-        std::vector<float> &right){
+Layer *create_layer(std::string type, arrays left, arrays right, args a){
     
-    if(type == Factory::matrix && Matrix::ok(left, right))
-        return new Matrix(left, right);
+    if(type == Factory::matrix && Matrix::ok(left, right, a))
+        return new Matrix(left, right, a);
     
-    if(type == Factory::cmatrix && CMatrix::ok(left, right))
-        return new CMatrix(left, right);
+    if(type == Factory::cmatrix && CMatrix::ok(left, right, a))
+        return new CMatrix(left, right, a);
     
-    if(type == Factory::fdeco && Fdeco::ok(left, right))
-        return new Fdeco(left, right);
+    if(type == Factory::unroll && Unroll::ok(left, right, a))
+        return new Unroll(left, right, a);
     
-    if(type == Factory::freco && Freco::ok(left, right))
-        return new Freco(left, right);
+    if(type == Factory::reroll && Reroll::ok(left, right, a))
+        return new Reroll(left, right, a);
     
-    if(type == Factory::unroll && Unroll::ok(left, right))
-        return new Unroll(left, right);
+    if(type == Factory::deloc && Deloc::ok(left, right, a))
+        return new Deloc(left, right, a);
     
-    if(type == Factory::reroll && Reroll::ok(left, right))
-        return new Reroll(left, right);
-    
-    if(type == Factory::deloc && Deloc::ok(left, right))
-        return new Deloc(left, right);
-    
-    if(type == Factory::ft && FT::ok(left, right))
-        return new FT(left, right);
+    if(type == Factory::ft && FT::ok(left, right, a))
+        return new FT(left, right, a);
    
+    if(type == Factory::norm && Norm::ok(left, right, a))
+        return new Norm(left, right, a);
+   
+    if(type == Factory::cnorm && CNorm::ok(left, right, a))
+        return new CNorm(left, right, a);
 
 
-    if(type == Factory::v1 && V1Field::ok(left, right))
-        return new V1Field(left, right);
+
+    if(type == Factory::v1 && V1Field::ok(left, right, a))
+        return new V1Field(left, right, a);
     
-    if(type == Factory::vv1 && VV1Field::ok(left, right))
-        return new VV1Field(left, right);
+    if(type == Factory::vv1 && VV1Field::ok(left, right, a))
+        return new VV1Field(left, right, a);
     
-    if(type == Factory::a1 && A1Field::ok(left, right))
-        return new A1Field(left, right);
+    if(type == Factory::a1 && A1Field::ok(left, right, a))
+        return new A1Field(left, right, a);
     
-    if(type == Factory::s1 && S1Field::ok(left, right))
-        return new S1Field(left, right);
+    if(type == Factory::s1 && S1Field::ok(left, right, a))
+        return new S1Field(left, right, a);
     
-    if(type == Factory::e11 && E11Field::ok(left, right))
-        return new E11Field(left, right);
+    if(type == Factory::e11 && E11Field::ok(left, right, a))
+        return new E11Field(left, right, a);
     
-    if(type == Factory::v2 && V2Field::ok(left, right))
-        return new V2Field(left, right);
+    if(type == Factory::v2 && V2Field::ok(left, right, a))
+        return new V2Field(left, right, a);
     
-    if(type == Factory::abs1 && Abs1Field::ok(left, right))
-        return new Abs1Field(left, right);
+    if(type == Factory::abs1 && Abs1Field::ok(left, right, a))
+        return new Abs1Field(left, right, a);
     
-    if(type == Factory::abs2 && Abs2Field::ok(left, right))
-        return new Abs2Field(left, right);
+    if(type == Factory::abs2 && Abs2Field::ok(left, right, a))
+        return new Abs2Field(left, right, a);
     
-    if(type == Factory::up2 && Up2Field::ok(left, right))
-        return new Up2Field(left, right);
+    if(type == Factory::up2 && Up2Field::ok(left, right, a))
+        return new Up2Field(left, right, a);
     
-    if(type == Factory::relu && ReluField::ok(left, right))
-        return new ReluField(left, right);
+    if(type == Factory::relu && ReluField::ok(left, right, a))
+        return new ReluField(left, right, a);
     
     return nullptr;
 }
