@@ -3,17 +3,7 @@
 namespace ml {
 
 array::array(std::vector<float> &ref) :
-    data(ref.data()), size(ref.size()) {}
-
-float &array::operator[](unsigned i){
-    return data[i];
-}
-
-std::complex<float> &array::operator()(unsigned i){
-    return ((std::complex<float>*)data)[i];
-}
-
-unsigned array::csize(){ return size>>1; }
+    data(ref.data()), size(ref.size()), cdata((std::complex<float>*)ref.data()), csize(ref.size()/2) {}
 
 float random_float(){ return 2.0f * (float)rand() / RAND_MAX - 1.0f; }
 

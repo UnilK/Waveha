@@ -47,7 +47,7 @@ TrainingData *mnist_data(std::string file){
         vector<char> image = images.read_raw(28*28);
         for(int j=0; j<28*28; j++){
             i.first[j] = (float)(unsigned char)image[j] / 255;
-            assert(i.first[j] >= 0 && i.first[j] <= 1);
+            assert(i.first[j] >= 0.0f && i.first[j] <= 1.0f);
         }
     }
 

@@ -7,7 +7,8 @@ void Deloc::push(){
     if(left[0].size == 0) return;
     
     offset = rand() % left[0].size;
-    for(unsigned i=0; i<left[0].size; i++) right[0][i] = left[0][(i+offset)%left[0].size];
+    for(unsigned i=0; i<left[0].size; i++)
+        right[0].data[i] = left[0].data[(i+offset)%left[0].size];
 }
 
 void Deloc::pull(){
@@ -16,7 +17,8 @@ void Deloc::pull(){
 
     if(left[0].size == 0) return;
 
-    for(unsigned i=0; i<left[0].size; i++) left[0][(i+offset)%left[0].size] = right[0][i];
+    for(unsigned i=0; i<left[0].size; i++)
+        left[0].data[(i+offset)%left[0].size] = right[0].data[i];
 }
 
 bool Deloc::ok(arrays in, arrays out, args a){

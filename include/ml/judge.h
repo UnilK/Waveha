@@ -24,20 +24,7 @@ protected:
 
 };
 
-class Average1 : public Judge {
-
-public:
-
-    using Judge::Judge;
-    
-    void score(const std::vector<float> &solution);
-    void feedback(const std::vector<float> &solution);
-    
-    std::string get_type();
-    static bool ok(const std::vector<float> &result);
-};
-
-class Average2 : public Judge {
+class Average : public Judge {
 
 public:
 

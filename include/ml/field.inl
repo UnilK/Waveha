@@ -2,7 +2,7 @@
 template<unsigned N, unsigned M, unsigned V, typename F>
 Field<N, M, V, F>::Field(arrays in, arrays out, args a,
         std::array<float, V> initial) :
-    Layer(in, out, a), l(in[0]), r(out[0]),
+    Layer(in, out, a), l(left[0]), r(right[0]),
     variables(l.size, initial),
     changes(l.size)
 {

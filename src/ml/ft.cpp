@@ -4,22 +4,23 @@
 namespace ml {
 
 FT::FT(arrays in, arrays out, args a) :
-    Layer(in, out, a), l(in[0]), r(out[0]), freq(r.csize())
+    Layer(in, out, a), l(left[0]), r(right[0]), freq(r.csize)
 {}
 
 void FT::push(){
 
-    freq = math::ft(l.data, l.size, r.csize());
-    for(unsigned i=0; i<freq.size(); i++) r(i) = freq[i];
+    freq = math::ft(l.data, l.size, r.csize);
+    for(unsigned i=0; i<r.csize; i++) r.cdata[i] = freq[i];
+
 }
 
 void FT::pull(){
     
     if(nopull) return;
 
-    for(unsigned i=0; i<freq.size(); i++) freq[i] = r(i);
+    for(unsigned i=0; i<r.csize; i++) freq[i] = r.cdata[i];
     std::vector<float> rev = math::ift(freq, l.size);
-    for(unsigned i=0; i<l.size; i++) l[i] = rev[i];
+    for(unsigned i=0; i<l.size; i++) l.data[i] = rev[i];
 }
 
 bool FT::ok(arrays in, arrays out, args a){

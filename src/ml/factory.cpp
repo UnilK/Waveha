@@ -33,8 +33,7 @@ std::string abs2 = "abs2";
 std::string up2 = "up2";
 std::string relu = "relu";
 
-std::string average1 = "average1";
-std::string average2 = "average2";
+std::string average = "average";
 std::string phaselax = "phaselax";
 
 }
@@ -102,11 +101,8 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
 
 Judge *create_judge(std::string type, std::vector<float> &result){
 
-    if(type == Factory::average1 && Average1::ok(result))
-        return new Average1(result);
-    
-    if(type == Factory::average2 && Average2::ok(result))
-        return new Average2(result);
+    if(type == Factory::average && Average::ok(result))
+        return new Average(result);
     
     if(type == Factory::phaselax && Phaselax::ok(result))
         return new Phaselax(result);

@@ -65,6 +65,9 @@ private:
     std::vector<std::vector<float> > vectors;
     std::vector<Layer*> layers;
     Judge *judge = nullptr;
+    
+    std::vector<std::vector<std::string> > build_trans;
+    std::vector<std::tuple<std::string, std::string, unsigned> > build_links;
 
     std::mutex lock;
 

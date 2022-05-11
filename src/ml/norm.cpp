@@ -7,15 +7,15 @@ namespace ml {
 // norm ///////////////////////////////////////////////////////////////////////
 
 Norm::Norm(arrays in, arrays out, args a) :
-    Layer(in, out, a), l(in[0]), r(out[0]) {}
+    Layer(in, out, a), l(left[0]), r(right[0]) {}
 
 void Norm::push(){
     
     sum = 0.0f;
-    for(unsigned i=0; i<l.size; i++) sum += std::abs(l[i]);
+    for(unsigned i=0; i<l.size; i++) sum += std::abs(l.data[i]);
     if(sum != 0.0f) sum = l.size / sum;
 
-    for(unsigned i=0; i<l.size; i++) r[i] = l[i] * sum;
+    for(unsigned i=0; i<l.size; i++) r.data[i] = l.data[i] * sum;
 }
 
 void Norm::pull(){
@@ -24,7 +24,7 @@ void Norm::pull(){
 
     if(nopull) return;
 
-    for(unsigned i=0; i<l.size; i++) l[i] = r[i] * sum;
+    for(unsigned i=0; i<l.size; i++) l.data[i] = r.data[i] * sum;
 }
 
 bool Norm::ok(arrays in, arrays out, args a){
@@ -38,17 +38,15 @@ std::string Norm::get_type(){ return Factory::norm; }
 // cnorm //////////////////////////////////////////////////////////////////////
 
 CNorm::CNorm(arrays in, arrays out, args a) :
-    Layer(in, out, a), l(in[0]), r(out[0]) {}
+    Layer(in, out, a), l(left[0]), r(right[0]) {}
 
 void CNorm::push(){
     
-    if(nopull) return;
-
     sum = 0.0f;
-    for(unsigned i=0; i<l.csize(); i++) sum += std::abs(l(i));
-    if(sum != 0.0f) sum = l.csize() / sum;
+    for(unsigned i=0; i<l.csize; i++) sum += std::abs(l.cdata[i]);
+    if(sum != 0.0f) sum = l.csize / sum;
 
-    for(unsigned i=0; i<l.csize(); i++) r(i) = l(i) * sum;
+    for(unsigned i=0; i<l.csize; i++) r.cdata[i] = l.cdata[i] * sum;
 }
 
 void CNorm::pull(){
@@ -57,7 +55,7 @@ void CNorm::pull(){
 
     if(nopull) return;
 
-    for(unsigned i=0; i<l.csize(); i++) l(i) = r(i) * sum;
+    for(unsigned i=0; i<l.csize; i++) l.cdata[i] = r.cdata[i] * sum;
 }
 
 bool CNorm::ok(arrays in, arrays out, args a){

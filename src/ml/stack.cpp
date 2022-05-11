@@ -7,6 +7,8 @@
 #include <map>
 #include <set>
 
+using std::cout;
+
 namespace ml {
 
 Stack::Stack(){}
@@ -26,6 +28,9 @@ bool Stack::construct(
         std::vector<std::tuple<std::string, std::string, unsigned> > links){
     
     clear();
+
+    build_trans = trans;
+    build_links = links;
 
     auto type = [](std::vector<std::string> &layer){ return layer.back(); };
 
@@ -70,11 +75,9 @@ bool Stack::construct(
     // edges
     for(auto [in, out, size] : links){
         vectors.push_back(std::vector<float>(size, 0.0f));
-        if(incount.count(in) && incount.count(out)){
-            outs[in].push_back({out, vectors.size()-1});
-            ins[out].push_back({in, vectors.size()-1});
-            incount[out]++;
-        }
+        outs[in].push_back({out, vectors.size()-1});
+        ins[out].push_back({in, vectors.size()-1});
+        if(incount.count(in) && incount.count(out)) incount[out]++;
     }
 
     // topological order for layers
@@ -130,7 +133,8 @@ bool Stack::construct_from_file(std::string file){
         return std::to_string(IDcount++) + "_AUTOGEN_ID";
     };
     
-    std::vector<std::vector<std::vector<std::string> > > all({});
+    std::vector<std::vector<std::vector<std::string> > > all;
+    all.push_back({});
 
     std::vector<std::vector<std::string> > layers;
     std::vector<std::tuple<std::string, std::string, unsigned> > links;
@@ -213,7 +217,7 @@ bool Stack::construct_from_file(std::string file){
         else if(num(s)){ // simple vector definition
             all.back().push_back({".", ".", s, "vector"});
         }
-        else { // simple layer definition
+        else { // simpler layer definition
             all.back().push_back({s, newID(), "layer"});
         }
     }
@@ -388,11 +392,19 @@ void Stack::save(ui::Saver &saver){
 
     saver.write_string("GOOD");
     
-    saver.write_unsigned(vectors.size());
-    
-    for(auto &i : vectors) saver.write_unsigned(i.size());
-    for(auto i : layers) saver.write_string(i->get_type());
-    saver.write_string(judge->get_type());
+    saver.write_unsigned(build_links.size());
+    for(auto &i : build_links){
+        auto [in, out, size] = i;
+        saver.write_string(in);
+        saver.write_string(out);
+        saver.write_unsigned(size);
+    }
+
+    saver.write_unsigned(build_trans.size());
+    for(auto &i : build_trans){
+        saver.write_unsigned(i.size());
+        for(auto &j : i) saver.write_string(j);
+    }
 
     for(auto i : layers) i->save(saver);
 }
@@ -403,15 +415,21 @@ void Stack::load(ui::Loader &loader){
 
     if(loader.read_string() == "BAD") return;
 
-    unsigned size = loader.read_unsigned();
+    build_links.resize(loader.read_unsigned());
+    for(auto &i : build_links){
+        auto &[in, out, size] = i;
+        in = loader.read_string();
+        out = loader.read_string();
+        size = loader.read_unsigned();
+    }
 
-    std::vector<unsigned> sizes(size);
-    std::vector<std::string> types(size);
+    build_trans.resize(loader.read_unsigned());
+    for(auto &i : build_trans){
+        i.resize(loader.read_unsigned());
+        for(auto &j : i) j = loader.read_string();
+    }
 
-    for(auto &i : sizes) i = loader.read_unsigned();
-    for(auto &i : types) i = loader.read_string();
-
-    // construct(sizes, types);
+    construct(build_trans, build_links);
 
     for(auto i : layers) i->load(loader);
 
@@ -420,6 +438,9 @@ void Stack::load(ui::Loader &loader){
 void Stack::clear(){
     
     vectors.clear();
+
+    build_links.clear();
+    build_trans.clear();
     
     for(Layer *layer : layers) if(layer != nullptr) delete layer;
     layers.clear();

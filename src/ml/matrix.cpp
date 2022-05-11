@@ -8,7 +8,7 @@ namespace ml {
 // matrix /////////////////////////////////////////////////////////////////////
 
 Matrix::Matrix(arrays in, arrays out, args a) :
-    Layer(in, out, a), l(in[0]), r(out[0]),
+    Layer(in, out, a), l(left[0]), r(right[0]),
     matrix(l.size, std::vector<float>(r.size)),
     changes(l.size, std::vector<float>(r.size, 0.0f))
 {
@@ -17,11 +17,11 @@ Matrix::Matrix(arrays in, arrays out, args a) :
 
 void Matrix::push(){
     
-    for(unsigned i=0; i<r.size; i++) r[i] = 0.0f;
+    for(unsigned i=0; i<r.size; i++) r.data[i] = 0.0f;
 
     for(unsigned i=0; i<l.size; i++){
         for(unsigned j=0; j<r.size; j++){
-            r[j] += l[i] * matrix[i][j];
+            r.data[j] += l.data[i] * matrix[i][j];
         }
     }
 }
@@ -33,10 +33,10 @@ void Matrix::pull(){
     for(unsigned i=0; i<l.size; i++){
         float feedback = 0;
         for(unsigned j=0; j<r.size; j++){
-            feedback += r[j] * matrix[i][j];
-            changes[i][j] += l[i] * r[j];
+            feedback += r.data[j] * matrix[i][j];
+            changes[i][j] += l.data[i] * r.data[j];
         }
-        l[i] = feedback;
+        l.data[i] = feedback;
     }
 }
 
@@ -69,9 +69,9 @@ std::string Matrix::get_type(){ return Factory::matrix; };
 // cmatrix ////////////////////////////////////////////////////////////////////
 
 CMatrix::CMatrix(arrays in, arrays out, args a) :
-    Layer(in, out, a), l(in[0]), r(out[0]),
-    matrix(l.csize(), std::vector<std::complex<float> >(r.csize())),
-    changes(l.csize(), std::vector<std::complex<float> >(r.csize(), 0.0f))
+    Layer(in, out, a), l(left[0]), r(right[0]),
+    matrix(l.csize, std::vector<std::complex<float> >(r.csize)),
+    changes(l.csize, std::vector<std::complex<float> >(r.csize, 0.0f))
 {
     for(auto &i : matrix){
         for(auto &j : i){
@@ -84,11 +84,11 @@ CMatrix::CMatrix(arrays in, arrays out, args a) :
 
 void CMatrix::push(){
     
-    for(unsigned i=0; i<r.size; i++) r[i] = 0.0f;
+    for(unsigned i=0; i<r.size; i++) r.data[i] = 0.0f;
 
-    for(unsigned i=0; i<l.csize(); i++){
-        for(unsigned j=0; j<r.csize(); j++){
-            r(j) += l(i) * matrix[i][j];
+    for(unsigned i=0; i<l.csize; i++){
+        for(unsigned j=0; j<r.csize; j++){
+            r.cdata[j] += l.cdata[i] * matrix[i][j];
         }
     }
 }
@@ -97,20 +97,20 @@ void CMatrix::pull(){
    
     if(nopull) return;
 
-    for(unsigned i=0; i<l.csize(); i++){
+    for(unsigned i=0; i<l.csize; i++){
         std::complex<float> feedback = 0.0f;
-        for(unsigned j=0; j<r.csize(); j++){
-            feedback += r(j) * std::conj(matrix[i][j]);
-            changes[i][j] += r(j) * std::conj(l(i));
+        for(unsigned j=0; j<r.csize; j++){
+            feedback += r.cdata[j] * std::conj(matrix[i][j]);
+            changes[i][j] += r.cdata[j] * std::conj(l.cdata[i]);
         }
-        l(i) = feedback;
+        l.cdata[i] = feedback;
     }
 }
 
 void CMatrix::change(double factor){
 
-    for(unsigned i=0; i<l.csize(); i++){
-        for(unsigned j=0; j<r.csize(); j++){
+    for(unsigned i=0; i<l.csize; i++){
+        for(unsigned j=0; j<r.csize; j++){
             matrix[i][j] += changes[i][j] * (float)factor;
             changes[i][j] = 0.0f;
         }
