@@ -4,6 +4,8 @@
 
 namespace ml {
 
+    // "delocalizes" a vector by cyclically shifting it randomly
+
 class Deloc : public Layer {
 
 public:

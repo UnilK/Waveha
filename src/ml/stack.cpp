@@ -160,7 +160,9 @@ bool Stack::construct_from_file(std::string file){
             std::string arg;
             while(loader >> arg){
                 if(arg[0] == '.'){
-                    layer.push_back(arg.substr(1, arg.size()-1));
+                    arg = arg.substr(1, arg.size()-1);
+                    if(arg.empty()) arg = newID();
+                    layer.push_back(arg);
                     break;
                 } else {
                     layer.push_back(arg);
@@ -178,7 +180,9 @@ bool Stack::construct_from_file(std::string file){
             std::string arg;
             while(loader >> arg){
                 if(arg[0] == '.'){
-                    judge.push_back(arg.substr(1, arg.size()-1));
+                    arg = arg.substr(1, arg.size()-1);
+                    if(arg.empty()) arg = newID();
+                    judge.push_back(arg);
                     break;
                 } else {
                     judge.push_back(arg);

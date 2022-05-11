@@ -113,9 +113,7 @@ private:
     std::map<std::string, wave::Audio*> caches;
     std::map<std::string, wave::Source*> sources;
 
-    void set_lock(std::string source, bool state);
-    std::map<std::string, std::mutex*> locks;
-    std::map<std::string, unsigned> lockCount;
+    std::recursive_mutex mutex;
 
     static std::set<std::string> used_ids;
 

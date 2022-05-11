@@ -46,7 +46,7 @@ private:
     bool looping = 0;
     double blockSeconds = 0.5f;
 
-    std::mutex sourceLock;
+    std::recursive_mutex sourceMutex;
 
     Source *source;
     std::vector<sf::Int16> temp;

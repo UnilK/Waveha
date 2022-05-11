@@ -64,8 +64,17 @@ struct e11 { // empirically created compressor
     static void df(float *left, float *right, float *var, float *change);
 };
 
+struct csig { // cheap sigmoid
+    static void f(float *left, float *right, float *var);
+    static void df(float *left, float *right, float *var, float *change);
+};
 
 struct v2 { // velocity analog in complex plane
+    static void f(float *left, float *right, float *var);
+    static void df(float *left, float *right, float *var, float *change);
+};
+
+struct s2 { // x^2 <= 1 <= log(x)
     static void f(float *left, float *right, float *var);
     static void df(float *left, float *right, float *var, float *change);
 };
@@ -123,7 +132,21 @@ public:
     std::string get_type();
 };
 
+class CsigField : public Field<1, 1, 0, csig> {
+public:
+    using Field::Field;
+    using Field::ok;
+    std::string get_type();
+};
+
 class V2Field : public Field<2, 2, 0, v2> {
+public:
+    using Field::Field;
+    using Field::ok;
+    std::string get_type();
+};
+
+class S2Field : public Field<2, 2, 0, s2> {
 public:
     using Field::Field;
     using Field::ok;

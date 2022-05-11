@@ -150,61 +150,42 @@ bool Audio::key_exists(std::string key){
 }
 
 int Audio::add_cache(wave::Audio *audio){
-
-    set_lock(audio->name, 1);
+    
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     
     int ret = key_exists(audio->name);
-    if(ret){
-        set_lock(audio->name, 0);
-        remove_audio(audio->name);
-        set_lock(audio->name, 1);
-    }
+    if(ret) remove_audio(audio->name);
 
     caches[audio->name] = audio;
     sources[audio->name] = new wave::Cache(audio);
-    if(!ret) locks[audio->name] = new std::mutex();
     for(auto i : links[audio->name]) updates[audio->name].insert(i);
-
-    set_lock(audio->name, 0);
 
     return ret;
 }
 
 int Audio::add_file(std::string name, std::string file){
     
-    set_lock(name, 1);
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     
     int ret = key_exists(name);
-    if(ret){
-        set_lock(name, 0);
-        remove_audio(name);
-        set_lock(name, 1);
-    }
+    if(ret) remove_audio(name);
 
     iwstream I;
 
-    if(!I.open(file)){
-        set_lock(name, 0);
-        return 2;
-    }
+    if(!I.open(file)) return 2;
 
     files[name] = file;
     sources[name] = new wave::File(file);
-    if(!ret) locks[name] = new std::mutex();
     for(auto i : links[name]) updates[name].insert(i);
-
-    set_lock(name, 0);
     
     return ret;
 }
 
 int Audio::remove_audio(std::string name){
     
-    set_lock(name, 1);
-    if(!key_exists(name)){
-        set_lock(name, 0);
-        return 1;
-    }
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
+    if(!key_exists(name)) return 1;
 
     if(files.count(name)){
         files.erase(name);
@@ -216,25 +197,19 @@ int Audio::remove_audio(std::string name){
 
     delete sources[name];
     sources.erase(name);
-    
-    set_lock(name, 0);
 
     return 0;
 }
 
 int Audio::write_cache(std::string name, std::string file){
     
-    set_lock(name, 1);
-    if(!caches.count(name)){
-        set_lock(name, 0);
-        return 1;
-    }
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
+    if(!caches.count(name)) return 1;
 
     owstream O("audio/"+file+".wav", PCM, caches[name]->channels, 16, caches[name]->frameRate);
 
     O.write_file(caches[name]->data);
-
-    set_lock(name, 0);
     
     return 0;
 }
@@ -256,30 +231,36 @@ unsigned Audio::audio_size(std::string source){
 
 std::vector<float> Audio::get_audio(std::string source, unsigned amount, unsigned position){
     
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
     if(sources.count(source) == 0){
         return std::vector<float>(amount, 0.0f);
     }
-    set_lock(source, 1);
+
     std::vector<float> ret = sources[source]->get(amount, position);
-    set_lock(source, 0);
     return ret;
 }
 
 std::vector<float> Audio::loop_audio(std::string source, unsigned amount, unsigned position){
     
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
     if(sources.count(source) == 0){
         return std::vector<float>(amount, 0.0f);
     }
-    set_lock(source, 1);
+    
     std::vector<float> ret = sources[source]->get_loop(amount, position);
-    set_lock(source, 0);
+    
     return ret;
 }
 
 bool Audio::pop_update(std::string reciever, std::string source){
+    
     if(!sources.count(source)) return 0;
+    
     bool ret = updates[source].count(reciever);
     updates[source].erase(reciever);
+    
     return ret;
 }
 
@@ -302,24 +283,6 @@ bool Audio::pop_link(std::string reciever, std::string source){
         return 1;
     }
     return 0;
-}
-
-void Audio::set_lock(std::string source, bool state){
-    if(key_exists(source)){
-        if(state){
-            lockCount[source]++;
-            locks[source]->lock();
-        }
-        else {
-            locks[source]->unlock();
-            if(lockCount[source] > 0) lockCount[source]--;
-            if(lockCount[source] == 0 && !key_exists(source)){
-                lockCount.erase(source);
-                delete locks[source];
-                locks.erase(source);
-            }
-        }
-    }
 }
 
 std::string Audio::generate_reciever_id(){

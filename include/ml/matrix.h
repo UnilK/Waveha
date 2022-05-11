@@ -6,6 +6,8 @@ namespace ml {
 
 class Matrix : public Layer {
 
+    // runs a vector through a matrix
+
 public:
 
     Matrix(arrays in, arrays out, args);
@@ -31,6 +33,8 @@ protected:
 
 
 class CMatrix : public Layer {
+
+    // runs a complex valued vector through a compled valued matrix
 
 public:
 

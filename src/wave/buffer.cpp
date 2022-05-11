@@ -12,7 +12,7 @@ Buffer::~Buffer(){}
 
 std::vector<float> Buffer::pull(unsigned amount){
    
-    lock.lock();
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     
     std::vector<float> data(amount, 0.0f);
     
@@ -25,22 +25,18 @@ std::vector<float> Buffer::pull(unsigned amount){
         memmove(buffer.data(), buffer.data() + read, sizeof(float) * write);
         read = 0;
     }
-    
-    lock.unlock();
 
     return data;
 }
 
 void Buffer::push(const float *data, unsigned amount){
     
-    lock.lock();
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     buffer.resize(std::max(write + amount, (unsigned)buffer.size()));
 
     memcpy(buffer.data() + write, data, sizeof(float) * amount);
     write += amount;
-
-    lock.unlock();
 }
 
 void Buffer::push(const std::vector<float> &data){
@@ -49,32 +45,30 @@ void Buffer::push(const std::vector<float> &data){
 
 unsigned Buffer::max(){
     
-    lock.lock();
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
     unsigned max = write - read;
-    lock.unlock();
     
     return max;
 }
 
 unsigned Buffer::hunger(){
     
-    lock.lock();
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
     if(capacity < (write - read)) return 0;
     unsigned hunger = capacity - (write - read);
-    lock.unlock();
     
     return hunger;
 }
 
 void Buffer::reset(){
 
-    lock.lock();
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     
     buffer.clear();
     read = 0;
     write = 0;
-
-    lock.unlock();
 }
 
 }

@@ -34,7 +34,7 @@ protected:
     void reset();
     
     std::vector<float> buffer;
-    std::mutex lock;
+    std::recursive_mutex mutex;
 
     unsigned read = 0;
     unsigned write = 0;

@@ -29,7 +29,7 @@ void Player::set_loop(bool b){
 
 bool Player::onGetData(sf::SoundStream::Chunk &data){
 
-    sourceLock.lock();
+    std::lock_guard<std::recursive_mutex> lock(sourceMutex);
 
     unsigned amount = (unsigned)std::round(getSampleRate() * getChannelCount() * blockSeconds);
     
@@ -38,8 +38,6 @@ bool Player::onGetData(sf::SoundStream::Chunk &data){
     unsigned actual;
     if(looping) actual = source->pull_loop(amount, floats);
     else actual = source->pull(amount, floats);
-    
-    sourceLock.unlock();
 
     temp = float_to_int(floats);
     
@@ -50,9 +48,10 @@ bool Player::onGetData(sf::SoundStream::Chunk &data){
 }
 
 void Player::onSeek(sf::Time timeOffset){
-    sourceLock.lock();
+    
+    std::lock_guard<std::recursive_mutex> lock(sourceMutex);
+    
     source->seek(timeOffset.asSeconds() * getSampleRate() * getChannelCount());
-    sourceLock.unlock();
 }
 
 

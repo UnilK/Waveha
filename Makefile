@@ -10,8 +10,8 @@ MAINAPP := main
 TEST := test
 
 CXX := g++
-#ALTERNATIVE := -std=c++17 -g -Og -Wall
-CXXFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
+CXXFLAGS := -std=c++17 -g -Og -Wall
+#ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 
 

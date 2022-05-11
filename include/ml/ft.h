@@ -8,6 +8,8 @@ namespace ml {
 
 class FT : public Layer {
 
+    // runs a vector through ft
+
 public:
 
     FT(arrays in, arrays out, args a);
