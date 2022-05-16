@@ -12,19 +12,28 @@ Norm::Norm(arrays in, arrays out, args a) :
 void Norm::push(){
     
     sum = 0.0f;
-    for(unsigned i=0; i<l.size; i++) sum += std::abs(l.data[i]);
+    for(unsigned i=0; i<l.size; i++) sum += std::abs(l[i]);
     if(sum != 0.0f) sum = l.size / sum;
 
-    for(unsigned i=0; i<l.size; i++) r.data[i] = l.data[i] * sum;
+    for(unsigned i=0; i<l.size; i++) r[i] = l[i] * sum;
 }
 
 void Norm::pull(){
     
-    // mathematically incorrect. Try correct one later.
-
     if(nopull) return;
 
-    for(unsigned i=0; i<l.size; i++) l.data[i] = r.data[i] * sum;
+    // now neither works for some reason...
+
+    /*
+    float dsum = 0.0f;
+    for(unsigned i=0; i<l.size; i++) dsum += r[i] * l[i];
+
+    dsum *= - sum * sum / l.size;
+
+    for(unsigned i=0; i<l.size; i++) l[i] = r[i] * sum + dsum;
+    */
+    
+    // for(unsigned i=0; i<l.size; i++) l[i] = r[i];
 }
 
 bool Norm::ok(arrays in, arrays out, args a){
@@ -43,19 +52,28 @@ CNorm::CNorm(arrays in, arrays out, args a) :
 void CNorm::push(){
     
     sum = 0.0f;
-    for(unsigned i=0; i<l.csize; i++) sum += std::abs(l.cdata[i]);
+    for(unsigned i=0; i<l.csize; i++) sum += std::abs(l(i));
     if(sum != 0.0f) sum = l.csize / sum;
 
-    for(unsigned i=0; i<l.csize; i++) r.cdata[i] = l.cdata[i] * sum;
+    for(unsigned i=0; i<l.csize; i++) r(i) = l(i) * sum;
 }
 
 void CNorm::pull(){
-    
-    // mathematically incorrect
 
     if(nopull) return;
 
-    for(unsigned i=0; i<l.csize; i++) l.cdata[i] = r.cdata[i] * sum;
+    // now neither works for some reason...
+    
+    /*
+    std::complex<float> dsum = 0.0f;
+    for(unsigned i=0; i<l.csize; i++) dsum += r(i) * std::conj(l(i));
+
+    dsum *= - sum * sum / l.csize;
+
+    for(unsigned i=0; i<l.csize; i++) l(i) = r(i) * sum + dsum;
+    */
+    
+    // for(unsigned i=0; i<l.csize; i++) l(i) = r(i) * sum;
 }
 
 bool CNorm::ok(arrays in, arrays out, args a){

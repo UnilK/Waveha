@@ -10,8 +10,8 @@ MAINAPP := main
 TEST := test
 
 CXX := g++
-CXXFLAGS := -std=c++17 -g -Og -Wall
-#ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
+#ALTERNATIVE := -std=c++17 -g -Og -Wall
+CXXFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 
 
@@ -193,6 +193,7 @@ build/ml/factory.o: include/ml/factory.h include/ml/util.h include/ml/field.h
 build/ml/factory.o: include/ml/layer.h include/ui/fileio.h include/ml/field.inl
 build/ml/factory.o: include/ml/matrix.h include/ml/deloc.h include/ml/roll.h
 build/ml/factory.o: include/ml/ft.h include/ml/judge.h include/ml/norm.h
+build/ml/factory.o: include/ml/reblock.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/util.h include/ml/field.inl
 build/ml/norm.o: include/ml/norm.h include/ml/layer.h include/ui/fileio.h
@@ -211,6 +212,8 @@ build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h
 build/ml/ft.o: include/ml/util.h include/math/ft.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/ml/stack.o: include/ml/util.h include/ml/judge.h include/ml/factory.h
+build/ml/reblock.o: include/ml/reblock.h include/ml/layer.h include/ui/fileio.h
+build/ml/reblock.o: include/ml/util.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
 build/math/fft.o: include/math/fft.h include/math/constants.h
 build/tools/recorder.o: include/tools/recorder.h include/app/content.h

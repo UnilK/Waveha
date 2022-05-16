@@ -21,7 +21,7 @@ void Matrix::push(){
 
     for(unsigned i=0; i<l.size; i++){
         for(unsigned j=0; j<r.size; j++){
-            r.data[j] += l.data[i] * matrix[i][j];
+            r[j] += l[i] * matrix[i][j];
         }
     }
 }
@@ -33,10 +33,10 @@ void Matrix::pull(){
     for(unsigned i=0; i<l.size; i++){
         float feedback = 0;
         for(unsigned j=0; j<r.size; j++){
-            feedback += r.data[j] * matrix[i][j];
-            changes[i][j] += l.data[i] * r.data[j];
+            feedback += r[j] * matrix[i][j];
+            changes[i][j] += l[i] * r[j];
         }
-        l.data[i] = feedback;
+        l[i] = feedback;
     }
 }
 
@@ -84,11 +84,11 @@ CMatrix::CMatrix(arrays in, arrays out, args a) :
 
 void CMatrix::push(){
     
-    for(unsigned i=0; i<r.size; i++) r.data[i] = 0.0f;
+    for(unsigned i=0; i<r.size; i++) r[i] = 0.0f;
 
     for(unsigned i=0; i<l.csize; i++){
         for(unsigned j=0; j<r.csize; j++){
-            r.cdata[j] += l.cdata[i] * matrix[i][j];
+            r(j) += l(i) * matrix[i][j];
         }
     }
 }
@@ -100,10 +100,10 @@ void CMatrix::pull(){
     for(unsigned i=0; i<l.csize; i++){
         std::complex<float> feedback = 0.0f;
         for(unsigned j=0; j<r.csize; j++){
-            feedback += r.cdata[j] * std::conj(matrix[i][j]);
-            changes[i][j] += r.cdata[j] * std::conj(l.cdata[i]);
+            feedback += r(j) * std::conj(matrix[i][j]);
+            changes[i][j] += r(j) * std::conj(l(i));
         }
-        l.cdata[i] = feedback;
+        l(i) = feedback;
     }
 }
 

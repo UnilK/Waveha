@@ -10,7 +10,7 @@ void Reblock::push(){
         if(r == right[j].size){ r = 0; j++; }
         if(i == left.size()) break;
 
-        right[j].data[r] = left[i].data[l];
+        right[j][r] = left[i][l];
     }
 }
 
@@ -24,7 +24,7 @@ void Reblock::pull(){
         if(r == right[j].size){ r = 0; j++; }
         if(i == left.size()) break;
 
-        left[i].data[l] = right[j].data[r];
+        left[i][l] = right[j][r];
     }
 }
 

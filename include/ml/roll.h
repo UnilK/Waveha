@@ -51,6 +51,7 @@ public:
 private:
 
     array &l, &r;
+    std::vector<std::complex<float> > ll, rr;
 
 };
 

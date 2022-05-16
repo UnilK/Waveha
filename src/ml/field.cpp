@@ -185,7 +185,7 @@ void csig::f(float *left, float *right, float *var){
 
 void csig::df(float *left, float *right, float *var, float *change){
     float abs = std::abs(left[0]);
-    left[0] = 1.0f / ((1.0f + abs) * (1.0f + abs));
+    left[0] = right[0] / ((1.0f + abs) * (1.0f + abs));
 }
 
 // v2 /////////////////////////////////////////////////////////////////////////
