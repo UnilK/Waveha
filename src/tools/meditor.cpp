@@ -35,24 +35,29 @@ Meditor::Meditor(App *a) :
     terminal.put_function("unit", [&](ui::Command c){ unit_matrix(c); });
     terminal.put_function("phasesuf", [&](ui::Command c){ shuffle_phase(c); });
     terminal.put_function("magsuf", [&](ui::Command c){ shuffle_magnitude(c); });
+    terminal.put_function("phaseset", [&](ui::Command c){ set_phase(c); });
+    terminal.put_function("magset", [&](ui::Command c){ set_magnitude(c); });
     terminal.put_function("stack", [&](ui::Command c){ set_stack(c); });
     terminal.put_function("mode", [&](ui::Command c){ set_mode(c); });
     terminal.put_function("auto", [&](ui::Command c){ set_refresh(c); });
-    terminal.put_function("info", [&](ui::Command c){ info(c); });
-    
     terminal.put_function("slant", [&](ui::Command c){ set_slant(c); });
     terminal.put_function("pitch", [&](ui::Command c){ set_pitch(c); });
+    terminal.put_function("info", [&](ui::Command c){ info(c); });
 
     terminal.document("link", "[name] link audio to be edited."
-            "Linked audio should be a single wavelength");
+            " Linked audio should be a single period of a wave");
     terminal.document("name", "[name] set output name");
     terminal.document("resize", "resize edit matrix.");
     terminal.document("unit", "make edit matrix a unit matrix.");
     terminal.document("phasesuf", "shuffle the phase of matrix cells.");
     terminal.document("magsuf", "[low] [high] shuffle the magnitude of matrix cells.");
+    terminal.document("phaseset", "[low] [high] [angle] rotate frequencies in range [low, high[ by angle.");
+    terminal.document("magset", "[low] [high] [factor] multply frequencies in ragne [low, high[ by angle.");
     terminal.document("stack", "[stack] use this stack to transform the waves.");
     terminal.document("mode", "[mode] use this transformation mode.");
-    terminal.document("auto", " switch auto refresh");
+    terminal.document("auto", "switch auto refresh");
+    terminal.document("slant", "[in] [out] multiply wave by a linear function");
+    terminal.document("pitch", "[factor] multiply wavelength by factor");
     terminal.document("info", "list configuration.");
 }
 
@@ -164,6 +169,49 @@ void Meditor::shuffle_magnitude(ui::Command c){
             for(unsigned j=0; j<matrix.size(); j++){
                 if(i < 10) matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
             }
+        }
+
+        update_output();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
+}
+
+void Meditor::set_phase(ui::Command c){
+
+    try {
+
+        unsigned low = std::stoul(c.pop());
+        unsigned high = std::stoul(c.pop());
+        float phase = std::stof(c.pop());
+
+        high = std::min(high, (unsigned)matrix.size());
+        std::complex<float> offset = std::polar(1.0f, phase*2*PIF);
+
+        for(unsigned i=low; i<high; i++){
+            matrix.multiply(i, i, offset);
+        }
+
+        update_output();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
+}
+
+void Meditor::set_magnitude(ui::Command c){
+
+    try {
+
+        unsigned low = std::stoul(c.pop());
+        unsigned high = std::stoul(c.pop());
+        float offset = std::stof(c.pop());
+
+        high = std::min(high, (unsigned)matrix.size());
+
+        for(unsigned i=low; i<high; i++){
+            matrix.multiply(i, i, offset);
         }
 
         update_output();

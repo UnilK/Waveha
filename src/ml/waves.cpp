@@ -6,9 +6,6 @@
 
 #include <filesystem>
 
-#include <iostream>
-using std::cout;
-
 namespace ml {
 
 const int N = 1<<11;

@@ -88,24 +88,29 @@ private:
 
     void link_audio(ui::Command);
     void switch_play(ui::Command);
-    void set_name(ui::Command);
+    void name_clip(ui::Command);
     void switch_clip(ui::Command);
     void setup_peaks(ui::Command);
     void setup_correlation(ui::Command);
-    void info(ui::Command);
-
     void check_ml_data(ui::Command);
+    void name_dataset(ui::Command);
+    void switch_dataset(ui::Command);
+    void clip_to_dataset(ui::Command);
+    void info(ui::Command);
 
     AudioLink link;
     wave::Player player;
     
     bool clipping = 0;
+    bool datasetting = 0;
     int clipBegin = 0, clipEnd = 0;
     std::string clipName;
     const int defaultLength = 1<<10;
     int position = 0, length = defaultLength;
 
     Mode dataMode = regularMode;
+
+    std::string dataset;
 
     ui::Slider slider;
     ui::Terminal terminal;

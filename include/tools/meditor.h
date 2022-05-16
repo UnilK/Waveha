@@ -32,6 +32,8 @@ public:
     void resize_matrix(ui::Command);
     void shuffle_phase(ui::Command);
     void shuffle_magnitude(ui::Command);
+    void set_phase(ui::Command);
+    void set_magnitude(ui::Command);
     void unit_matrix(ui::Command);
     void rename_output(ui::Command);
     void link_audio(ui::Command);

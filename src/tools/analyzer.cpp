@@ -4,11 +4,13 @@
 #include "app/creations.h"
 #include "math/fft.h"
 #include "math/ft.h"
+#include "wstream/wstream.h"
 
 #include <algorithm>
 #include <math.h>
 #include <limits>
 #include <iostream>
+#include <filesystem>
 
 namespace app {
 
@@ -72,7 +74,7 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
         
         } else if(event.key.code == sf::Keyboard::I || event.key.code == sf::Keyboard::K){
            
-            if(currentMode != regularMode || !analyzer.clipping
+            if(currentMode != regularMode || (!analyzer.clipping && !analyzer.datasetting)
                     || analyzer.link.size() == 0) return Capture::pass;
 
             int speed = 16;
@@ -96,7 +98,7 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
         } else if(event.key.code == sf::Keyboard::J || event.key.code == sf::Keyboard::L){
             
-            if(currentMode != regularMode || !analyzer.clipping
+            if(currentMode != regularMode || (!analyzer.clipping && !analyzer.datasetting)
                     || analyzer.link.size() == 0) return Capture::pass;
             
             int speed = 16;
@@ -117,14 +119,15 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             if(clipBegin != analyzer.clipBegin || clipEnd != analyzer.clipEnd){
                 analyzer.clipBegin = clipBegin;
                 analyzer.clipEnd = clipEnd;
-                analyzer.save_clip();
+                if(analyzer.clipping) analyzer.save_clip();
                 set_refresh();
             }
             return Capture::capture;
         
-        } else if(event.key.code == sf::Keyboard::U){
+        } else if(event.key.code == sf::Keyboard::U || event.key.code == sf::Keyboard::O){
             
-            if(currentMode != regularMode || !analyzer.clipping) return Capture::pass;
+            if(currentMode != regularMode ||
+                    (!analyzer.clipping && !analyzer.datasetting)) return Capture::pass;
             
             float x = local_mouse()[0] / scaleX + origoX;
 
@@ -140,24 +143,39 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             }
 
             pos = (int)std::round(pos + offsetX);
-
-            int length = clipEnd - clipBegin;
-            clipBegin = pos;
-            clipEnd = clipBegin + length;
+            
+            if(event.key.code == sf::Keyboard::U){
+                int length = clipEnd - clipBegin;
+                clipBegin = pos;
+                clipEnd = clipBegin + length;
+            } else {
+                clipEnd = pos;
+                if(clipEnd < clipBegin) clipEnd += analyzer.link.size();
+            }
 
             if(clipBegin != analyzer.clipBegin || clipEnd != analyzer.clipEnd){
                 analyzer.clipBegin = clipBegin;
                 analyzer.clipEnd = clipEnd;
-                analyzer.save_clip();
+                if(analyzer.clipping) analyzer.save_clip();
                 set_refresh();
             }
             return Capture::capture;
         }
         else if(event.key.code == sf::Keyboard::C){
-            analyzer.clipping ^= 1;
+            analyzer.switch_clip({analyzer.terminal, {}});
             set_refresh();
             return Capture::capture;
         }
+        else if(event.key.code == sf::Keyboard::V){
+            analyzer.switch_dataset({analyzer.terminal, {}});
+            set_refresh();
+            return Capture::capture;
+        }
+        else if(event.key.code == sf::Keyboard::F){
+            analyzer.clip_to_dataset({analyzer.terminal, {}});
+            return Capture::capture;
+        }
+
     }
 
     return Capture::pass;
@@ -167,7 +185,7 @@ void AnalyzerGraph::on_refresh(){
     
     Graph::on_refresh();
     
-    if(currentMode == regularMode && analyzer.clipping){
+    if(currentMode == regularMode && (analyzer.clipping || analyzer.datasetting)){
         
         float beginX = (clipBegin - origoX - offsetX) * scaleX;
         beginLine[0].position = sf::Vector2f(beginX, 0);
@@ -315,25 +333,37 @@ Analyzer::Analyzer(App *a) :
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
     terminal.put_function("link", [&](ui::Command c){ link_audio(c); });
-    terminal.put_function("name", [&](ui::Command c){ set_name(c); });
+    terminal.put_function("cname", [&](ui::Command c){ name_clip(c); });
     terminal.put_function("clip", [&](ui::Command c){ switch_clip(c); });
     terminal.put_function("play", [&](ui::Command c){ switch_play(c); });
     terminal.put_function("speak", [&](ui::Command c){ setup_peaks(c); });
     terminal.put_function("scorr", [&](ui::Command c){ setup_correlation(c); });
+    terminal.put_function("dname", [&](ui::Command c){ name_dataset(c); });
+    terminal.put_function("dataset", [&](ui::Command c){ switch_dataset(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("check", [&](ui::Command c){ check_ml_data(c); });
 
     terminal.document("link", "[name] link audio to this analyzer");
-    terminal.document("name", "[name] set clip name");
+    terminal.document("cname", "[name] set clip name");
+    terminal.document("dname", "[name] set dataset directory");
+    terminal.document("dataset", "switch datasetting. Pressing F on graph will save the clip to"
+            " the dataset directory.");
     terminal.document("clip", "start clipping. A portion of the source"
-            "is automatically cached.");
+            " is automatically cached.");
     terminal.document("play", "switch source audio playback.");
     terminal.document("speak", "[variable] [value] set value to peak match variable.");
     terminal.document("scorr", "[variable] [value] set value to correlation variable.");
+    terminal.document("check", "[data] check wave training data");
+    terminal.document("*hotkeys", "use W and S to control interval length shown on graph\n"
+            "A and D control interval position. shift and ctrl are speed modifiers\n"
+            "move graph inspector with mouse\n"
+            "hold LMB to move graph around and scroll to zoom. shift and control lock axis\n"
+            "C to switch clipping. U to move begin to mouse position, O to move end\n"
+            "I J K L correspond to W A S D but for the clip\n"
+            "V to switch dataset collection. F to collect a dataset sample (clip)");
     terminal.document("info", "list the configuration");
     
-    terminal.document("check", "[data] check wave training data");
 }
 
 Analyzer::~Analyzer(){}
@@ -353,6 +383,7 @@ void Analyzer::save(ui::Saver &saver){
     saver.write_int(length);
     saver.write_int(dataMode);
     saver.write_string(clipName);
+    saver.write_string(dataset);
     saver.write_int(clipBegin);
     saver.write_int(clipEnd);
 
@@ -366,6 +397,7 @@ void Analyzer::load(ui::Loader &loader){
     length = loader.read_int();
     dataMode = (Mode)loader.read_int();
     clipName = loader.read_string();
+    dataset = loader.read_string();
     clipBegin = loader.read_int();
     clipEnd = loader.read_int();
 
@@ -475,7 +507,7 @@ void Analyzer::switch_play(ui::Command c){
     }
 }
 
-void Analyzer::set_name(ui::Command c){
+void Analyzer::name_clip(ui::Command c){
     
     std::string name = c.pop();
 
@@ -484,7 +516,12 @@ void Analyzer::set_name(ui::Command c){
 }
 
 void Analyzer::switch_clip(ui::Command c){
-    clipping ^= 1;
+    if(!clipping){
+        datasetting = 0;
+        clipping = 1;
+    } else {
+        clipping = 0;
+    }
 }
 
 void Analyzer::setup_peaks(ui::Command c){
@@ -557,6 +594,73 @@ void Analyzer::check_ml_data(ui::Command c){
     graph.set_data(math::ift(freq, length));
 
     graph.set_reconfig();
+}
+
+void Analyzer::name_dataset(ui::Command c){
+    
+    std::string name = c.pop();
+
+    if(name.empty()) c.source.push_error("dataset directory name cannot be empty");
+    else dataset = name;
+}
+
+void Analyzer::switch_dataset(ui::Command c){
+
+    if(!datasetting){
+        datasetting = 1;
+        clipping = 0;
+    } else {
+        datasetting = 0;
+    }
+}
+
+void Analyzer::clip_to_dataset(ui::Command c){
+
+    if(!datasetting){
+        c.source.push_error("switch on datasetting to save clips");
+        return;
+    }
+    else if(!std::filesystem::exists(std::filesystem::path(dataset))){
+        c.source.push_error("dataset directory \""+ dataset +"\" does not exist");
+        return;
+    }
+
+    auto iswave = [](std::string &s) -> bool {
+        if(s.size() < 4) return 0;
+        return s.substr(s.size()-4) == ".wav";
+    };
+
+    std::vector<int> numbers;
+    for(auto &file : std::filesystem::directory_iterator(dataset)){
+        
+        std::string f = file.path();
+        if(!iswave(f)) continue;
+
+        try {
+            int index = f.size()-5, length = 0;
+            while(index >= 0 && f[index] >= '0' && f[index] <= '9'){
+                index--;
+                length++;
+            } index++;
+            numbers.push_back(std::stoi(f.substr(index, length)));
+        }
+        catch (const std::invalid_argument &e){
+            continue;
+        }
+    }
+
+    int max = 0;
+    std::sort(numbers.begin(), numbers.end());
+
+    for(int i : numbers) if(i == max) max++;
+
+    std::string filename = dataset + "/" + std::to_string(max) + ".wav";
+
+    owstream file(filename, 1, 1, 16, 44100);
+    file.write_file(link.get(clipEnd + 1 - clipBegin, clipBegin));
+
+    c.source.push_output("file created: " + filename);
+
 }
 
 }
