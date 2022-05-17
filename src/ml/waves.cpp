@@ -35,15 +35,18 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
 
         std::vector<float> waves = I.read_file();
 
-        unsigned step = (waves.size()-M) / N;
+        if(waves.size() < M) continue;
 
-        for(unsigned i=0; i<N && i*step+M < waves.size(); i++){
+        for(unsigned i=0; i*N+M < waves.size(); i++){
 
             std::vector<float> clip(M, 0.0f);
-            for(unsigned j=0; j<M; j++)  clip[j] = waves[i*step+j];
-
+            for(unsigned j=0; j<M; j++)  clip[j] = waves[j];
             unsigned length = change::pitch(clip);
+
+            // length = change::hinted_pitch(waves.data() + i*N, M, length);
+            
             clip.resize(length);
+            for(unsigned j=0; j<length; j++) clip[j] = waves[i*N + j];
 
             auto freqs = math::ft(clip, F);
 
@@ -81,6 +84,10 @@ TrainingData *wave_data(std::string file){
     unsigned f = L.read_unsigned();
 
     for(unsigned i=0; i<size; i++){
+        if(L.bad()){
+            delete &data;
+            return nullptr;
+        }
         data.push_back({std::vector<float>(2*f), {}});
         for(unsigned j=0; j<2*f; j++) data.back().first[j] = L.read_float();
         data.back().second = data.back().first;

@@ -222,7 +222,7 @@ void Recorder::write_link_audio(ui::Command c){
             c.source.push_output("source overriden");
         }
         else if(ret == 2){
-            c.source.push_error("error reading file");
+            c.source.push_error("error writing or reading file");
         }
     }
 }

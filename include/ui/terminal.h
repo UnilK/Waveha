@@ -55,7 +55,7 @@ public:
 
 protected:
 
-    const std::string HELP = "__HELP", LIST = "__LIST";
+    const std::string HELP = "help", LIST = "ls";
 
 private:
     
@@ -140,10 +140,8 @@ private:
     sf::Text text;
     float offsetX = 0, offsetY = 0;
 
-    void ls(Command);
     void cd(Command);
     void pwd(Command);
-    void help(Command);
     void clear(Command);
 
 };

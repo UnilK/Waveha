@@ -72,6 +72,45 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
             return Capture::capture;
         
+        } else if(event.key.code == sf::Keyboard::Q || event.key.code == sf::Keyboard::E){
+            
+            if(currentMode != regularMode) return Capture::pass;
+            
+            float x = local_mouse()[0] / scaleX + origoX;
+
+            float min = std::numeric_limits<float>::max();
+
+            int pos = 0;
+
+            for(Point &i : points){
+                if(std::abs(i.x - x) < min){
+                    min = std::abs(i.x - x);
+                    pos = (int)std::round(i.x);
+                }
+            }
+
+            pos = (int)std::round(pos + offsetX);
+            
+            if(analyzer.link.size() == 0) return Capture::capture;
+
+            if(event.key.code == sf::Keyboard::Q){
+                
+                int length = clipEnd - clipBegin;
+                clipBegin = pos;
+                clipEnd = clipBegin + length;
+                
+                analyzer.position = pos % (int)analyzer.link.size();
+                analyzer.update_data();
+            
+            } else {
+
+                analyzer.position = (pos - analyzer.length) % (int)analyzer.link.size();
+                if(analyzer.position < 0) analyzer.position += analyzer.link.size();
+                analyzer.update_data();
+            }
+
+            return Capture::capture;
+
         } else if(event.key.code == sf::Keyboard::I || event.key.code == sf::Keyboard::K){
            
             if(currentMode != regularMode || (!analyzer.clipping && !analyzer.datasetting)
@@ -142,7 +181,7 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
                 }
             }
 
-            pos = (int)std::round(pos + offsetX);
+            pos = (int)std::round(pos + offsetX) % (int)analyzer.link.size();
             
             if(event.key.code == sf::Keyboard::U){
                 int length = clipEnd - clipBegin;
@@ -175,6 +214,10 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             analyzer.clip_to_dataset({analyzer.terminal, {}});
             return Capture::capture;
         }
+        else if(event.key.code == sf::Keyboard::P){
+            analyzer.switch_play({analyzer.terminal, {}});
+            return Capture::capture;
+        }
 
     }
 
@@ -187,11 +230,20 @@ void AnalyzerGraph::on_refresh(){
     
     if(currentMode == regularMode && (analyzer.clipping || analyzer.datasetting)){
         
-        float beginX = (clipBegin - origoX - offsetX) * scaleX;
+        double xoff = offsetX;
+        if(xoff > (double)clipEnd)
+            xoff -= analyzer.link.size();
+        if((double)clipBegin - xoff >= (double)analyzer.link.size())
+            xoff += analyzer.link.size();
+        if(clipEnd > (int)analyzer.link.size() && xoff + analyzer.link.size() < (double)clipEnd)
+            xoff += analyzer.link.size();
+
+        double beginX = (clipBegin - xoff - origoX) * scaleX;
+        double endX = (clipEnd - xoff - origoX) * scaleX;
+        
         beginLine[0].position = sf::Vector2f(beginX, 0);
         beginLine[1].position = sf::Vector2f(beginX, canvasHeight);
         
-        float endX = (clipEnd - origoX - offsetX) * scaleX;
         endLine[0].position = sf::Vector2f(endX, 0);
         endLine[1].position = sf::Vector2f(endX, canvasHeight);
 
@@ -357,11 +409,13 @@ Analyzer::Analyzer(App *a) :
     terminal.document("check", "[data] check wave training data");
     terminal.document("*hotkeys", "use W and S to control interval length shown on graph\n"
             "A and D control interval position. shift and ctrl are speed modifiers\n"
+            "Q moes the interval beginning to mouse position. E moves the end.\n"
             "move graph inspector with mouse\n"
             "hold LMB to move graph around and scroll to zoom. shift and control lock axis\n"
             "C to switch clipping. U to move begin to mouse position, O to move end\n"
             "I J K L correspond to W A S D but for the clip\n"
-            "V to switch dataset collection. F to collect a dataset sample (clip)");
+            "V to switch dataset collection. F to collect a dataset sample (clip)\n"
+            "P to switch audio playback");
     terminal.document("info", "list the configuration");
     
 }
@@ -577,6 +631,7 @@ void Analyzer::info(ui::Command c){
     message += "view length: " + std::to_string(length) + "\n";
     message += "mode: " + std::to_string(dataMode) + "\n";
     message += "clip name: " + clipName + "\n";
+    message += "dataset name: " + dataset + "\n";
     message += "clip begin: " + std::to_string(clipBegin) + "\n";
     message += "clip end: " + std::to_string(clipEnd);
     c.source.push_output(message);
@@ -651,6 +706,7 @@ void Analyzer::clip_to_dataset(ui::Command c){
 
     int max = 0;
     std::sort(numbers.begin(), numbers.end());
+    numbers.resize(std::unique(numbers.begin(), numbers.end()) - numbers.begin());
 
     for(int i : numbers) if(i == max) max++;
 

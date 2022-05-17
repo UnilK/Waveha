@@ -27,6 +27,10 @@ std::vector<std::complex<float> > convolution(
         std::vector<std::complex<float> > b,
         unsigned size = 0);
 
+std::vector<float> correlation(std::vector<float> a, std::vector<float> b, unsigned size = 0);
+
+// these are ~6 times slower on average than radix 2, but support all sizes.
+
 std::vector<std::complex<float> > bluestein(std::vector<std::complex<float> > v, bool inv = 0); 
 std::vector<std::complex<float> > bluestein(std::vector<float> &v);
 std::vector<float> inverse_bluestein(std::vector<std::complex<float> > &v); 

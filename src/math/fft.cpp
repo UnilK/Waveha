@@ -167,6 +167,22 @@ vector<complex<float> > convolution(
     return a;
 }
 
+vector<float> correlation(vector<float> a, vector<float> b, unsigned size){
+
+    unsigned n = size;
+    if(!n) n = a.size() + b.size() - 1;
+
+    unsigned z = 1;
+    while(z < n) z *= 2;
+
+    a.resize(z, 0.0f);
+    b.resize(z, 0.0f);
+
+    std::reverse(b.begin() + 1, b.end());
+
+    return convolution(a, b, z);
+}
+
 vector<complex<float> > bluestein(vector<complex<float> > v, bool inv){
     
     if(v.empty()) return {};

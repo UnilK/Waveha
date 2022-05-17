@@ -91,7 +91,7 @@ int Creations::load_mldata(std::string type, std::string file, std::string name)
 
 int Creations::remove_mldata(std::string name){
     
-    if(datas.count(name)) return 1;
+    if(!datas.count(name)) return 1;
     delete std::get<2>(datas[name]);
     datas.erase(name);
     

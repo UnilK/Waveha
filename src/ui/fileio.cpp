@@ -53,7 +53,7 @@ void Saver::close(){
 }
 
 bool Saver::bad(){
-    return out.bad();
+    return !out.good();
 }
 
 void Saver::open_chunk(std::string name){
@@ -161,7 +161,7 @@ void Loader::close(){
 }
 
 bool Loader::bad(){
-    return in.bad();
+    return !in.good();
 }
 
 }

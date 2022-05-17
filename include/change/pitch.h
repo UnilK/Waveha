@@ -36,6 +36,12 @@ unsigned pitch(const std::vector<float> &audio,
 unsigned pitch(const float *audio, unsigned size,
         CorrelationVars = defaultCorrelationVars);
 
+unsigned hinted_pitch(const std::vector<float> &audio, unsigned hint,
+        CorrelationVars = defaultCorrelationVars);
+
+unsigned hinted_pitch(const float *audio, unsigned size, unsigned hint,
+        CorrelationVars = defaultCorrelationVars);
+
 std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio);
 
 }

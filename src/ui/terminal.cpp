@@ -34,8 +34,12 @@ bool Command::empty(){ return stack.empty(); }
 // directory //////////////////////////////////////////////////////////////////
 
 Directory::Directory(){
+    
     put_function(HELP, [&](Command c){ print_help(c); });
     put_function(LIST, [&](Command c){ print_list(c); });
+    
+    document(LIST, "list sub direcories (dir*) and commands (cmd)\n");
+    document(HELP, "[path to ... subject]. print docs.\n");
 }
 
 Directory::~Directory(){}
@@ -148,10 +152,8 @@ void Directory::print_list(Command c){
 Terminal::Terminal(Window *master_, Kwargs kwargs) :
     Frame(master_, kwargs)
 {
-    add_function("ls", [&](Command c){ ls(c); });
     add_function("cd", [&](Command c){ cd(c); });
     add_function("pwd", [&](Command c){ pwd(c); });
-    add_function("help", [&](Command c){ help(c); });
     add_function("clear", [&](Command c){ clear(c); });
 
     document("ls", "list sub direcories (dir*) and commands (cmd)\n");
@@ -437,7 +439,6 @@ std::vector<std::string> Terminal::wrap(std::string s, unsigned max){
             right++;
             
             left = right++;
-
         }
         else {
             
@@ -459,13 +460,6 @@ std::vector<std::string> Terminal::wrap(std::string s, unsigned max){
 }
 
 // standard terminal commands /////////////////////////////////////////////////
-
-void Terminal::ls(Command c){
-
-    auto list = address;
-    list.push_back(LIST);
-    execute({*this, list});
-}
 
 void Terminal::cd(Command c){
 
@@ -503,14 +497,6 @@ void Terminal::pwd(Command c){
     std::string list = "--";
     for(auto i : address) list += " " + i;
     push_output(list);
-}
-
-void Terminal::help(Command c){
-    
-    auto list = address;
-    list.push_back(HELP);
-    list.push_back(c.pop());
-    execute({*this, list});
 }
 
 void Terminal::clear(Command c){
