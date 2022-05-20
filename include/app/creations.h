@@ -32,6 +32,9 @@ private:
     
     void create_waves(ui::Command);
 
+    void blur_mnist(ui::Command);
+    void ft_mnist(ui::Command);
+
     void load_mldata(ui::Command);
     void remove_mldata(ui::Command);
     
@@ -56,6 +59,9 @@ public:
     void reset();
 
     int create_waves(std::string directory, std::string output, unsigned density);
+
+    int blur_mnist(std::string name);
+    int ft_mnist(std::string name);
     
     int load_mldata(std::string type, std::string name, std::string file);
     int remove_mldata(std::string name);

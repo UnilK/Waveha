@@ -12,7 +12,7 @@ TEST := test
 CXX := g++
 #ALTERNATIVE := -std=c++17 -g -Og -Wall
 CXXFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
-RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
+RELEASEFLAGS := -std=c++17 -O3 -flto -funroll-loops -mavx2 -Wall
 
 
 
@@ -189,11 +189,12 @@ build/app/creations.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
 build/app/creations.o: include/ml/judge.h include/ml/waves.h
 build/ml/roll.o: include/ml/roll.h include/ml/layer.h include/ui/fileio.h
 build/ml/roll.o: include/ml/util.h
-build/ml/factory.o: include/ml/factory.h include/ml/util.h include/ml/field.h
-build/ml/factory.o: include/ml/layer.h include/ui/fileio.h include/ml/field.inl
+build/ml/factory.o: include/ml/factory.h include/ml/util.h include/ml/layer.h
+build/ml/factory.o: include/ui/fileio.h include/ml/field.h include/ml/field.inl
 build/ml/factory.o: include/ml/matrix.h include/ml/deloc.h include/ml/roll.h
 build/ml/factory.o: include/ml/ft.h include/ml/judge.h include/ml/norm.h
-build/ml/factory.o: include/ml/reblock.h
+build/ml/factory.o: include/ml/reblock.h include/ml/multiply.h
+build/ml/factory.o: include/ml/wavecon.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/util.h include/ml/field.inl
 build/ml/norm.o: include/ml/norm.h include/ml/layer.h include/ui/fileio.h
@@ -203,9 +204,13 @@ build/ml/deloc.o: include/ml/util.h
 build/ml/util.o: include/ml/util.h
 build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/matrix.o: include/ml/util.h
-build/ml/mnist.o: include/ml/mnist.h include/ui/fileio.h
+build/ml/mnist.o: include/ml/mnist.h include/ui/fileio.h include/math/fft.h
 build/ml/layer.o: include/ml/layer.h include/ui/fileio.h include/ml/util.h
 build/ml/judge.o: include/ml/judge.h
+build/ml/wavecon.o: include/ml/wavecon.h include/ml/layer.h include/ui/fileio.h
+build/ml/wavecon.o: include/ml/util.h
+build/ml/multiply.o: include/ml/multiply.h include/ml/layer.h
+build/ml/multiply.o: include/ui/fileio.h include/ml/util.h
 build/ml/waves.o: include/ml/waves.h include/math/ft.h include/change/pitch.h
 build/ml/waves.o: lib/Wstream/include/wstream/wstream.h include/ui/fileio.h
 build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h

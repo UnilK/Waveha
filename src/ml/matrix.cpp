@@ -40,12 +40,12 @@ void Matrix::pull(){
     }
 }
 
-void Matrix::change(double factor){
+void Matrix::change(float factor, float decay){
     
     for(unsigned i=0; i<l.size; i++){
         for(unsigned j=0; j<r.size; j++){
             matrix[i][j] += changes[i][j] * (float)factor;
-            changes[i][j] = 0.0f;
+            changes[i][j] *= decay;
         }
     }
 }
@@ -107,12 +107,12 @@ void CMatrix::pull(){
     }
 }
 
-void CMatrix::change(double factor){
+void CMatrix::change(float factor, float decay){
 
     for(unsigned i=0; i<l.csize; i++){
         for(unsigned j=0; j<r.csize; j++){
             matrix[i][j] += changes[i][j] * (float)factor;
-            changes[i][j] = 0.0f;
+            changes[i][j] *= decay;
         }
     }
 }

@@ -95,10 +95,6 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
 
             if(event.key.code == sf::Keyboard::Q){
                 
-                int length = clipEnd - clipBegin;
-                clipBegin = pos;
-                clipEnd = clipBegin + length;
-                
                 analyzer.position = pos % (int)analyzer.link.size();
                 analyzer.update_data();
             

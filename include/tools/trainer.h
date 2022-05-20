@@ -49,7 +49,7 @@ private:
     // config
     std::string stackName = "", dataName = "", testName = "";
     unsigned bsize = 100, tinterval = 100;
-    double speed = 0.01;
+    float speed = 0.01f, decay = 0.0f;
     
     int mode = 0;
     bool updatedFlag = 0;

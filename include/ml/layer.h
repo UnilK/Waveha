@@ -27,7 +27,7 @@ public:
     virtual void pull() = 0;
 
     // apply changes that have been accumulated in this layer
-    virtual void change(double factor);
+    virtual void change(float factor, float decay);
 
     // save and load the state of the layer to a file.
     virtual void save(ui::Saver &saver);
@@ -41,6 +41,21 @@ protected:
     // left is in, right is out
     std::vector<array> left, right;
     bool nopull = 0;
+
+};
+
+
+
+class Sink : public Layer {
+
+public:
+    
+    using Layer::Layer;
+
+    void push();
+    void pull();
+    std::string get_type();
+    static bool ok(arrays in, arrays out, args a);
 
 };
 

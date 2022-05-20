@@ -35,7 +35,7 @@ std::vector<std::complex<float> > bluestein(std::vector<std::complex<float> > v,
 std::vector<std::complex<float> > bluestein(std::vector<float> &v);
 std::vector<float> inverse_bluestein(std::vector<std::complex<float> > &v); 
 
-// default precalc table size is 18 -> std::vectors of size 2^18 max can be processed
+// default precalc table size is 18 -> vectors of size 2^18 max can be processed
 
 struct FFTPrecalc {
 

@@ -49,8 +49,8 @@ Meditor::Meditor(App *a) :
     terminal.document("name", "[name] set output name");
     terminal.document("resize", "resize edit matrix.");
     terminal.document("unit", "make edit matrix a unit matrix.");
-    terminal.document("phasesuf", "shuffle the phase of matrix cells.");
-    terminal.document("magsuf", "[low] [high] shuffle the magnitude of matrix cells.");
+    terminal.document("phasesuf", "[factor] shuffle the phase of matrix cells.");
+    terminal.document("magsuf", "[factor] shuffle the magnitude of matrix cells.");
     terminal.document("phaseset", "[low] [high] [angle] rotate frequencies in range [low, high[ by angle.");
     terminal.document("magset", "[low] [high] [factor] multply frequencies in ragne [low, high[ by angle.");
     terminal.document("stack", "[stack] use this stack to transform the waves.");
@@ -152,22 +152,33 @@ void Meditor::resize_matrix(ui::Command c){
 }
 
 void Meditor::shuffle_phase(ui::Command c){
-    for(unsigned i=0; i<matrix.size(); i++){
-        for(unsigned j=0; j<matrix.size(); j++){
-            matrix.multiply(i, j, std::polar(1.0f, (float)rand()/RAND_MAX*2*PIF));
+    try {
+
+        float factor = std::stof(c.pop());
+
+        for(unsigned i=0; i<matrix.size(); i++){
+            for(unsigned j=0; j<matrix.size(); j++){
+                matrix.multiply(i, j,
+                        std::polar(1.0f, (float)rand() / RAND_MAX * 2.0f * PIF * factor));
+            }
         }
+
+        update_output();
     }
-    update_output();
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 void Meditor::shuffle_magnitude(ui::Command c){
     try {
-        float low = std::stof(c.pop());
+
         float high = std::stof(c.pop());
+        float low = 1.0f / high;
 
         for(unsigned i=0; i<matrix.size(); i++){
             for(unsigned j=0; j<matrix.size(); j++){
-                if(i < 10) matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
+                matrix.multiply(i, j, low + (high-low) * rand() / RAND_MAX);
             }
         }
 

@@ -65,6 +65,7 @@ void Trainer::save(ui::Saver &saver){
     saver.write_unsigned(bsize);
     saver.write_unsigned(tinterval);
     saver.write_double(speed);
+    saver.write_double(decay);
 }
 
 void Trainer::load(ui::Loader &loader){
@@ -75,6 +76,7 @@ void Trainer::load(ui::Loader &loader){
     bsize = loader.read_unsigned();
     tinterval = loader.read_unsigned();
     speed = loader.read_double();
+    decay = loader.read_double();
     updatedFlag = 1;
 }
 
@@ -131,8 +133,12 @@ void Trainer::config(ui::Command c){
             if(n > 0 && n < (1<<20)) tinterval = n;
         }
         else if(var == "speed"){
-            double n = std::stod(c.pop());
+            float n = std::stof(c.pop());
             speed = n;
+        }
+        else if(var == "decay"){
+            float n = std::stof(c.pop());
+            decay = n;
         }
         else if(var == "mode"){
             mode = std::stoi(c.pop());
@@ -199,7 +205,8 @@ void Trainer::info(ui::Command c){
     
     message += "batch size: " + std::to_string(bsize) + "\n";
     message += "test interval: " + std::to_string(tinterval) + "\n";
-    message += "change speed: " + std::to_string(speed);
+    message += "change speed: " + std::to_string(speed) + "\n";
+    message += "decay factor: " + std::to_string(decay);
     c.source.push_output(message);
 }
 
@@ -234,7 +241,7 @@ void Trainer::train_on_thread(){
         ml::TrainingData *data = app.creations.get_mldata(dataName);
         
         if(data != nullptr && stack != nullptr){
-            stack->train_program(*data, bsize, 1, speed);
+            stack->train_program(*data, bsize, 1, speed, decay);
             count++;
         }
     }

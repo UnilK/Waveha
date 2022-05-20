@@ -14,7 +14,7 @@ public:
 
     void push();
     void pull();
-    void change(double factor);
+    void change(float factor, float decay);
     
     void save(ui::Saver &saver);
     void load(ui::Loader &loader);
@@ -42,7 +42,7 @@ public:
 
     virtual void push();
     virtual void pull();
-    void change(double factor);
+    void change(float factor, float decay);
     
     void save(ui::Saver &saver);
     void load(ui::Loader &loader);

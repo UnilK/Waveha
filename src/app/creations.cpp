@@ -24,9 +24,10 @@ void Creations::save(ui::Saver &saver){
     
     saver.write_unsigned(datas.size());
     for(auto &i : datas){
+        auto [type, file, pointer] = i.second;
         saver.write_string(i.first);
-        saver.write_string(std::get<0>(i.second));
-        saver.write_string(std::get<1>(i.second));
+        saver.write_string(type);
+        saver.write_string(file);
     }
 
     saver.write_unsigned(stacks.size());
@@ -68,13 +69,56 @@ int Creations::create_waves(std::string directory, std::string output, unsigned 
     return ml::create_wave_data(directory, output, density);
 }
 
+int Creations::blur_mnist(std::string name){
+
+    if(!datas.count(name)) return 1;
+    
+    auto &[type, file, pointer] = datas[name];
+    
+    if(type.size() < 5 || type.substr(type.size()-5) != "mnist" || type[0] == 'f') return 2;
+
+    type = "b" + type;
+    
+    ml::blur_mnist_data(pointer);
+    
+    return 0;
+}
+
+int Creations::ft_mnist(std::string name){
+
+    if(!datas.count(name)) return 1;
+    
+    auto &[type, file, pointer] = datas[name];
+    
+    if(type.size() < 5 || type.substr(type.size()-5) != "mnist" || type[0] == 'f') return 2;
+    
+    type = "f" + type;
+
+    ml::ft_mnist_data(pointer);
+    
+    return 0;
+}
+
 int Creations::load_mldata(std::string type, std::string file, std::string name){
 
-    if(type == "mnist"){
+    if(type.size() >= 5 && type.substr(type.size()-5) == "mnist"){
+        
         ml::TrainingData *data = ml::mnist_data(file);
+        
         if(data == nullptr) return 1;
         remove_mldata(name);
-        datas[name] = {type, file, data};
+        datas[name] = {"mnist", file, data};
+        
+        int blurs = 0;
+        bool transformed = 0;
+
+        for(char c : type){
+            if(c == 'f') transformed = 1;
+            if(c == 'b') blurs++;
+        }
+
+        for(;blurs--;) blur_mnist(name);
+        if(transformed) ft_mnist(name);
     }
     else if(type == "wave"){
         ml::TrainingData *data = ml::wave_data(file);
@@ -159,6 +203,8 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     put_function("sload", [&](ui::Command c){ load_stack(c); });
     put_function("ssave", [&](ui::Command c){ save_stack(c); });
     put_function("sdel", [&](ui::Command c){ remove_stack(c); });
+    put_function("mblur", [&](ui::Command c){ blur_mnist(c); });
+    put_function("mft", [&](ui::Command c){ ft_mnist(c); });
 
     document("list", "list creations");
     document("dload", "[type] [file] {name} load data for ml stacks");
@@ -168,6 +214,8 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     document("sload", "[file] {name} load a ml stack");
     document("ssave", "[name] {file} save a ml stack");
     document("sdel", "[name] delete a ml stack");
+    document("mblur", "[name] blur images in mnist dataset");
+    document("mft", "[name] fourier transform images in mnist dataset");
 }
 
 void CreationsDir::create_waves(ui::Command c){
@@ -188,6 +236,32 @@ void CreationsDir::create_waves(ui::Command c){
     }
     catch (const std::invalid_argument &e){
         c.source.push_error("sto_ parse error");
+    }
+}
+
+void CreationsDir::blur_mnist(ui::Command c){
+
+    std::string name = c.pop();
+
+    if(name.empty()){
+        c.source.push_error("give mnist data name");
+    } else {
+        int code = creations.blur_mnist(name);
+        if(code == 1) c.source.push_error("data not found: " + name);
+        else if(code == 2) c.source.push_error(name + " is not mnist data");
+    }
+}
+
+void CreationsDir::ft_mnist(ui::Command c){
+
+    std::string name = c.pop();
+
+    if(name.empty()){
+        c.source.push_error("give mnist data name");
+    } else {
+        int code = creations.ft_mnist(name);
+        if(code == 1) c.source.push_error("data not found: " + name);
+        else if(code == 2) c.source.push_error(name + " is not mnist data");
     }
 }
 

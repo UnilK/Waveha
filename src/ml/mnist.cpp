@@ -1,6 +1,7 @@
 #include "ml/mnist.h"
 
 #include "ui/fileio.h"
+#include "math/fft.h"
 
 #include <cassert>
 
@@ -55,6 +56,52 @@ TrainingData *mnist_data(std::string file){
     images.close();
 
     return p;
+}
+
+void blur_mnist_data(TrainingData *data){
+    
+    vector<vector<float> > kernel = {
+        {0.1, 0.3, 0.1},
+        {0.3, 1.0, 0.3},
+        {0.1, 0.3, 0.1},
+    };
+    
+    TrainingData &pairs = *data;
+
+    for(auto &pair : pairs){
+        
+        const int n = 28;
+        
+        vector<float> &matrix = pair.first;
+        vector<float> conv(n*n, 0.0f);
+
+        for(int i=0; i<n; i++){
+            for(int j=0; j<n; j++){
+                for(int ii=-1; ii<2; ii++){
+                    for(int jj=-1; jj<2; jj++){
+                        if(i+ii < 0 || i+ii >= n || j+jj < 0 || j+jj >= n) continue;
+                        conv[(i+ii)*n+j+jj] += matrix[i*n+j] * kernel[ii+1][jj+1];
+                    }
+                }
+            }
+        }
+
+        pair.first = conv;
+    }
+}
+
+void ft_mnist_data(TrainingData *data){
+    
+    TrainingData &pairs = *data;
+
+    for(auto &pair : pairs){
+        
+        auto freqs = math::bluestein(pair.first);
+        for(unsigned i=0; i<freqs.size()/2; i++){
+            pair.first[2*i] = freqs[i].real();
+            pair.first[2*i+1] = freqs[i].imag();
+        }
+    }
 }
 
 }

@@ -37,6 +37,7 @@ std::vector<float> Source::get_loop(unsigned amount, unsigned begin){
     if(!good || size() == 0) return samples;
 
     unsigned position = 0, left = amount;
+    begin %= size();
 
     while(left){
         

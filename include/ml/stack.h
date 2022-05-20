@@ -41,7 +41,8 @@ public:
             const std::vector<float> &input,
             const std::vector<float> &output);
 
-    void train_program(const TrainingData &data, unsigned batchSize, unsigned batches, double speed);
+    void train_program(const TrainingData &data, unsigned batchSize, unsigned batches,
+            float speed, float decay);
 
     struct TestAnalysis {
         unsigned correct = 0;
@@ -51,7 +52,7 @@ public:
 
     TestAnalysis test(const TrainingData &data);
     
-    void apply_changes(double);
+    void apply_changes(float factor, float decay);
 
     void save(ui::Saver &saver);
     void load(ui::Loader &loader);

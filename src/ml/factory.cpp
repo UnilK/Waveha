@@ -1,4 +1,5 @@
 #include "ml/factory.h"
+#include "ml/layer.h"
 #include "ml/field.h"
 #include "ml/matrix.h"
 #include "ml/deloc.h"
@@ -7,6 +8,8 @@
 #include "ml/judge.h"
 #include "ml/norm.h"
 #include "ml/reblock.h"
+#include "ml/multiply.h"
+#include "ml/wavecon.h"
 
 #include <assert.h>
 
@@ -14,6 +17,7 @@ namespace ml {
 
 namespace Factory {
 
+std::string sink = "sink";
 std::string matrix = "matrix";
 std::string cmatrix = "cmatrix";
 std::string unroll = "unroll";
@@ -23,6 +27,10 @@ std::string ft = "ft";
 std::string norm = "norm";
 std::string cnorm = "cnorm";
 std::string reblock = "reblock";
+std::string multiply = "multiply";
+std::string cmultiply = "cmultiply";
+std::string wavedecon = "wavedecon";
+std::string waverecon = "waverecon";
 
 std::string a1 = "a1";
 std::string v1 = "v1";
@@ -43,6 +51,9 @@ std::string phaselax = "phaselax";
 }
 
 Layer *create_layer(std::string type, arrays left, arrays right, args a){
+    
+    if(type == Factory::sink && Sink::ok(left, right, a))
+        return new Sink(left, right, a);
     
     if(type == Factory::matrix && Matrix::ok(left, right, a))
         return new Matrix(left, right, a);
@@ -70,6 +81,19 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
 
     if(type == Factory::reblock && Reblock::ok(left, right, a))
         return new Reblock(left, right, a);
+
+    if(type == Factory::multiply && Multiply::ok(left, right, a))
+        return new Multiply(left, right, a);
+
+    if(type == Factory::cmultiply && CMultiply::ok(left, right, a))
+        return new CMultiply(left, right, a);
+
+    if(type == Factory::wavedecon && Wavedecon::ok(left, right, a))
+        return new Wavedecon(left, right, a);
+
+    if(type == Factory::waverecon && Waverecon::ok(left, right, a))
+        return new Waverecon(left, right, a);
+
 
 
     if(type == Factory::v1 && V1Field::ok(left, right, a))

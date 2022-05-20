@@ -210,8 +210,15 @@ bool Stack::construct_from_file(std::string file){
                         i[i.size()-2] += "_BLOCK" + std::to_string(copies);
                     }
                     else if(i.back() == "vector"){
-                        if(i[0] != ".") i[0] += "_BLOCK" + std::to_string(copies);
-                        if(i[1] != ".") i[1] += "_BLOCK" + std::to_string(copies);
+                        for(int j : {0, 1}){
+                            if(i[j] != "."){
+                                if(i[j].back() == '^'){
+                                    i[j].pop_back();
+                                    if(i[j].empty()) i[j] = ".";
+                                }
+                                else i[j] += "_BLOCK" + std::to_string(copies);
+                            }
+                        }
                     }
                     all[all.size()-2].push_back(i);
                 }
@@ -331,14 +338,15 @@ void Stack::train(
     lock.unlock();
 }
 
-void Stack::train_program(const TrainingData &data, unsigned batchSize, unsigned batches, double speed){
+void Stack::train_program(const TrainingData &data, unsigned batchSize, unsigned batches,
+        float speed, float decay){
 
     for(unsigned i=0; i<batches; i++){
         for(unsigned j=0; j<batchSize; j++){
             unsigned pick = rand()%data.size();
             train(data[pick].first, data[pick].second);
         }
-        apply_changes(speed);
+        apply_changes(speed, decay);
     }
 }
 
@@ -378,11 +386,11 @@ Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
     return result;
 }
 
-void Stack::apply_changes(double speed){
+void Stack::apply_changes(float speed, float decay){
 
     if(batch < 1) return;
 
-    for(Layer *layer : layers) layer->change(speed / batch);
+    for(Layer *layer : layers) layer->change(speed / batch, decay);
 
     batch = 0;
 }
