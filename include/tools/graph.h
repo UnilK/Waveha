@@ -106,6 +106,7 @@ protected:
     // indicator stuff
     bool graphPressed = 0;
     bool hasPhase = 1;
+    bool hasText = 1;
     bool hasInspector = 1;
     float indicatorSize = 0;
     double indicatorA = 0, indicatorX = 0, indicatorY = 0;

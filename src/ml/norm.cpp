@@ -13,27 +13,25 @@ void Norm::push(){
     
     sum = 0.0f;
     for(unsigned i=0; i<l.size; i++) sum += std::abs(l[i]);
-    if(sum != 0.0f) sum = l.size / sum;
 
-    for(unsigned i=0; i<l.size; i++) r[i] = l[i] * sum;
+    sum /= 2.0f * l.size;
+
+    float isum = 1.0f;
+    if(sum != 0.0f) isum = 1.0f / sum;
+
+    for(unsigned i=0; i<l.size; i++) r[i] = l[i] * isum;
 }
 
 void Norm::pull(){
     
     if(nopull) return;
 
-    // now neither works for some reason...
-
-    /*
-    float dsum = 0.0f;
-    for(unsigned i=0; i<l.size; i++) dsum += r[i] * l[i];
-
-    dsum *= - sum * sum / l.size;
-
-    for(unsigned i=0; i<l.size; i++) l[i] = r[i] * sum + dsum;
-    */
+    float isum = 1.0f, dsum = 0.0f;
+    if(sum != 0.0f) isum = 1.0f / sum;
     
-    // for(unsigned i=0; i<l.size; i++) l[i] = r[i];
+    for(unsigned i=0; i<l.size; i++) dsum -= l[i] * r[i] * isum * isum;
+
+    for(unsigned i=0; i<l.size; i++) l[i] = r[i] * isum + dsum * sign(l[i]);
 }
 
 bool Norm::ok(arrays in, arrays out, args a){
@@ -53,27 +51,30 @@ void CNorm::push(){
     
     sum = 0.0f;
     for(unsigned i=0; i<l.csize; i++) sum += std::abs(l(i));
-    if(sum != 0.0f) sum = l.csize / sum;
+    
+    sum /= 2.0f * l.csize;
+    
+    float isum = 1.0f;
+    if(sum != 0.0f) isum = 1.0f / sum;
 
-    for(unsigned i=0; i<l.csize; i++) r(i) = l(i) * sum;
+    for(unsigned i=0; i<l.csize; i++) r(i) = l(i) * isum;
 }
 
 void CNorm::pull(){
 
     if(nopull) return;
 
-    // now neither works for some reason...
+    float isum = 1.0f;
+    if(sum != 0.0f) isum = 1.0f / sum;
     
-    /*
     std::complex<float> dsum = 0.0f;
-    for(unsigned i=0; i<l.csize; i++) dsum += r(i) * std::conj(l(i));
+    for(unsigned i=0; i<l.csize; i++) dsum -= std::conj(l(i)) * r(i) * isum * isum;
 
-    dsum *= - sum * sum / l.csize;
-
-    for(unsigned i=0; i<l.csize; i++) l(i) = r(i) * sum + dsum;
-    */
-    
-    // for(unsigned i=0; i<l.csize; i++) l(i) = r(i) * sum;
+    for(unsigned i=0; i<l.csize; i++){
+        float d = std::abs(l(i));
+        if(d != 0.0f) d = 1.0f / d;
+        l(i) = r(i) * isum + l(i) * d * dsum;
+    }
 }
 
 bool CNorm::ok(arrays in, arrays out, args a){

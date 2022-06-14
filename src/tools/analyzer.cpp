@@ -403,9 +403,10 @@ Analyzer::Analyzer(App *a) :
     terminal.document("speak", "[variable] [value] set value to peak match variable.");
     terminal.document("scorr", "[variable] [value] set value to correlation variable.");
     terminal.document("check", "[data] check wave training data");
-    terminal.document("*hotkeys", "use W and S to control interval length shown on graph\n"
+    terminal.document("*hotkeys",
+            "use W and S to control interval length shown on graph\n"
             "A and D control interval position. shift and ctrl are speed modifiers\n"
-            "Q moes the interval beginning to mouse position. E moves the end.\n"
+            "Q moves the interval beginning to mouse position. E moves the end.\n"
             "move graph inspector with mouse\n"
             "hold LMB to move graph around and scroll to zoom. shift and control lock axis\n"
             "C to switch clipping. U to move begin to mouse position, O to move end\n"

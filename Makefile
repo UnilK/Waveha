@@ -10,8 +10,8 @@ MAINAPP := main
 TEST := test
 
 CXX := g++
-#ALTERNATIVE := -std=c++17 -g -Og -Wall
-CXXFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
+CXXFLAGS := -std=c++17 -g -Og -Wall
+#ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 RELEASEFLAGS := -std=c++17 -O3 -flto -funroll-loops -mavx2 -Wall
 
 
@@ -136,7 +136,7 @@ build/app/content.o: include/tools/meditor.h include/change/matrix.h
 build/app/content.o: include/tools/recorder.h include/ui/clock.h
 build/app/content.o: include/wave/mic.h include/tools/trainer.h
 build/app/content.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
-build/app/content.o: include/ml/judge.h
+build/app/content.o: include/ml/judge.h include/tools/canvas.h
 build/app/slot.o: include/app/slot.h include/ui/box.h include/ui/slider.h
 build/app/slot.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
 build/app/slot.o: include/ui/style.h include/ui/window.h include/ui/text.h
@@ -282,6 +282,17 @@ build/tools/graph.o: include/ui/terminal.h include/ui/fileio.h
 build/tools/graph.o: include/app/app.h include/ui/box.h include/ui/slider.h
 build/tools/graph.o: include/ui/stack.h include/ui/text.h include/ui/button.h
 build/tools/graph.o: include/app/tools.h include/math/constants.h
+build/tools/canvas.o: include/tools/canvas.h include/app/content.h
+build/tools/canvas.o: include/ui/frame.h include/ui/borders.h
+build/tools/canvas.o: include/ui/style.h include/ui/window.h
+build/tools/canvas.o: include/app/session.h include/ui/terminal.h
+build/tools/canvas.o: include/ui/fileio.h include/tools/graph.h
+build/tools/canvas.o: include/ui/slider.h include/ui/stack.h include/ui/text.h
+build/tools/canvas.o: include/app/app.h include/ui/box.h include/ui/button.h
+build/tools/canvas.o: include/app/tools.h include/math/constants.h
+build/tools/canvas.o: include/app/audio.h include/wave/source.h
+build/tools/canvas.o: include/wave/cache.h include/wave/audio.h
+build/tools/canvas.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
 build/ui/text.o: include/ui/text.h include/ui/frame.h include/ui/borders.h
 build/ui/text.o: include/ui/style.h include/ui/window.h
 build/ui/borders.o: include/ui/borders.h include/ui/style.h include/ui/frame.h

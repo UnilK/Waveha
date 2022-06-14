@@ -44,11 +44,11 @@ public:
     bool add_function(std::string key, std::function<void(Command)> function);
     bool erase_entry(std::string key);
 
-    // hard methods for constructing. assert guarded.
+    // hard methods for initialization. assert guarded.
     void put_directory(std::string key, Directory *directory);
     void put_function(std::string key, std::function<void(Command)> function);
 
-    // add a short documentations
+    // add short documentations
     void document(std::string key, std::string doc);
 
     Directory *find(Command);

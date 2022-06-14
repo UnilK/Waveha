@@ -23,16 +23,18 @@ complex<float> lt(const vector<float> &waves, float frequency){
     return lt(waves.data(), waves.size(), frequency);
 }
 
-vector<complex<float> > ft(const float *waves, unsigned size, unsigned n){
+vector<complex<float> > ft(const float *waves, unsigned size, unsigned n, bool haszero){
     
     vector<complex<float> > frequencies(n, {0, 0});
     
     vector<complex<float> > exp(size);
     for(unsigned i=0; i<size; i++) exp[i] = cexp((double)(size - i) / size);
 
+    unsigned offset = haszero ? 0 : 1;
+
     for(unsigned i=0; i<size; i++){
         for(unsigned j=0; j<n; j++){
-            frequencies[j] += exp[i * (j+1) % size] * waves[i];
+            frequencies[j] += exp[i * (j+offset) % size] * waves[i];
         }
     }
 
@@ -41,11 +43,11 @@ vector<complex<float> > ft(const float *waves, unsigned size, unsigned n){
     return frequencies;
 }
 
-vector<complex<float> > ft(const vector<float> &waves, unsigned n){
-    return ft(waves.data(), waves.size(), n);
+vector<complex<float> > ft(const vector<float> &waves, unsigned n, bool haszero){
+    return ft(waves.data(), waves.size(), n, haszero);
 }
 
-vector<float> ift(const vector<complex<float> > &frequencies, unsigned size){
+vector<float> ift(const vector<complex<float> > &frequencies, unsigned size, bool haszero){
     
     std::vector<float> waves(size, 0);
     
@@ -53,10 +55,12 @@ vector<float> ift(const vector<complex<float> > &frequencies, unsigned size){
     for(unsigned i=0; i<size; i++) exp[i] = cexp((double)i / size);
 
     unsigned n = frequencies.size();
+    
+    unsigned offset = haszero ? 0 : 1;
 
     for(unsigned j=0; j<n; j++){
         for(unsigned i=0; i<size; i++){
-            waves[i] += (frequencies[j]*exp[(long unsigned)i * (j+1) % size]).real();
+            waves[i] += (frequencies[j]*exp[i * (j+offset) % size]).real();
         }
     }
 

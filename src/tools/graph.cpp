@@ -245,50 +245,60 @@ void Graph::on_refresh(){
         master->draw(indicatorLine);
         master->draw(phaseIndicator);
         master->draw(indicatorNeedle);
-        master->draw(indicatorTextX);
-        master->draw(indicatorTextY);
-        master->draw(indicatorTextA);
 
+        if(hasText){
+            master->draw(indicatorTextX);
+            master->draw(indicatorTextY);
+            master->draw(indicatorTextA);
+        }
     }
 }
 
 void Graph::set_origo(float x, float y){
     origoX = x;
     origoY = y;
+    set_reconfig();
 }
 
 void Graph::set_scale(float x, float y){
     scaleX = x;
     scaleY = y;
+    set_reconfig();
 }
 
 void Graph::scale(float x, float y){
     scaleX *= x;
     scaleY *= y;
+    set_reconfig();
 }
 
 void Graph::set_area(float x, float y){
     scaleX = canvasWidth / x;
     scaleY = canvasHeight / y;
+    set_reconfig();
 }
 
 void Graph::set_relative_origo(float x, float y){
     origoY = canvasHeight / scaleY * (1 - y);
     origoX = canvasWidth / scaleX * x;
+    set_reconfig();
 }
 
 void Graph::switch_phase_indicator(bool value){
     hasPhase = value;
+    set_reconfig();
 }
 
 void Graph::switch_inspection_tool(bool value){
     hasInspector = value;
+    set_reconfig();
 }
 
 void Graph::set_data(const std::vector<float> &data){
     points.resize(data.size());
     for(unsigned i=0; i<data.size(); i++) points[i] = {(float)i, data[i], 0};
     vertices.resize(points.size());
+    set_reconfig();
 }
 
 void Graph::set_data(const std::vector<std::complex<float> > &data){
@@ -297,11 +307,13 @@ void Graph::set_data(const std::vector<std::complex<float> > &data){
         points[i] = {(float)i, std::abs(data[i]), std::arg(data[i])};
     }
     vertices.resize(points.size());
+    set_reconfig();
 }
 
 void Graph::set_data(const std::vector<Point> &data){
     points = data;
     vertices.resize(points.size());
+    set_reconfig();
 }
 
 void Graph::fit_x(){
@@ -313,9 +325,13 @@ void Graph::fit_x(){
         min = std::min(min, i.x);
         max = std::max(max, i.x);
     }
+    
+    if(min == max) max = min + 1;
 
     origoX = min;
     scaleX = canvasWidth / (max - min);
+    if(scaleX == 0.0f) scaleX = 1.0f;
+    set_reconfig();
 }
 
 void Graph::fit_y(){
@@ -331,31 +347,41 @@ void Graph::fit_y(){
     if(min == max) max = min + 1;
 
     scaleY = canvasHeight / (max - min) * 0.9f;
+
+    if(scaleY == 0.0f) scaleY = 1.0f;
+
     origoY = min - (max - min) * 0.05f;
+    set_reconfig();
 }
 
 void Graph::set_unit_x(std::string unit){
     unitX = unit;
+    set_reconfig();
 }
 
 void Graph::set_unit_y(std::string unit){
     unitY = unit;
+    set_reconfig();
 }
     
 void Graph::set_offset_x(double x){
     offsetX = x;
+    set_reconfig();
 }
 
 void Graph::set_offset_y(double y){
     offsetY = y;
+    set_reconfig();
 }
 
 void Graph::set_scalar_x(double x){
     scalarX = x;
+    set_reconfig();
 }
 
 void Graph::set_scalar_y(double y){
     scalarY = y;
+    set_reconfig();
 }
 
 }
