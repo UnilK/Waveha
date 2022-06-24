@@ -26,6 +26,11 @@ public:
     // pull feedback from right to left
     virtual void pull() = 0;
 
+    // get sum of variable change squares and the number of variables.
+    // useful for calculating the change vector length for a whole
+    // network in an euclidean space.
+    virtual std::pair<float, unsigned> sum_change();
+    
     // apply changes that have been accumulated in this layer
     virtual void change(float factor, float decay);
 

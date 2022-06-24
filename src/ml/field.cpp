@@ -15,9 +15,9 @@ void a1::f(float *left, float *right, float *var){
     float y;
 
     if(x <= 1.0f){
-        y = x / 1.5f;
+        y = x;
     } else {
-        y = (1.5f - 0.5f / (x*x)) / 1.5f;
+        y = 2.0f - 1.0f / x;
     }
     
     right[0] = s * y;
@@ -31,9 +31,9 @@ void a1::df(float *left, float *right, float *var, float *change){
     float y;
 
     if(x <= 1.0f){
-        y = 1.0f / 1.5f;
+        y = 1.0f;
     } else {
-        y = 1.0f / 1.5f / (x*x*x);
+        y = 1.0f / (x*x);
     }
 
     left[0] = dx * y;
@@ -186,6 +186,54 @@ void csig::f(float *left, float *right, float *var){
 void csig::df(float *left, float *right, float *var, float *change){
     float abs = std::abs(left[0]);
     left[0] = right[0] / ((1.0f + abs) * (1.0f + abs));
+}
+
+// a2 /////////////////////////////////////////////////////////////////////////
+
+void a2::f(float *left, float *right, float *var){
+
+    float d = std::sqrt(left[0]*left[0] + left[1]*left[1]);
+    
+    float nr = left[0];
+    float ni = left[1];
+    if(d != 0.0f){ nr /= d; ni /= d; }
+
+    float y;
+    
+    if(d <= 1.0f){
+        y = d;
+    } else {
+        y = 2.0f - 1.0f / d;
+    }
+
+    right[0] = y * nr;
+    right[1] = y * ni;
+}
+
+void a2::df(float *left, float *right, float *var, float *change){
+
+    float d = std::sqrt(left[0]*left[0] + left[1]*left[1]);
+    
+    float nr = left[0];
+    float ni = left[1];
+    if(d != 0.0f){ nr /= d; ni /= d; }
+    
+    float y;
+    
+    if(d <= 1.0f){
+        y = 1.0f;
+    } else {
+        y = 1.0f / (d*d);
+    }
+
+    const float dr = right[0];
+    const float di = right[1];
+   
+    float dotn = nr * dr + ni * di;
+    float dotp = -ni * dr + nr * di;
+    
+    left[0] = dotn * nr * y - dotp * ni;
+    left[1] = dotn * ni * y + dotp * nr;
 }
 
 // v2 /////////////////////////////////////////////////////////////////////////
@@ -352,6 +400,9 @@ std::string E11Field::get_type(){ return Factory::e11; };
 
 namespace Factory { extern std::string csig; }
 std::string CsigField::get_type(){ return Factory::csig; };
+
+namespace Factory { extern std::string a2; }
+std::string A2Field::get_type(){ return Factory::a2; };
 
 namespace Factory { extern std::string v2; }
 std::string V2Field::get_type(){ return Factory::v2; };

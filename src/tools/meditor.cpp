@@ -128,8 +128,36 @@ void Meditor::update_output(){
             data[i] *= (1-d)+d*slantOut;
         }
     }
-    else {
+    else if(mode == 1){
         data = change::ml_graph(app.creations.get_stack(stack), data);
+    }
+    else if(mode == 2){
+       
+        const int N = 64;
+        const int D = 8;
+        const int M = 16;
+
+        auto freq = math::ft(data, N);
+        
+        auto nfreq = freq;
+        for(int i=M; i<N; i++) nfreq[i] = 0.0f;
+        for(unsigned i=D; i<M; i++) nfreq[i] *= 0.666666f;
+
+        for(int i=D; i+M<=N; i+=D){
+            
+            auto tmp = freq;
+            for(int j=0; j<N; j++) if(j<i || j>=i+M) tmp[j] = 0.0f;
+            for(int j=0; j<M; j++) tmp[j] = tmp[j+i];
+
+            auto ttmp = math::ift(tmp, data.size());
+            for(float &i : ttmp) i = std::abs(i);
+            tmp = math::ft(ttmp, N);
+
+            for(int j=0; j<M; j++) nfreq[i+j] = tmp[j];
+
+        }
+
+        data = math::ift(nfreq, data.size());
     }
     
     wave::Audio *audio = new wave::Audio();

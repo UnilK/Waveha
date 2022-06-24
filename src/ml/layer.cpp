@@ -12,6 +12,8 @@ Layer::Layer(arrays in, arrays out, args a) : left(in), right(out) {
 
 Layer::~Layer(){}
 
+std::pair<float, unsigned> Layer::sum_change(){ return {0.0f, 0}; }
+
 void Layer::change(float factor, float decay){}
 
 void Layer::save(ui::Saver &saver){}

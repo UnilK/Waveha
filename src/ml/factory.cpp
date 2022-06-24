@@ -10,8 +10,7 @@
 #include "ml/reblock.h"
 #include "ml/multiply.h"
 #include "ml/wavecon.h"
-
-#include <assert.h>
+#include "ml/phase.h"
 
 namespace ml {
 
@@ -27,10 +26,15 @@ std::string ft = "ft";
 std::string norm = "norm";
 std::string cnorm = "cnorm";
 std::string reblock = "reblock";
+std::string interleave = "interleave";
+std::string copy = "copy";
 std::string multiply = "multiply";
 std::string cmultiply = "cmultiply";
+std::string pmultiply = "pmultiply";
 std::string wavedecon = "wavedecon";
 std::string waverecon = "waverecon";
+std::string dephase = "dephase";
+std::string rephase = "rephase";
 
 std::string a1 = "a1";
 std::string v1 = "v1";
@@ -38,6 +42,7 @@ std::string vv1 = "vv1";
 std::string s1 = "s1";
 std::string e11 = "e11";
 std::string csig = "csig";
+std::string a2 = "a2";
 std::string v2 = "v2";
 std::string s2 = "s2";
 std::string abs1 = "abs1";
@@ -82,17 +87,32 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
     if(type == Factory::reblock && Reblock::ok(left, right, a))
         return new Reblock(left, right, a);
 
+    if(type == Factory::interleave && Interleave::ok(left, right, a))
+        return new Interleave(left, right, a);
+
+    if(type == Factory::copy && Copy::ok(left, right, a))
+        return new Copy(left, right, a);
+
     if(type == Factory::multiply && Multiply::ok(left, right, a))
         return new Multiply(left, right, a);
 
     if(type == Factory::cmultiply && CMultiply::ok(left, right, a))
         return new CMultiply(left, right, a);
 
+    if(type == Factory::pmultiply && PMultiply::ok(left, right, a))
+        return new PMultiply(left, right, a);
+
     if(type == Factory::wavedecon && Wavedecon::ok(left, right, a))
         return new Wavedecon(left, right, a);
 
     if(type == Factory::waverecon && Waverecon::ok(left, right, a))
         return new Waverecon(left, right, a);
+    
+    if(type == Factory::dephase && Dephase::ok(left, right, a))
+        return new Dephase(left, right, a);
+
+    if(type == Factory::rephase && Rephase::ok(left, right, a))
+        return new Rephase(left, right, a);
 
 
 
@@ -113,6 +133,9 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
     
     if(type == Factory::csig && CsigField::ok(left, right, a))
         return new CsigField(left, right, a);
+    
+    if(type == Factory::a2 && A2Field::ok(left, right, a))
+        return new A2Field(left, right, a);
     
     if(type == Factory::v2 && V2Field::ok(left, right, a))
         return new V2Field(left, right, a);

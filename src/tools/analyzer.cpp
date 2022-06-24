@@ -388,6 +388,8 @@ Analyzer::Analyzer(App *a) :
     terminal.put_function("scorr", [&](ui::Command c){ setup_correlation(c); });
     terminal.put_function("dname", [&](ui::Command c){ name_dataset(c); });
     terminal.put_function("dataset", [&](ui::Command c){ switch_dataset(c); });
+    terminal.put_function("reverb", [&](ui::Command c){ reverb_audio(c); });
+    terminal.put_function("cfeed", [&](ui::Command c){ config_feedback(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("check", [&](ui::Command c){ check_ml_data(c); });
@@ -403,6 +405,8 @@ Analyzer::Analyzer(App *a) :
     terminal.document("speak", "[variable] [value] set value to peak match variable.");
     terminal.document("scorr", "[variable] [value] set value to correlation variable.");
     terminal.document("check", "[data] check wave training data");
+    terminal.document("reverb", "[input] [output] reverb process input audio and save it to output");
+    terminal.document("cfeed", "[delay] [magnitude] add reverb feedback");
     terminal.document("*hotkeys",
             "use W and S to control interval length shown on graph\n"
             "A and D control interval position. shift and ctrl are speed modifiers\n"
@@ -438,6 +442,12 @@ void Analyzer::save(ui::Saver &saver){
     saver.write_int(clipBegin);
     saver.write_int(clipEnd);
 
+    saver.write_unsigned(feedback.size());
+    for(auto [delay, mag] : feedback){
+        saver.write_int(delay);
+        saver.write_float(mag);
+    }
+
     graph.save(saver);
 }
 
@@ -457,6 +467,11 @@ void Analyzer::load(ui::Loader &loader){
     link_audio({terminal, {sourceName}});
 
     position = pos;
+
+    feedback.clear();
+    unsigned feedbacks = loader.read_unsigned();
+    for(unsigned i=0; i<feedbacks; i++)
+        feedback[loader.read_int()] = loader.read_float();
 
     graph.load(loader);
 
@@ -630,7 +645,10 @@ void Analyzer::info(ui::Command c){
     message += "clip name: " + clipName + "\n";
     message += "dataset name: " + dataset + "\n";
     message += "clip begin: " + std::to_string(clipBegin) + "\n";
-    message += "clip end: " + std::to_string(clipEnd);
+    message += "clip end: " + std::to_string(clipEnd) + "\n";
+    message += "reverb: ";
+    for(auto [delay, mag] : feedback)
+        message += "("+std::to_string(delay)+","+std::to_string(mag)+"), ";
     c.source.push_output(message);
 }
 
@@ -714,6 +732,48 @@ void Analyzer::clip_to_dataset(ui::Command c){
 
     c.source.push_output("file created: " + filename);
 
+}
+
+void Analyzer::reverb_audio(ui::Command c){
+    
+    std::string in = c.pop(), out = c.pop();
+
+    if(in.empty() || out.empty()){
+        c.source.push_error("give input and output audio names");
+        return;
+    }
+
+    wave::Audio *audio = new wave::Audio();
+    audio->name = out;
+    audio->data = app.audio.get_audio(in, app.audio.audio_size(in), 0);
+
+    for(int i=0; i<(int)audio->data.size(); i++){
+        for(auto &[delay, mag] : feedback){
+            if(delay <= i) audio->data[i] += audio->data[i - delay] * mag;
+        }
+    }
+
+    app.audio.add_cache(audio);
+}
+
+void Analyzer::config_feedback(ui::Command c){
+
+    try {
+        auto probe = c.pop();
+        
+        if(probe == "."){
+            feedback.clear();
+            return;
+        }
+
+        int delay = std::stoul(probe);
+        float mag = std::stof(c.pop());
+        feedback[delay] = mag;
+        if(mag == 0.0f) feedback.erase(delay);
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 }

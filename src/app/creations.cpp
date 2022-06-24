@@ -174,7 +174,7 @@ int Creations::save_stack(std::string name, std::string file){
 
 int Creations::remove_stack(std::string name){
     
-    if(stacks.count(name)) return 1;
+    if(!stacks.count(name)) return 1;
     delete stacks[name];
     stacks.erase(name);
 

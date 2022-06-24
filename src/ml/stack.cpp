@@ -54,11 +54,17 @@ bool Stack::construct(
             judges.insert(name(i));
             continue;
         }
-        if(incount.count(name(i))) return 0;
+        if(incount.count(name(i))){
+            std::cout << "8\n";
+            return 0;
+        }
         incount[name(i)] = 0;
     }
 
-    if(judges.size() != 1) return 0;
+    if(judges.size() != 1){
+        std::cout << "9\n";
+        return 0;
+    }
 
     // set input vector as first and ouput as last
     for(unsigned i=0; i<links.size(); i++){
@@ -67,7 +73,10 @@ bool Stack::construct(
             std::swap(links.back(), links[i]);
         }
         if(i != 0 && !incount.count(in)){
-            if(!incount.count(in)) return 0;
+            if(!incount.count(in)){
+                std::cout << in << ' ' << out << " 10\n";
+                return 0;
+            }
             std::swap(links.front(), links[i]);
         }
     }
@@ -99,17 +108,28 @@ bool Stack::construct(
         
         std::vector<array> in, out;
 
-        for(auto &i : ins[node]){
-            in.emplace_back(vectors[i.second]);
+        for(auto &[f, s] : ins[node]){
+            in.emplace_back(vectors[s]);
         }
 
-        for(auto &i : outs[node]){
-            incount[i.first]--;
-            if(incount[i.first] == 0) topo.push_back(nameindex[i.first]);
-            out.emplace_back(vectors[i.second]);
+        for(auto &[f, s] : outs[node]){
+            incount[f]--;
+            if(incount[f] == 0) topo.push_back(nameindex[f]);
+            out.emplace_back(vectors[s]);
         }
-
+        
         layers.push_back(create_layer(lowtype(topo[i]), in, out, args(topo[i])));
+        /*
+        std::cout << "# ";
+        for(auto j : topo[i]) std::cout << j << ' ';
+        std::cout << '\n';
+        std::cout << "in:\n";
+        for(auto [f, s] : ins[node]) std::cout << f << ' ' << s << '\n';
+        std::cout << "out:\n";
+        for(auto [f, s] : outs[node]) std::cout << f << ' ' << s << '\n';
+        if(layers.back() == nullptr) cout << "BAD\n";
+        std::cout << '\n';
+        */
     }
 
     return good();
@@ -118,7 +138,10 @@ bool Stack::construct(
 bool Stack::construct_from_file(std::string file){
     
     std::ifstream loader(file);
-    if(!loader.good()) return 0;
+    if(!loader.good()){
+        std::cout << "-1\n";
+        return 0;
+    }
 
     clear();
 
@@ -147,7 +170,10 @@ bool Stack::construct_from_file(std::string file){
             std::vector<std::string> vector(3); // in, out, size
             for(auto &i : vector) loader >> i;
 
-            if(!num(vector[2])) return 0;
+            if(!num(vector[2])){
+                std::cout << "0\n";
+                return 0;
+            }
 
             vector.push_back("vector");
             all.back().push_back(vector);
@@ -197,10 +223,16 @@ bool Stack::construct_from_file(std::string file){
         }
         else if(s == "}"){ // end copy block
             
-            if(all.size() == 1) return 0;
+            if(all.size() == 1){
+                std::cout << "1\n";
+                return 0;
+            }
 
             loader >> s;
-            if(!num(s)) return 0;
+            if(!num(s)){
+                std::cout << "2\n";
+                return 0;
+            }
 
             unsigned copies = std::stoul(s);
 
@@ -233,7 +265,10 @@ bool Stack::construct_from_file(std::string file){
         }
     }
 
-    if(all.size() != 1) return 0;
+    if(all.size() != 1){
+        std::cout << "3\n";
+        return 0;
+    }
 
     std::vector<std::vector<std::string> > &raw = all[0];
 
@@ -248,7 +283,10 @@ bool Stack::construct_from_file(std::string file){
                         break;
                     }
                 }
-                if(!ok) return 0;
+                if(!ok){
+                    std::cout << "4\n";
+                    return 0;
+                }
             }
             if(raw[i][1] == "."){
                 bool ok = 0;
@@ -259,13 +297,17 @@ bool Stack::construct_from_file(std::string file){
                         break;
                     }
                 }
-                if(!ok) return 0;
+                if(!ok){
+                    std::cout << "5\n";
+                    return 0;
+                }
             }
 
             try {
                 links.push_back({raw[i][0], raw[i][1], std::stoul(raw[i][2])});
             }
             catch (const std::invalid_argument &e){
+                std::cout << "6\n";
                 return 0;
             }
         }
@@ -332,8 +374,6 @@ void Stack::train(
     judge->feedback(output);
 
     for(unsigned i=layers.size(); i-- > 0;) layers[i]->pull();
-
-    batch += 1;
     
     lock.unlock();
 }
@@ -343,10 +383,10 @@ void Stack::train_program(const TrainingData &data, unsigned batchSize, unsigned
 
     for(unsigned i=0; i<batches; i++){
         for(unsigned j=0; j<batchSize; j++){
-            unsigned pick = rand()%data.size();
+            unsigned pick = rng32()%data.size();
             train(data[pick].first, data[pick].second);
         }
-        apply_changes(speed, decay);
+        apply_changes(speed, decay, batchSize);
     }
 }
 
@@ -386,13 +426,24 @@ Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
     return result;
 }
 
-void Stack::apply_changes(float speed, float decay){
+void Stack::apply_changes(float speed, float decay, unsigned batchSize){
+    
+    float sum = 0;
+    unsigned variables = 0;
 
-    if(batch < 1) return;
+    for(Layer *layer : layers){
+        auto [s, v] = layer->sum_change();
+        sum += s;
+        variables += v;
+    }
 
-    for(Layer *layer : layers) layer->change(speed / batch, decay);
+    if(variables == 0) variables = 1;
 
-    batch = 0;
+    // average root mean square. Very averageous.
+    sum = std::sqrt(sum / variables) / batchSize;
+    if(sum == 0.0f) sum = 1.0f;
+
+    for(Layer *layer : layers) layer->change(speed/sum, decay);
 }
 
 void Stack::save(ui::Saver &saver){

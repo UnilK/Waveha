@@ -1,6 +1,10 @@
 #include "ml/reblock.h"
 
+#include <iostream>
+
 namespace ml {
+
+// reblock ////////////////////////////////////////////////////////////////////
 
 void Reblock::push(){
 
@@ -46,6 +50,128 @@ bool Reblock::ok(arrays in, arrays out, args a){
     }
     
     return lsize == rsize;
+}
+
+// interleave /////////////////////////////////////////////////////////////////
+
+Interleave::Interleave(arrays in, arrays out, args a) : 
+    Layer(in, out, a)
+{
+
+    std::vector<unsigned> nums;
+    for(auto i : a){
+        try {
+            nums.push_back(std::stoul(i));
+        } catch (const std::invalid_argument &e){}
+    }
+
+    lpos.resize(nums[0]);
+    rpos.resize(nums[3]);
+    middle.resize(nums[2]);
+
+    lpos.back() = nums[2]-nums[1];
+    rpos.back() = nums[2]-nums[4];
+
+    for(unsigned i=0; i<nums[0]-1; i++){
+        lpos[i] = std::round((float)(nums[2]-nums[1])*i/(nums[0]-1));
+    }
+    for(unsigned i=0; i<nums[3]-1; i++){
+        rpos[i] = std::round((float)(nums[2]-nums[4])*i/(nums[3]-1));
+    }
+}
+
+void Interleave::push(){
+    
+    for(float &i : middle) i = 0.0f;
+
+    for(unsigned i=0; i<left.size(); i++){
+        for(unsigned j=0; j<left[i].size; j++){
+            middle[lpos[i]+j] += left[i][j];
+        }
+    }
+    
+    for(unsigned i=0; i<right.size(); i++){
+        for(unsigned j=0; j<right[i].size; j++){
+            right[i][j] = middle[rpos[i]+j];
+        }
+    }
+}
+
+void Interleave::pull(){
+
+    if(nopull) return;
+
+    for(float &i : middle) i = 0.0f;
+
+    for(unsigned i=0; i<right.size(); i++){
+        for(unsigned j=0; j<right[i].size; j++){
+            middle[rpos[i]+j] += right[i][j];
+        }
+    }
+    
+    for(unsigned i=0; i<left.size(); i++){
+        for(unsigned j=0; j<left[i].size; j++){
+            left[i][j] = middle[lpos[i]+j];
+        }
+    }
+}
+
+namespace Factory { extern std::string interleave; }
+std::string Interleave::get_type(){ return Factory::interleave; }
+
+bool Interleave::ok(arrays in, arrays out, args a){
+    
+    std::vector<unsigned> nums;
+    for(auto i : a){
+        try {
+            nums.push_back(std::stoul(i));
+        } catch (const std::invalid_argument &e){}
+    }
+
+    if(nums.size() != 5) return 0;
+    
+    if(nums[0] == 0 || in.size() != nums[0]) return 0;
+    for(unsigned i=0; i<nums[0]; i++) if(in[i].size != nums[1]) return 0;
+    if(nums[2] < nums[1]) return 0;
+    
+    if(nums[3] == 0 || out.size() != nums[3]) return 0;
+    for(unsigned i=0; i<nums[3]; i++) if(out[i].size != nums[4]) return 0;
+    if(nums[2] < nums[4]) return 0;
+
+    return 1;
+}
+
+// copy ///////////////////////////////////////////////////////////////////////
+
+void Copy::push(){
+    for(unsigned i=0; i<right.size(); i++){
+        for(unsigned j=0; j<left[0].size; j++){
+            right[i][j] = left[0][j];
+        }
+    }
+}
+
+void Copy::pull(){
+
+    if(nopull) return;
+
+    for(unsigned i=0; i<left[0].size; i++) left[0][i] = 0.0f;
+
+    for(unsigned i=0; i<right.size(); i++){
+        for(unsigned j=0; j<left[0].size; j++){
+            left[0][j] += right[i][j];
+        }
+    }
+}
+
+namespace Factory { extern std::string copy; }
+std::string Copy::get_type(){ return Factory::copy; }
+
+bool Copy::ok(arrays in, arrays out, args a){
+    
+    if(in.size() != 1 || out.size() < 1) return 0;
+    for(auto i : out) if(i.size != in[0].size) return 0;
+    return 1;
 }
 
 }

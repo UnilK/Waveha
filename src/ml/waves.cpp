@@ -27,7 +27,7 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
     const int M = 1<<11;
     const int F = 64; 
 
-    std::vector<std::vector<std::complex<float> > > datas;
+    std::vector<std::pair<std::vector<std::complex<float> >, float> > datas;
 
     for(auto f : files){
 
@@ -40,22 +40,20 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
         for(unsigned i=0; i*N+M < waves.size(); i++){
 
             std::vector<float> clip(M, 0.0f);
-            for(unsigned j=0; j<M; j++)  clip[j] = waves[j];
+            
+            for(unsigned j=0; j<M; j++) clip[j] = waves[i*N + j];
+
             unsigned length = change::pitch(clip);
 
             // length = change::hinted_pitch(waves.data() + i*N, M, length);
             
             clip.resize(length);
-            for(unsigned j=0; j<length; j++) clip[j] = waves[i*N + j];
+            
+            float amax = 0.0f;
+            for(float &j : clip) amax = std::max(amax, std::abs(j));
+            if(amax != 0.0f) for(float &j : clip) j /= amax;
 
-            auto freqs = math::ft(clip, F);
-
-            float sum = 0.0f;
-            for(auto &i : freqs) sum += std::abs(i);
-            if(sum != 0.0f) sum = freqs.size() / sum;
-            for(auto &i : freqs) i *= sum;
-
-            datas.push_back(freqs);
+            datas.push_back({math::ft(clip, F), (float)I.get_frame_rate()/length});
         }
     }
 
@@ -65,7 +63,10 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
     S.write_unsigned(datas.size());
     S.write_unsigned(F);
 
-    for(auto &i : datas) for(auto j : i) S.write_complex(j);
+    for(auto &[i, f] : datas){
+        for(auto j : i) S.write_complex(j);
+        S.write_float(f);
+    }
 
     S.close();
 
@@ -91,6 +92,7 @@ TrainingData *wave_data(std::string file){
         data.push_back({std::vector<float>(2*f), {}});
         for(unsigned j=0; j<2*f; j++) data.back().first[j] = L.read_float();
         data.back().second = data.back().first;
+        data.back().first.push_back(L.read_float());
     }
 
     return &data;

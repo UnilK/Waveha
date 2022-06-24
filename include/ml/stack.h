@@ -52,7 +52,7 @@ public:
 
     TestAnalysis test(const TrainingData &data);
     
-    void apply_changes(float factor, float decay);
+    void apply_changes(float factor, float decay, unsigned batchSize);
 
     void save(ui::Saver &saver);
     void load(ui::Loader &loader);
@@ -60,8 +60,6 @@ public:
 private:
 
     void clear();
-
-    double batch = 0;
 
     std::vector<std::vector<float> > vectors;
     std::vector<Layer*> layers;

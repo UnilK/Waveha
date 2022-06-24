@@ -194,13 +194,15 @@ build/ml/factory.o: include/ui/fileio.h include/ml/field.h include/ml/field.inl
 build/ml/factory.o: include/ml/matrix.h include/ml/deloc.h include/ml/roll.h
 build/ml/factory.o: include/ml/ft.h include/ml/judge.h include/ml/norm.h
 build/ml/factory.o: include/ml/reblock.h include/ml/multiply.h
-build/ml/factory.o: include/ml/wavecon.h
+build/ml/factory.o: include/ml/wavecon.h include/ml/phase.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/util.h include/ml/field.inl
 build/ml/norm.o: include/ml/norm.h include/ml/layer.h include/ui/fileio.h
 build/ml/norm.o: include/ml/util.h
 build/ml/deloc.o: include/ml/deloc.h include/ml/layer.h include/ui/fileio.h
 build/ml/deloc.o: include/ml/util.h
+build/ml/phase.o: include/ml/phase.h include/ml/layer.h include/ui/fileio.h
+build/ml/phase.o: include/ml/util.h
 build/ml/util.o: include/ml/util.h
 build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/matrix.o: include/ml/util.h

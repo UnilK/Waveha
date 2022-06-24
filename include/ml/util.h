@@ -2,8 +2,12 @@
 
 #include <vector>
 #include <complex>
+#include <random>
+#include <chrono>
 
 namespace ml {
+
+static std::mt19937 rng32(std::chrono::steady_clock::now().time_since_epoch().count());
 
 struct array {
 
@@ -30,7 +34,7 @@ struct array {
 
 
 inline float random_float(){ 
-    return 2.0f * (float)rand() / RAND_MAX - 1.0f;
+    return (float)(int)rng32() / (1ll<<31);
 }
 
 inline float sign(float x){

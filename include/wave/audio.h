@@ -24,7 +24,7 @@ struct Audio {
     bool open(std::string fileName);
     
     std::string name;
-    unsigned channels, frameRate;
+    unsigned channels = 1, frameRate = 44100;
     std::vector<float> data;
 
 };

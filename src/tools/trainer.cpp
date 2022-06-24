@@ -36,13 +36,13 @@ Trainer::Trainer(App *a) :
     
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
-    terminal.put_function("config", [&](ui::Command c){ config(c); });
+    terminal.put_function("c", [&](ui::Command c){ config(c); });
     terminal.put_function("train", [&](ui::Command c){ train(c); });
     terminal.put_function("test", [&](ui::Command c){ test(c); });
     terminal.put_function("clean", [&](ui::Command c){ clean(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
 
-    terminal.document("config", "[variable] [value] set training config variable");
+    terminal.document("c", "[variable] [value] set training config variable");
     terminal.document("train", "switch training");
     terminal.document("test", "test stack");
     terminal.document("clean", "clear result data");

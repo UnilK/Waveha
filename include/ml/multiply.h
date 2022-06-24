@@ -48,5 +48,23 @@ private:
 
 };
 
+
+
+class PMultiply : public Layer {
+
+    // element-wise multiply two vectors
+
+public:
+
+    using Layer::Layer;
+
+    void push();
+    void pull();
+
+    std::string get_type();
+    static bool ok(arrays in, arrays out, args a);
+
+};
+
 }
 

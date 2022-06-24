@@ -69,6 +69,11 @@ struct csig { // cheap sigmoid
     static void df(float *left, float *right, float *var, float *change);
 };
 
+struct a2 { // velocity analog in complex plane
+    static void f(float *left, float *right, float *var);
+    static void df(float *left, float *right, float *var, float *change);
+};
+
 struct v2 { // velocity analog in complex plane
     static void f(float *left, float *right, float *var);
     static void df(float *left, float *right, float *var, float *change);
@@ -133,6 +138,13 @@ public:
 };
 
 class CsigField : public Field<1, 1, 0, csig> {
+public:
+    using Field::Field;
+    using Field::ok;
+    std::string get_type();
+};
+
+class A2Field : public Field<2, 2, 0, v2> {
 public:
     using Field::Field;
     using Field::ok;

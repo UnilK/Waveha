@@ -96,6 +96,8 @@ private:
     void name_dataset(ui::Command);
     void switch_dataset(ui::Command);
     void clip_to_dataset(ui::Command);
+    void reverb_audio(ui::Command);
+    void config_feedback(ui::Command);
     void info(ui::Command);
 
     AudioLink link;
@@ -125,6 +127,8 @@ private:
 
     change::PeakMatchVars peakVars;
     change::CorrelationVars corrVars;
+
+    std::map<int, float> feedback;
 
 };
 

@@ -139,8 +139,12 @@ std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio){
     if(stack == nullptr || !stack->good()) return std::vector<float>(audio.size(), 3.14f);
     
     std::vector<float> clip = audio;
-            
-    int N = stack->in_size();
+
+    float amax = 0.0f;
+    for(float &i : clip) amax = std::max(amax, std::abs(i));
+    if(amax != 0.0f) for(float &i : clip) i /= amax;
+
+    int N = stack->in_size()-1;
     auto f = math::ft(audio, N/2);
     std::vector<float> freqs(N);
     for(int i=0; i<N/2; i++){
@@ -148,17 +152,16 @@ std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio){
         freqs[2*i+1] = f[i].imag();
     }
     
-    float sum = 0.0f;
-    for(auto &i : f) sum += std::abs(i);
-    sum /= f.size();
-    
+    freqs.push_back((float)clip.size() / 44100);
     freqs = stack->run(freqs);
 
     for(int i=0; i<N/2; i++) f[i] = {freqs[2*i], freqs[2*i+1]};
-    
-    for(auto &i : f) i *= sum;
 
     clip = math::ift(f, audio.size());
+
+    float bmax = 0.0f;
+    for(float &i : clip) bmax = std::max(bmax, std::abs(i));
+    for(float &i : clip) i *= amax/bmax;
 
     return clip;
 }

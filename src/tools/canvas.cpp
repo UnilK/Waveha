@@ -270,6 +270,7 @@ namespace Factory { extern std::string canvas; }
 std::string CanvasTool::content_type(){ return Factory::canvas; }
 
 void CanvasTool::save(ui::Saver &saver){
+
     saver.write_string(output);
     saver.write_string(brush);
     saver.write_float(phase);
@@ -282,6 +283,7 @@ void CanvasTool::save(ui::Saver &saver){
 }
 
 void CanvasTool::load(ui::Loader &loader){
+    
     output = loader.read_string();
     brush = loader.read_string();
     phase = loader.read_float();

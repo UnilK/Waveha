@@ -2,6 +2,7 @@
 #include "ml/util.h"
 
 #include <assert.h>
+#include <iostream>
 
 namespace ml {
 
@@ -40,11 +41,19 @@ void Matrix::pull(){
     }
 }
 
+std::pair<float, unsigned> Matrix::sum_change(){
+    float sum = 0;
+    for(unsigned i=0; i<l.size; i++){
+        for(unsigned j=0; j<r.size; j++) sum += changes[i][j]*changes[i][j];
+    }
+    return {sum, l.size*r.size};
+}
+
 void Matrix::change(float factor, float decay){
     
     for(unsigned i=0; i<l.size; i++){
         for(unsigned j=0; j<r.size; j++){
-            matrix[i][j] += changes[i][j] * (float)factor;
+            matrix[i][j] += changes[i][j] * factor;
             changes[i][j] *= decay;
         }
     }
@@ -107,11 +116,21 @@ void CMatrix::pull(){
     }
 }
 
+std::pair<float, unsigned> CMatrix::sum_change(){
+    float sum = 0;
+    for(unsigned i=0; i<l.csize; i++){
+        for(unsigned j=0; j<r.csize; j++){
+            sum += (changes[i][j]*std::conj(changes[i][j])).real();
+        }
+    }
+    return {sum, l.csize*r.csize};
+}
+
 void CMatrix::change(float factor, float decay){
 
     for(unsigned i=0; i<l.csize; i++){
         for(unsigned j=0; j<r.csize; j++){
-            matrix[i][j] += changes[i][j] * (float)factor;
+            matrix[i][j] += changes[i][j] * factor;
             changes[i][j] *= decay;
         }
     }

@@ -14,6 +14,8 @@ public:
 
     void push();
     void pull();
+    
+    std::pair<float, unsigned> sum_change();
     void change(float factor, float decay);
     
     void save(ui::Saver &saver);
@@ -42,6 +44,8 @@ public:
 
     virtual void push();
     virtual void pull();
+    
+    std::pair<float, unsigned> sum_change();
     void change(float factor, float decay);
     
     void save(ui::Saver &saver);

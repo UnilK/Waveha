@@ -137,5 +137,32 @@ bool CMultiply::ok(arrays in, arrays out, args a){
 namespace Factory { extern std::string cmultiply; }
 std::string CMultiply::get_type(){ return Factory::cmultiply; }
 
+// cmultiply //////////////////////////////////////////////////////////////////
+
+void PMultiply::push(){
+    for(unsigned i=0; i<left[0].size; i++) right[0][i] = left[0][i]*left[1][i];
+}
+
+void PMultiply::pull(){
+
+    if(nopull) return;
+    
+    for(unsigned i=0; i<left[0].size; i++){
+        float l = right[0][i] * left[1][i];
+        float r = right[0][i] * left[0][i];
+        left[0][i] = l;
+        left[1][i] = r;
+    }
+}
+
+namespace Factory { extern std::string pmultiply; }
+std::string PMultiply::get_type(){ return Factory::pmultiply; }
+
+bool PMultiply::ok(arrays in, arrays out, args a){
+    if(in.size() != 2 || out.size() != 1 ||
+            in[0].size != in[1].size || in[0].size != out[0].size) return 0;
+    return 1;
+}
+
 }
 
