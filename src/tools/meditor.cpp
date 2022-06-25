@@ -159,6 +159,11 @@ void Meditor::update_output(){
 
         data = math::ift(nfreq, data.size());
     }
+    else if(mode == 3){
+        
+
+
+    }
     
     wave::Audio *audio = new wave::Audio();
     audio->name = outputName;

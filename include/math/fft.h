@@ -6,8 +6,8 @@
 
 namespace math {
 
-// calculate discrete fourier transform of v. only sizes
-// that are powers of 2 are supported.
+// calculate discrete fourier transform of v. works fast
+// for sizes that are powers of 2. otherwise falls back to bluestein -> 6x slowdown.
 
 void in_place_fft(std::complex<float> *v, unsigned n, bool inv = 0);
 void in_place_fft(std::vector<std::complex<float> > &v, bool inv = 0);

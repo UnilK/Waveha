@@ -2,7 +2,6 @@
 #include "math/constants.h"
 
 #include <algorithm>
-#include <assert.h>
 
 namespace math {
 
@@ -41,9 +40,14 @@ void in_place_fft(complex<float> *v, unsigned n, bool inv){
     unsigned bits = 0;
     while(1u<<bits < n) bits++;
 
-    // only powers of 2 are supported
-    assert(1u<<bits == n);
-    assert(bits <= fftPrecalc.B);
+    if(bits > fftPrecalc.B) return;
+    if(1u<<bits != n){
+        vector<complex<float> > w(n);
+        for(unsigned i=0; i<n; i++) w[i] = v[i];
+        w = bluestein(w, inv);
+        for(unsigned i=0; i<n; i++) v[i] = w[i];
+        return;
+    }
     
     unsigned shift = fftPrecalc.B-bits;
 
@@ -75,7 +79,7 @@ void in_place_fft(vector<complex<float> > &v, bool inv){
 vector<complex<float> > fft(const float *v, unsigned n){
     vector<complex<float> > f(n);
     for(unsigned i=0; i<n; i++) f[i] = v[i];
-    in_place_fft(f, n);
+    in_place_fft(f.data(), n);
     return f;
 }
 

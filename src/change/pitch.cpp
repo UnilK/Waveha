@@ -15,7 +15,35 @@ CorrelationVars defaultCorrelationVars;
 float sign(float x){ return (int)(x > 0) - (x < 0); }
 
 std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
+
+    /*
+    auto plot = audio;
+
+    for(float &i : plot) i = i*i*i;
+
+    float max = 0.0f;
+    for(float i : plot) max = std::max(max, std::abs(i));
+    if(max != 0.0f) for(float &i : plot) i /= max;
+    */
+
+    auto plot = audio;
     
+    for(float &i : plot) i = i*i*i*i;
+
+    auto freq = math::fft(plot);
+    unsigned f = 1000 * audio.size() / 44100;
+    for(unsigned i=f; i+f<=freq.size(); i++) freq[i] = 0.0f;
+    plot = math::inverse_fft(freq);
+    
+    for(float &i : plot) i = sign(i)*std::pow(std::abs(i), 0.5f);
+
+    float sum = 0.0f;
+    for(float i : audio) sum += i*i;
+    sum /= audio.size();
+
+    if(sum != 0.0f) for(float &i : plot) i /= sum;
+    
+    /*
     auto spectrum = math::fft(audio);
 
     std::vector<float> plot(audio.size(), 0.0f);
@@ -36,8 +64,8 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
             plot[i] += std::pow(std::abs(spectrum[k] * (1 - d) - spectrum[k+1] * d), vars.exponent);
 
         }
-
     }
+    */
 
     return plot;
 
@@ -45,8 +73,36 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
 
 std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){
     
-    auto copy = audio;
+    unsigned n = audio.size();
+    auto plot = audio;
 
+    if(vars.sign) for(float &i : plot) i = sign(i) * std::pow(std::abs(i), vars.exponent);
+    else for(float &i : plot) i = std::pow(std::abs(i), vars.exponent);
+    
+    float max = 0.0f;
+    for(float i : plot) max = std::max(max, std::abs(i));
+    if(max != 0.0f) for(float &i : plot) i /= max;
+
+    auto corr = math::correlation(plot, plot);
+    corr.resize(n);
+
+    float sum = 0.0f;
+    for(float i : plot) sum += i*i;
+    sum *= 2;
+
+    corr[0] = 0.0f;
+    for(unsigned i=1; i<n; i++){
+        sum -= plot[i-1]*plot[i-1] + plot[n-i]*plot[n-i];
+        corr[i] = (sum - 2 * corr[i]) / (n - i);
+    }
+
+    sum = 0.0f;
+    for(float i : audio) sum += i*i;
+    sum /= n;
+
+    if(sum != 0.0f) for(float &i : corr) i /= sum;
+    
+    /*
     if(vars.sign) for(float &i : copy) i = sign(i) * std::pow(std::abs(i), vars.exponent);
     else for(float &i : copy) i = std::pow(std::abs(i), vars.exponent);
 
@@ -54,12 +110,13 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     std::reverse(reverseCopy.begin(), reverseCopy.end());
 
     auto plot = math::convolution(copy, reverseCopy);
+    */
 
-    return plot;
+    return corr;
 }
 
 unsigned pitch(const std::vector<float> &audio, CorrelationVars vars){
-    
+
     auto copy = audio;
 
     if(vars.sign) for(float &i : copy) i = sign(i) * std::pow(std::abs(i), vars.exponent);
