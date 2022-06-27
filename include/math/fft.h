@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstdint>
 #include <complex>
 #include <vector>
+#include <array>
 
 namespace math {
 
@@ -28,6 +28,9 @@ std::vector<std::complex<float> > convolution(
         unsigned size = 0);
 
 std::vector<float> correlation(std::vector<float> a, std::vector<float> b, unsigned size = 0);
+
+// fft has bandwidth for 2 vectors. The second vector is optional.
+std::array<std::vector<float>, 2> autocorrelation(std::vector<float> a, std::vector<float> b = {});
 
 // these are ~6 times slower on average than radix 2, but support all sizes.
 

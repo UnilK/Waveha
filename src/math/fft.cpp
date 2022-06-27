@@ -187,6 +187,42 @@ vector<float> correlation(vector<float> a, vector<float> b, unsigned size){
     return convolution(a, b, z);
 }
 
+std::array<vector<float>, 2> autocorrelation(vector<float> a, vector<float> b){
+    
+    unsigned n = a.size(), m = b.size(), z = 1;
+    while(z < std::max(n, m)) z *= 2;
+
+    vector<complex<float> > c(2*z, 0.0f);
+    for(unsigned i=0; i<n; i++) c[i] = {a[i], 0.0f};
+    for(unsigned i=0; i<m; i++) c[i] = {c[i].real(), b[i]};
+
+    in_place_fft(c);
+
+    for(unsigned i=0; i<=z; i++){
+        
+        unsigned j = i == 0 ? 0 : 2*z-i;
+        
+        float xr = c[i].real()+c[j].real(), xi = c[i].imag()-c[j].imag();
+        float yr = c[i].real()-c[j].real(), yi = c[i].imag()+c[j].imag();
+        c[i] = c[j] = {(xr*xr + xi*xi) / 4, (yr*yr + yi*yi) / 4};
+        
+        /*
+        auto l = c[i]+c[j];
+        auto r = c[i]-c[j];
+        complex<float> x{l.real()/2, r.imag()/2};
+        complex<float> y{r.real()/2, l.imag()/2};
+        c[i] = c[j] = x*conj(x) - y*complex<float>(-y.real(), y.imag()) * complex<float>(0, 1);
+        */
+    }
+    
+    in_place_fft(c, 1);
+
+    for(unsigned i=0; i<n; i++) a[i] = c[i].real();
+    for(unsigned i=0; i<m; i++) b[i] = c[i].imag();
+
+    return {a, b};
+}
+
 vector<complex<float> > bluestein(vector<complex<float> > v, bool inv){
     
     if(v.empty()) return {};

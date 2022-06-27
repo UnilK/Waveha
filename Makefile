@@ -107,10 +107,12 @@ build/wave/sound.o: include/wave/sound.h include/wave/buffer.h
 build/wave/sound.o: include/wave/source.h include/wave/util.h
 build/wave/util.o: include/wave/util.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
+build/change/detector.o: include/change/detector.h include/math/fft.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/constants.h
 build/change/pitch.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/change/pitch.o: include/ml/util.h include/ml/judge.h
+build/change/pitch.o: include/change/detector.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
 build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
@@ -213,6 +215,7 @@ build/ml/wavecon.o: include/ml/wavecon.h include/ml/layer.h include/ui/fileio.h
 build/ml/wavecon.o: include/ml/util.h
 build/ml/multiply.o: include/ml/multiply.h include/ml/layer.h
 build/ml/multiply.o: include/ui/fileio.h include/ml/util.h
+build/ml/mlml.o: include/ml/mlml.h
 build/ml/waves.o: include/ml/waves.h include/math/ft.h include/change/pitch.h
 build/ml/waves.o: lib/Wstream/include/wstream/wstream.h include/ui/fileio.h
 build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h
