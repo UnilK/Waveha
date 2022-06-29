@@ -16,9 +16,12 @@ std::vector<std::complex<float> > ft(
 std::vector<std::complex<float> > ft(
         const std::vector<float> &waves, unsigned n, bool haszero = 0);
 
+std::vector<std::complex<float> > precise_ft(
+        const std::vector<float> &waves, unsigned n, bool haszero = 0, float speed = 1.0f);
+
 std::vector<float> ift(
         const std::vector<std::complex<float> > &frequencies,
-        unsigned size, bool haszero = 0);
+        unsigned size, bool haszero = 0, float speed = 1.0f);
 
 struct FTPrecalc {
     FTPrecalc();

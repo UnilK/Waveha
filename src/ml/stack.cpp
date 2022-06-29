@@ -378,48 +378,50 @@ void Stack::train(
     lock.unlock();
 }
 
-void Stack::train_program(const TrainingData &data, unsigned batchSize, unsigned batches,
+void Stack::train_program(TrainingData &data, unsigned batchSize, unsigned batches,
         float speed, float decay){
 
     for(unsigned i=0; i<batches; i++){
         for(unsigned j=0; j<batchSize; j++){
-            unsigned pick = rng32()%data.size();
-            train(data[pick].first, data[pick].second);
+            auto [input, label] = data.get_random();
+            train(input, label);
         }
         apply_changes(speed, decay, batchSize);
     }
 }
 
-Stack::TestAnalysis Stack::test(const std::vector<InputLabel > &data){
+Stack::TestAnalysis Stack::test(TrainingData &data){
 
     TestAnalysis result;
     result.errors.resize(vectors.back().size(), 0.0f);
 
-    for(auto &i : data){
+    for(size_t iter=0; iter<data.get_size(); iter++){
         
-        if(!good() || i.second.size() != vectors.back().size()
-                || i.first.size() != vectors[0].size()){
+        auto i = data.get_next();
+
+        if(!good() || i.label.size() != vectors.back().size()
+                || i.input.size() != vectors[0].size()){
             return result;
         }
 
-        run(i.first);
+        run(i.input);
 
         unsigned best = 0, right = 0;
-        for(unsigned j=0; j<i.second.size(); j++){
+        for(unsigned j=0; j<i.label.size(); j++){
             if(vectors.back()[j] > vectors.back()[best]) best = j;
-            if(i.second[j] > i.second[right]) right = j;
+            if(i.label[j] > i.label[right]) right = j;
         }
         if(best == right) result.correct += 1;
 
-        judge->score(i.second);
+        judge->score(i.label);
 
-        for(unsigned j=0; j<i.second.size(); j++){
+        for(unsigned j=0; j<i.label.size(); j++){
             result.errors[j] += std::abs(vectors.back()[j]);
         }
     }
 
     for(double &i : result.errors){
-        i /= data.size();
+        i /= data.get_size();
         result.error += i;
     }
 

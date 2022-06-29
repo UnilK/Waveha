@@ -108,10 +108,11 @@ build/wave/sound.o: include/wave/source.h include/wave/util.h
 build/wave/util.o: include/wave/util.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
 build/change/detector.o: include/change/detector.h include/math/fft.h
+build/change/detector.o: include/math/ft.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/constants.h
 build/change/pitch.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
-build/change/pitch.o: include/ml/util.h include/ml/judge.h
+build/change/pitch.o: include/ml/util.h include/ml/judge.h include/ml/db.h
 build/change/pitch.o: include/change/detector.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
@@ -138,7 +139,7 @@ build/app/content.o: include/tools/meditor.h include/change/matrix.h
 build/app/content.o: include/tools/recorder.h include/ui/clock.h
 build/app/content.o: include/wave/mic.h include/tools/trainer.h
 build/app/content.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
-build/app/content.o: include/ml/judge.h include/tools/canvas.h
+build/app/content.o: include/ml/judge.h include/ml/db.h include/tools/canvas.h
 build/app/slot.o: include/app/slot.h include/ui/box.h include/ui/slider.h
 build/app/slot.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
 build/app/slot.o: include/ui/style.h include/ui/window.h include/ui/text.h
@@ -186,7 +187,7 @@ build/app/creations.o: include/ui/style.h include/ui/window.h
 build/app/creations.o: include/app/session.h include/ui/fileio.h
 build/app/creations.o: include/app/app.h include/ui/box.h include/ui/slider.h
 build/app/creations.o: include/ui/stack.h include/ui/text.h include/ui/button.h
-build/app/creations.o: include/app/tools.h include/ml/mnist.h
+build/app/creations.o: include/app/tools.h include/ml/mnist.h include/ml/db.h
 build/app/creations.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
 build/app/creations.o: include/ml/judge.h include/ml/waves.h
 build/ml/roll.o: include/ml/roll.h include/ml/layer.h include/ui/fileio.h
@@ -196,7 +197,7 @@ build/ml/factory.o: include/ui/fileio.h include/ml/field.h include/ml/field.inl
 build/ml/factory.o: include/ml/matrix.h include/ml/deloc.h include/ml/roll.h
 build/ml/factory.o: include/ml/ft.h include/ml/judge.h include/ml/norm.h
 build/ml/factory.o: include/ml/reblock.h include/ml/multiply.h
-build/ml/factory.o: include/ml/wavecon.h include/ml/phase.h
+build/ml/factory.o: include/ml/phase.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/util.h include/ml/field.inl
 build/ml/norm.o: include/ml/norm.h include/ml/layer.h include/ui/fileio.h
@@ -208,20 +209,23 @@ build/ml/phase.o: include/ml/util.h
 build/ml/util.o: include/ml/util.h
 build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/matrix.o: include/ml/util.h
-build/ml/mnist.o: include/ml/mnist.h include/ui/fileio.h include/math/fft.h
+build/ml/mnist.o: include/ml/mnist.h include/ml/db.h include/ui/fileio.h
+build/ml/mnist.o: include/math/fft.h include/ml/util.h
 build/ml/layer.o: include/ml/layer.h include/ui/fileio.h include/ml/util.h
 build/ml/judge.o: include/ml/judge.h
-build/ml/wavecon.o: include/ml/wavecon.h include/ml/layer.h include/ui/fileio.h
-build/ml/wavecon.o: include/ml/util.h
 build/ml/multiply.o: include/ml/multiply.h include/ml/layer.h
 build/ml/multiply.o: include/ui/fileio.h include/ml/util.h
 build/ml/mlml.o: include/ml/mlml.h
-build/ml/waves.o: include/ml/waves.h include/math/ft.h include/change/pitch.h
-build/ml/waves.o: lib/Wstream/include/wstream/wstream.h include/ui/fileio.h
+build/ml/waves.o: include/ml/waves.h include/ml/db.h include/math/ft.h
+build/ml/waves.o: include/change/pitch.h lib/Wstream/include/wstream/wstream.h
+build/ml/waves.o: include/ui/fileio.h include/change/detector.h
+build/ml/waves.o: include/math/constants.h
 build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h
 build/ml/ft.o: include/ml/util.h include/math/ft.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
-build/ml/stack.o: include/ml/util.h include/ml/judge.h include/ml/factory.h
+build/ml/stack.o: include/ml/util.h include/ml/judge.h include/ml/db.h
+build/ml/stack.o: include/ml/factory.h
+build/ml/db.o: include/ml/db.h
 build/ml/reblock.o: include/ml/reblock.h include/ml/layer.h include/ui/fileio.h
 build/ml/reblock.o: include/ml/util.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
@@ -246,7 +250,7 @@ build/tools/trainer.o: include/ui/style.h include/ui/window.h
 build/tools/trainer.o: include/app/session.h include/ui/terminal.h
 build/tools/trainer.o: include/ui/fileio.h include/tools/graph.h
 build/tools/trainer.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
-build/tools/trainer.o: include/ml/judge.h include/ui/slider.h
+build/tools/trainer.o: include/ml/judge.h include/ml/db.h include/ui/slider.h
 build/tools/trainer.o: include/ui/stack.h include/ui/text.h include/app/app.h
 build/tools/trainer.o: include/ui/box.h include/ui/button.h include/app/tools.h
 build/tools/trainer.o: include/app/creations.h include/ui/clock.h
@@ -279,7 +283,7 @@ build/tools/analyzer.o: include/tools/graph.h include/wave/sound.h
 build/tools/analyzer.o: include/wave/buffer.h include/change/pitch.h
 build/tools/analyzer.o: include/app/app.h include/ui/box.h include/app/tools.h
 build/tools/analyzer.o: include/app/creations.h include/math/fft.h
-build/tools/analyzer.o: include/math/ft.h
+build/tools/analyzer.o: include/math/ft.h include/change/detector.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h

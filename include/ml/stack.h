@@ -2,6 +2,7 @@
 
 #include "ml/layer.h"
 #include "ml/judge.h"
+#include "ml/db.h"
 
 #include <vector>
 #include <string>
@@ -9,9 +10,6 @@
 #include <tuple>
 
 namespace ml {
-
-typedef std::pair<std::vector<float>, std::vector<float> > InputLabel;
-typedef std::vector<InputLabel > TrainingData;
 
 class Stack {
 
@@ -41,7 +39,7 @@ public:
             const std::vector<float> &input,
             const std::vector<float> &output);
 
-    void train_program(const TrainingData &data, unsigned batchSize, unsigned batches,
+    void train_program(TrainingData &data, unsigned batchSize, unsigned batches,
             float speed, float decay);
 
     struct TestAnalysis {
@@ -50,7 +48,7 @@ public:
         std::vector<double> errors;
     };
 
-    TestAnalysis test(const TrainingData &data);
+    TestAnalysis test(TrainingData &data);
     
     void apply_changes(float factor, float decay, unsigned batchSize);
 

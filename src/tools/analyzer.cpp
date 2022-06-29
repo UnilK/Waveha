@@ -5,9 +5,11 @@
 #include "math/fft.h"
 #include "math/ft.h"
 #include "wstream/wstream.h"
+#include "change/detector.h"
+#include "ml/waves.h"
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 #include <limits>
 #include <iostream>
 #include <filesystem>
@@ -390,6 +392,7 @@ Analyzer::Analyzer(App *a) :
     terminal.put_function("dataset", [&](ui::Command c){ switch_dataset(c); });
     terminal.put_function("reverb", [&](ui::Command c){ reverb_audio(c); });
     terminal.put_function("cfeed", [&](ui::Command c){ config_feedback(c); });
+    terminal.put_function("ppitch", [&](ui::Command c){ process_pitch(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("check", [&](ui::Command c){ check_ml_data(c); });
@@ -407,6 +410,7 @@ Analyzer::Analyzer(App *a) :
     terminal.document("check", "[data] check wave training data");
     terminal.document("reverb", "[input] [output] reverb process input audio and save it to output");
     terminal.document("cfeed", "[delay] [magnitude] add reverb feedback");
+    terminal.document("ppitch", "[audio] [output] get pitch envelopoe of audio");
     terminal.document("*hotkeys",
             "use W and S to control interval length shown on graph\n"
             "A and D control interval position. shift and ctrl are speed modifiers\n"
@@ -658,7 +662,7 @@ void Analyzer::check_ml_data(ui::Command c){
     if(all == nullptr) return;
 
     std::vector<std::complex<float> > freq;
-    std::vector<float> rnd = (*all)[rand()%all->size()].first;
+    std::vector<float> rnd = all->get_random().label;
     freq.resize(rnd.size()/2);
     for(unsigned i=0; i<freq.size(); i++) freq[i] = {rnd[2*i], rnd[2*i+1]};
     graph.set_data(math::ift(freq, length));
@@ -774,6 +778,42 @@ void Analyzer::config_feedback(ui::Command c){
     catch (const std::invalid_argument &e){
         c.source.push_error("sto_ parse error");
     }
+}
+
+void Analyzer::process_pitch(ui::Command c){
+    
+    std::string input = c.pop(), output = c.pop();
+
+    if(input.empty() || output.empty()){
+        c.source.push_error("give an audio source and an output name");
+        return;
+    }
+
+    AudioLink src(app);
+    change::Detector detector;
+    src.open(input);
+
+    std::vector<float> pitch, temp;
+
+    unsigned window = 128;
+
+    src.pull(detector.size, temp);
+        
+    if(src.size() == 0) c.source.push_error("input audio does not exist");
+
+    while(src.good){
+
+        src.pull(window, temp);
+        detector.feed(temp);
+        
+        if(detector.voiced) pitch.push_back(detector.pitch);
+        else pitch.push_back(0.0f);
+    }
+
+    wave::Audio *out = new wave::Audio();
+    out->name = output;
+    out->data = pitch;
+    app.audio.add_cache(out);
 }
 
 }

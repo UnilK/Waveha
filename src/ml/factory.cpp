@@ -9,7 +9,6 @@
 #include "ml/norm.h"
 #include "ml/reblock.h"
 #include "ml/multiply.h"
-#include "ml/wavecon.h"
 #include "ml/phase.h"
 
 namespace ml {
@@ -31,8 +30,6 @@ std::string copy = "copy";
 std::string multiply = "multiply";
 std::string cmultiply = "cmultiply";
 std::string pmultiply = "pmultiply";
-std::string wavedecon = "wavedecon";
-std::string waverecon = "waverecon";
 std::string dephase = "dephase";
 std::string rephase = "rephase";
 
@@ -102,12 +99,6 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
     if(type == Factory::pmultiply && PMultiply::ok(left, right, a))
         return new PMultiply(left, right, a);
 
-    if(type == Factory::wavedecon && Wavedecon::ok(left, right, a))
-        return new Wavedecon(left, right, a);
-
-    if(type == Factory::waverecon && Waverecon::ok(left, right, a))
-        return new Waverecon(left, right, a);
-    
     if(type == Factory::dephase && Dephase::ok(left, right, a))
         return new Dephase(left, right, a);
 

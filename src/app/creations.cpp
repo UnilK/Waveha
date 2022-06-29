@@ -4,6 +4,7 @@
 #include "ml/mnist.h"
 #include "ml/stack.h"
 #include "ml/waves.h"
+#include "ml/db.h"
 
 #include <iostream>
 
@@ -75,33 +76,23 @@ int Creations::blur_mnist(std::string name){
     
     auto &[type, file, pointer] = datas[name];
     
-    if(type.size() < 5 || type.substr(type.size()-5) != "mnist" || type[0] == 'f') return 2;
+    if(type != "mnist") return 2;
 
-    type = "b" + type;
-    
-    ml::blur_mnist_data(pointer);
+    ((ml::MnistData*)pointer)->blur();
     
     return 0;
 }
 
 int Creations::ft_mnist(std::string name){
 
-    if(!datas.count(name)) return 1;
-    
-    auto &[type, file, pointer] = datas[name];
-    
-    if(type.size() < 5 || type.substr(type.size()-5) != "mnist" || type[0] == 'f') return 2;
-    
-    type = "f" + type;
-
-    ml::ft_mnist_data(pointer);
+    // NOP
     
     return 0;
 }
 
 int Creations::load_mldata(std::string type, std::string file, std::string name){
 
-    if(type.size() >= 5 && type.substr(type.size()-5) == "mnist"){
+    if(type == "mnist"){
         
         ml::TrainingData *data = ml::mnist_data(file);
         
@@ -109,20 +100,12 @@ int Creations::load_mldata(std::string type, std::string file, std::string name)
         remove_mldata(name);
         datas[name] = {"mnist", file, data};
         
-        int blurs = 0;
-        bool transformed = 0;
-
-        for(char c : type){
-            if(c == 'f') transformed = 1;
-            if(c == 'b') blurs++;
-        }
-
-        for(;blurs--;) blur_mnist(name);
-        if(transformed) ft_mnist(name);
     }
     else if(type == "wave"){
+
         ml::TrainingData *data = ml::wave_data(file);
         if(data == nullptr) return 1;
+
         remove_mldata(name);
         datas[name] = {type, file, data};
     }
@@ -259,9 +242,7 @@ void CreationsDir::ft_mnist(ui::Command c){
     if(name.empty()){
         c.source.push_error("give mnist data name");
     } else {
-        int code = creations.ft_mnist(name);
-        if(code == 1) c.source.push_error("data not found: " + name);
-        else if(code == 2) c.source.push_error(name + " is not mnist data");
+        // NOP
     }
 }
 

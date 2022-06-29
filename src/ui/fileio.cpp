@@ -6,7 +6,23 @@ namespace ui {
 
 // saver //////////////////////////////////////////////////////////////////////
 
+Saver::Saver(){}
+
 Saver::Saver(std::string file) : out(file) {}
+
+bool Saver::open(std::string file){
+    out.open(file);
+    return !bad();
+}
+
+bool Saver::seek(size_t pos){
+    out.seekp(pos);
+    return !bad();
+}
+
+size_t Saver::tell(){
+    return out.tellp();
+}
 
 void Saver::write_byte(char c){
     out.write(&c, 1);
@@ -43,6 +59,10 @@ void Saver::write_complex(std::complex<float> c){
     write_float(c.imag());
 }
 
+void Saver::write_raw(unsigned bytes, void *data){
+    out.write((char*)data, bytes);
+}
+
 void Saver::write_block(unsigned bytes, void *data){
     write_unsigned(bytes);
     out.write((char*)data, bytes);
@@ -74,7 +94,23 @@ void Saver::close_chunk(){
 
 // loader /////////////////////////////////////////////////////////////////////
 
+Loader::Loader(){}
+
 Loader::Loader(std::string file) : in(file) {}
+
+bool Loader::open(std::string file){
+    in.open(file);
+    return !bad();
+}
+
+bool Loader::seek(size_t pos){
+    in.seekg(pos);
+    return !bad();
+}
+
+size_t Loader::tell(){
+    return in.tellg();
+}
 
 std::string Loader::read_string(){
     std::string str;

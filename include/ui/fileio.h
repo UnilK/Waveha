@@ -10,7 +10,12 @@ class Saver {
 
 public:
 
+    Saver();
     Saver(std::string file);
+    bool open(std::string file);
+
+    bool seek(size_t);
+    size_t tell();
 
     void write_byte(char);
     void write_string(std::string);
@@ -20,6 +25,7 @@ public:
     void write_float(float);
     void write_double(double);
     void write_complex(std::complex<float>);
+    void write_raw(unsigned bytes, void *data);
     void write_block(unsigned bytes, void *data);
 
     void open_chunk(std::string name);
@@ -42,7 +48,12 @@ class Loader {
 
 public:
 
+    Loader();
     Loader(std::string file);
+    bool open(std::string file);
+
+    bool seek(size_t);
+    size_t tell();
 
     char read_byte();
     std::string read_string();

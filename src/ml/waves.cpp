@@ -2,13 +2,66 @@
 #include "math/ft.h"
 #include "change/pitch.h"
 #include "wstream/wstream.h"
-#include "ui/fileio.h"
+#include "change/detector.h"
+#include "math/constants.h"
+#include "ml/util.h" 
 
 #include <filesystem>
+#include <cmath>
 
 namespace ml {
 
-const int N = 1<<11;
+bool WaveData::open(std::string name){
+
+    file = name;
+
+    spectrums.open(file);
+
+    if(spectrums.bad()) return 0;
+
+    size = spectrums.read_unsigned();
+    freqs = spectrums.read_unsigned();
+    sampleSize = (2 * freqs + 1) * sizeof(float);
+    begin = spectrums.tell();
+
+    return 1;
+}
+
+InputLabel WaveData::get_random(){
+    
+    size_t original = pos;
+    
+    pos = rng32() % size;
+
+    go_to(pos);
+    auto data = get_next();
+    go_to(original);
+
+    return data;
+}
+
+InputLabel WaveData::get_next(){
+
+    std::vector<float> data(2 * freqs + 1);
+
+    for(float &i : data) i = spectrums.read_float();
+
+    go_to(pos + 1);
+
+    auto nopitch = data;
+    nopitch.pop_back();
+
+    return {data, nopitch};
+}
+
+void WaveData::go_to(size_t position){
+    pos = position % size;
+    spectrums.seek(begin + pos * sampleSize);
+}
+
+size_t WaveData::get_size(){ return size; }
+
+std::string WaveData::get_file(){ return file; }
 
 int create_wave_data(std::string directory, std::string output, unsigned N){
 
@@ -24,36 +77,45 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
         files.push_back(f);
     }
 
-    const int M = 1<<11;
     const int F = 64; 
 
     std::vector<std::pair<std::vector<std::complex<float> >, float> > datas;
 
     for(auto f : files){
 
-        iwstream I(f);
+        iwstream I;
+        if(!I.open(f)) continue;
 
-        std::vector<float> waves = I.read_file();
+        change::Detector detector;
+        std::vector<float> samples(N);
 
-        if(waves.size() < M) continue;
-
-        for(unsigned i=0; i*N+M < waves.size(); i++){
-
-            std::vector<float> clip(M, 0.0f);
+        while(I.read_move(samples.data(), N) == N){
             
-            for(unsigned j=0; j<M; j++) clip[j] = waves[i*N + j];
+            detector.feed(samples);
 
-            unsigned length = change::pitch(clip);
+            if(detector.voiced && !detector.noise && detector.confidence > 0.5f){
+                
+                /*
+                auto clip = detector.get();
+                datas.push_back({math::ft(clip, F), detector.pitch});
+                */
 
-            // length = change::hinted_pitch(waves.data() + i*N, M, length);
-            
-            clip.resize(length);
-            
-            float amax = 0.0f;
-            for(float &j : clip) amax = std::max(amax, std::abs(j));
-            if(amax != 0.0f) for(float &j : clip) j /= amax;
+                auto clip = detector.get2();
 
-            datas.push_back({math::ft(clip, F), (float)I.get_frame_rate()/length});
+                float max = 0.0f;
+                for(float i : clip) std::max(max, std::abs(i));
+                
+                if(max > 0.1f) for(float &i : clip) i /= max;
+                else continue;
+
+                int size = clip.size();
+                for(int i=0; i<size; i++) clip[i] *= 0.5f - 0.5f * std::cos(2 * PIF * i / size);
+
+                datas.push_back({math::precise_ft(clip, F, 0,
+                                2.0f * (detector.real_period() / detector.period)),
+                        detector.pitch});
+            }
+
         }
     }
 
@@ -73,29 +135,15 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
     return 0;
 }
 
-TrainingData *wave_data(std::string file){
+WaveData *wave_data(std::string file){
     
-    ui::Loader L(file);
-
-    if(L.bad()) return nullptr;
-
-    TrainingData &data = *(new TrainingData());
-
-    unsigned size = L.read_unsigned();
-    unsigned f = L.read_unsigned();
-
-    for(unsigned i=0; i<size; i++){
-        if(L.bad()){
-            delete &data;
-            return nullptr;
-        }
-        data.push_back({std::vector<float>(2*f), {}});
-        for(unsigned j=0; j<2*f; j++) data.back().first[j] = L.read_float();
-        data.back().second = data.back().first;
-        data.back().first.push_back(L.read_float());
+    WaveData *wd = new WaveData();
+    if(!wd->open(file)){
+        delete wd;
+        return nullptr;
     }
 
-    return &data;
+    return wd;
 }
 
 }

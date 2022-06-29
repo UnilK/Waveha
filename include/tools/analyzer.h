@@ -98,6 +98,7 @@ private:
     void clip_to_dataset(ui::Command);
     void reverb_audio(ui::Command);
     void config_feedback(ui::Command);
+    void process_pitch(ui::Command);
     void info(ui::Command);
 
     AudioLink link;

@@ -9,9 +9,8 @@
 
 namespace ml {
 
-typedef std::pair<std::vector<float>, std::vector<float> > InputLabel;
-typedef std::vector<InputLabel > TrainingData;
 class Stack;
+class TrainingData;
 
 }
 

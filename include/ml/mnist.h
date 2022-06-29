@@ -1,23 +1,45 @@
 #pragma once
 
+#include "ml/db.h"
+#include "ui/fileio.h"
+
 #include <string>
 #include <vector>
+#include <fstream>
 
 namespace ml {
 
-typedef std::pair<std::vector<float>, std::vector<float> > InputLabel;
-typedef std::vector<InputLabel > TrainingData;
-
 unsigned endian_flip(unsigned);
 
-// reads file file.img and file.lb and converts them to matching pairs.
-TrainingData *mnist_data(std::string file);
+class MnistData : public TrainingData {
 
-// blurs the images
-void blur_mnist_data(TrainingData *data);
+public:
 
-// performs fourier transform on the images
-void ft_mnist_data(TrainingData *data);
+    using TrainingData::TrainingData;
+
+    bool open(std::string name);
+
+    InputLabel get_random();
+    InputLabel get_next();
+    void go_to(size_t position = 0);
+    size_t get_size();
+
+    std::string get_file();
+
+    void blur();
+
+private:
+
+    std::string file;
+    ui::Loader images, labels;
+
+    size_t size, pos;
+    int imgw, imgh;
+    size_t lbegin, ibegin;
+
+};
+
+MnistData *mnist_data(std::string file);
 
 }
 

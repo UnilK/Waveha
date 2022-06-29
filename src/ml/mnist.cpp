@@ -2,6 +2,7 @@
 
 #include "ui/fileio.h"
 #include "math/fft.h"
+#include "ml/util.h"
 
 #include <cassert>
 
@@ -14,94 +15,139 @@ unsigned endian_flip(unsigned x){
     return (0xff000000&x<<24) | (0x00ff0000&x<<8) | (0x0000ff00&x>>8) | (0x000000ff&x>>24);
 }
 
-TrainingData *mnist_data(std::string file){
+bool MnistData::open(std::string name){
+
+    file = name;
+    bool ok = labels.open(file+".lb") && images.open(file+".img");
+
+    if(!ok) return 0;
     
-    ui::Loader labels(file+".lb");
-    ui::Loader images(file+".img");
+    ok &= endian_flip(labels.read_unsigned()) == 2049;
+    ok &= endian_flip(images.read_unsigned()) == 2051;
 
-    if(labels.bad() || images.bad()) return nullptr;
+    if(!ok) return 0;
 
-    // we don't care about magic numbers
-    labels.read_unsigned();
-    images.read_unsigned();
-
-    unsigned size = endian_flip(labels.read_unsigned());
-    unsigned otherSize = endian_flip(images.read_unsigned());
-
-    if(size != otherSize) return nullptr;
-
-    // this is mnist dataset specific.
-    unsigned imageSize = endian_flip(images.read_unsigned());
-    if(imageSize != 28) return nullptr;
-    imageSize = endian_flip(images.read_unsigned());
-    if(imageSize != 28) return nullptr;
+    size = endian_flip(labels.read_unsigned());
+    ok &= size == endian_flip(images.read_unsigned());
     
-    TrainingData *p = new TrainingData(size, {vector<float>(28*28, 0.0f), vector<float>(10, 0.0f)});
-    TrainingData &pairs = *p;
-    
-    for(auto &i : pairs){
+    if(!ok) return 0;
 
-        int label = labels.read_byte();
-        assert(label >= 0 && label <= 9);
-        i.second[label] = 1.0f;
-        
-        vector<char> image = images.read_raw(28*28);
-        for(int j=0; j<28*28; j++){
-            i.first[j] = (float)(unsigned char)image[j] / 255;
-            assert(i.first[j] >= 0.0f && i.first[j] <= 1.0f);
-        }
-    }
+    imgw = endian_flip(images.read_unsigned()); 
+    imgh = endian_flip(images.read_unsigned());
+    pos = 0;
 
-    labels.close();
-    images.close();
+    lbegin = labels.tell();
+    ibegin = images.tell();
 
-    return p;
+    return 1;
 }
 
-void blur_mnist_data(TrainingData *data){
+InputLabel MnistData::get_random(){
     
+    size_t original = pos;
+    
+    pos = rng32() % size;
+
+    go_to(pos);
+    auto data = get_next();
+    go_to(original);
+
+    return data;
+}
+
+InputLabel MnistData::get_next(){
+
+    InputLabel data;
+    data.input.resize(imgw*imgh, 0.0f);
+    data.label.resize(10, 0.0f);
+
+    int num = labels.read_byte();
+    data.label[num] = 1.0f;
+    
+    vector<char> buff = images.read_raw(imgw*imgh);
+    for(int j=0; j<imgw*imgh; j++)
+        data.input[j] = (float)(unsigned char)buff[j] / 255;
+
+    go_to(pos + 1);
+
+    return data;
+}
+
+void MnistData::go_to(size_t position){
+    
+    pos = position % size;
+    images.seek(ibegin + pos * imgw * imgh);
+    labels.seek(lbegin + pos);
+
+}
+
+size_t MnistData::get_size(){ return size; }
+
+std::string MnistData::get_file(){ return file; }
+
+void MnistData::blur(){
+    
+    size_t previousPos = pos;
+    go_to(0);
+
     vector<vector<float> > kernel = {
         {0.1, 0.3, 0.1},
         {0.3, 1.0, 0.3},
         {0.1, 0.3, 0.1},
     };
     
-    TrainingData &pairs = *data;
+    ui::Saver out(file + ".img");
 
-    for(auto &pair : pairs){
+    for(size_t iter = size; iter --> 0;){
         
-        const int n = 28;
-        
-        vector<float> &matrix = pair.first;
-        vector<float> conv(n*n, 0.0f);
+        size_t here = images.tell();
 
-        for(int i=0; i<n; i++){
-            for(int j=0; j<n; j++){
+        auto [matrix, label] = get_next();
+       
+        float osum = 0.0f;
+        for(float i : matrix) osum += i;
+
+        vector<float> conv(imgw*imgh, 0.0f);
+
+        for(int i=0; i<imgw; i++){
+            for(int j=0; j<imgh; j++){
                 for(int ii=-1; ii<2; ii++){
                     for(int jj=-1; jj<2; jj++){
-                        if(i+ii < 0 || i+ii >= n || j+jj < 0 || j+jj >= n) continue;
-                        conv[(i+ii)*n+j+jj] += matrix[i*n+j] * kernel[ii+1][jj+1];
+                        if(i+ii < 0 || i+ii >= imgw || j+jj < 0 || j+jj >= imgh) continue;
+                        conv[(i+ii)*imgh+j+jj] += matrix[i*imgh+j] * kernel[ii+1][jj+1];
                     }
                 }
             }
         }
 
-        pair.first = conv;
+        float csum = 0.0f;
+        for(float i : conv) csum += i;
+
+        float diff = osum / csum;
+        for(float &i : conv) i *= diff; 
+
+        vector<unsigned char> buff(imgw*imgh);
+        for(int j=0; j<imgw*imgh; j++)
+            buff[j] = (unsigned char)std::min(255.0f, conv[j] * 255);
+
+        out.seek(here);
+        out.write_raw(buff.size(), buff.data());
     }
+
+    out.close();
+
+    go_to(previousPos);
 }
 
-void ft_mnist_data(TrainingData *data){
+MnistData *mnist_data(std::string file){
     
-    TrainingData &pairs = *data;
-
-    for(auto &pair : pairs){
-        
-        auto freqs = math::bluestein(pair.first);
-        for(unsigned i=0; i<freqs.size()/2; i++){
-            pair.first[2*i] = freqs[i].real();
-            pair.first[2*i+1] = freqs[i].imag();
-        }
+    MnistData *md = new MnistData();
+    if(!md->open(file)){
+        delete md;
+        return nullptr;
     }
+
+    return md;
 }
 
 }

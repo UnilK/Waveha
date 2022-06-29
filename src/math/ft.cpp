@@ -25,12 +25,12 @@ complex<float> lt(const vector<float> &waves, float frequency){
 
 vector<complex<float> > ft(const float *waves, unsigned size, unsigned n, bool haszero){
     
-    vector<complex<float> > frequencies(n, {0, 0});
+    vector<complex<float> > frequencies(n, 0.0f);
     
     vector<complex<float> > exp(size);
     for(unsigned i=0; i<size; i++) exp[i] = cexp((double)(size - i) / size);
 
-    unsigned offset = haszero ? 0 : 1;
+    unsigned offset = !haszero;
 
     for(unsigned i=0; i<size; i++){
         for(unsigned j=0; j<n; j++){
@@ -47,7 +47,29 @@ vector<complex<float> > ft(const vector<float> &waves, unsigned n, bool haszero)
     return ft(waves.data(), waves.size(), n, haszero);
 }
 
-vector<float> ift(const vector<complex<float> > &frequencies, unsigned size, bool haszero){
+vector<complex<float> > precise_ft(const vector<float> &waves,
+        unsigned n, bool haszero, float speed){
+    
+    vector<complex<float> > frequencies(n, 0.0f);
+
+    unsigned size = waves.size();
+    unsigned offset = !haszero;
+
+    for(unsigned i=0; i<size; i++){
+        for(unsigned j=0; j<n; j++){
+            frequencies[j] += waves[i] * std::polar(1.0f, -2 * PIF / size * i * (j + offset) * speed);
+        }
+    }
+
+    for(auto &i : frequencies) i = 2.0f * speed * i / (float)size;
+
+    return frequencies;
+}
+
+vector<float> ift(const vector<complex<float> > &frequencies,
+        unsigned size,
+        bool haszero,
+        float speed){
     
     std::vector<float> waves(size, 0);
     
