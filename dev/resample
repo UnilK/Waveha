@@ -1,1 +1,1 @@
-for i in males/*.wav; do ffmpeg -i $i -acodec pcm_s16le -ar 44100 -ac 1 resamples/$i; done
+for i in f1/*.wav; do ffmpeg -i $i -acodec pcm_s16le -ar 44100 -ac 1 resamples/$i; done

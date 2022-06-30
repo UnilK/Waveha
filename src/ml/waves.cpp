@@ -8,6 +8,9 @@
 
 #include <filesystem>
 #include <cmath>
+#include <iostream>
+#include <iomanip>
+#include <cassert>
 
 namespace ml {
 
@@ -79,7 +82,12 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
 
     const int F = 64; 
 
-    std::vector<std::pair<std::vector<std::complex<float> >, float> > datas;
+    ui::Saver S(output);
+    if(S.bad()) return 1;
+    
+    S.write_unsigned(0);
+    S.write_unsigned(F);
+    unsigned datas = 0;
 
     for(auto f : files){
 
@@ -93,42 +101,34 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
             
             detector.feed(samples);
 
-            if(detector.voiced && !detector.noise && detector.confidence > 0.5f){
+            if(detector.voiced && !detector.noise &&
+                    !detector.quiet && detector.confidence > 0.5f){
                 
-                /*
-                auto clip = detector.get();
-                datas.push_back({math::ft(clip, F), detector.pitch});
-                */
-
                 auto clip = detector.get2();
 
                 float max = 0.0f;
-                for(float i : clip) std::max(max, std::abs(i));
-                
+                for(float i : clip) max = std::max(max, std::abs(i));
+
                 if(max > 0.1f) for(float &i : clip) i /= max;
                 else continue;
 
                 int size = clip.size();
                 for(int i=0; i<size; i++) clip[i] *= 0.5f - 0.5f * std::cos(2 * PIF * i / size);
 
-                datas.push_back({math::precise_ft(clip, F, 0,
-                                2.0f * (detector.real_period() / detector.period)),
-                        detector.pitch});
+                auto freq = math::precise_ft(clip, F, 0,
+                                2.0f * (detector.real_period() / detector.period));
+                
+                for(auto i : freq) S.write_complex(i);
+                S.write_float(detector.pitch);
+
+                datas++;
             }
 
         }
     }
 
-    ui::Saver S(output);
-    if(S.bad() || datas.empty()) return 1;
-
-    S.write_unsigned(datas.size());
-    S.write_unsigned(F);
-
-    for(auto &[i, f] : datas){
-        for(auto j : i) S.write_complex(j);
-        S.write_float(f);
-    }
+    S.seek(0);
+    S.write_unsigned(datas);
 
     S.close();
 

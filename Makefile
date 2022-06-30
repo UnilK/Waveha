@@ -10,8 +10,8 @@ MAINAPP := main
 TEST := test
 
 CXX := g++
-CXXFLAGS := -std=c++17 -g -Og -Wall
-#ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
+#ALTERNATIVE := -std=c++17 -g -Og -Wall
+CXXFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 RELEASEFLAGS := -std=c++17 -O3 -flto -funroll-loops -mavx2 -Wall
 
 
@@ -215,11 +215,14 @@ build/ml/layer.o: include/ml/layer.h include/ui/fileio.h include/ml/util.h
 build/ml/judge.o: include/ml/judge.h
 build/ml/multiply.o: include/ml/multiply.h include/ml/layer.h
 build/ml/multiply.o: include/ui/fileio.h include/ml/util.h
-build/ml/mlml.o: include/ml/mlml.h
-build/ml/waves.o: include/ml/waves.h include/ml/db.h include/math/ft.h
-build/ml/waves.o: include/change/pitch.h lib/Wstream/include/wstream/wstream.h
-build/ml/waves.o: include/ui/fileio.h include/change/detector.h
-build/ml/waves.o: include/math/constants.h
+build/ml/mlml.o: include/ml/mlml.h include/ml/stack.h include/ml/layer.h
+build/ml/mlml.o: include/ui/fileio.h include/ml/util.h include/ml/judge.h
+build/ml/mlml.o: include/ml/db.h
+build/ml/waves.o: include/ml/waves.h include/ml/db.h include/ui/fileio.h
+build/ml/waves.o: include/math/ft.h include/change/pitch.h
+build/ml/waves.o: lib/Wstream/include/wstream/wstream.h
+build/ml/waves.o: include/change/detector.h include/math/constants.h
+build/ml/waves.o: include/ml/util.h
 build/ml/ft.o: include/ml/ft.h include/ml/layer.h include/ui/fileio.h
 build/ml/ft.o: include/ml/util.h include/math/ft.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
@@ -284,6 +287,7 @@ build/tools/analyzer.o: include/wave/buffer.h include/change/pitch.h
 build/tools/analyzer.o: include/app/app.h include/ui/box.h include/app/tools.h
 build/tools/analyzer.o: include/app/creations.h include/math/fft.h
 build/tools/analyzer.o: include/math/ft.h include/change/detector.h
+build/tools/analyzer.o: include/ml/waves.h include/ml/db.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h
