@@ -23,11 +23,6 @@ struct LayerResult {
 
 };
 
-CompilationResult error(
-        std::string error,
-        unsigned line,
-        std::string description);
-
 CompilationResult compile(std::string file);
 
 }

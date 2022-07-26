@@ -1,0 +1,189 @@
+
+Machine learning markup language (mlml) enables
+on-the-fly creation of feed-forward network architechtures
+-> designs are limited to directed acycilc graphs.
+
+Layers are treated as processing centers that are fed data. define one as:
+
+L <type> <arg0> <arg1> ... <argn> .<name>
+or
+<type>
+
+empty names (name is just a dot) are trated as "nameless"
+rather than "my name is noname".
+
+to find what types are available, see ml/factory.cpp.
+to find what the layers require as inputs, see their
+respective source files... documentation comes if
+I found some combination of techniques that work
+acceptably well.
+
+Vectors (data) are conveyor belts between the processing centers:
+
+V <in> <out> <size>
+or
+<size>
+
+A dot in the place of <in> signifies that the vector links to
+the last layer defined before the vector, in place of <out>
+a dot links to the earliest layer/judge defined after the vector.
+If the vector is defined with just a size, both in and out
+are interperted as dots.
+
+Vectors link to the layers in the order they are defined in the file.
+The virtual layer in gives the network it's input.
+
+Judges are defined as:
+
+J <type> <arg0> <arg1> ... <argn> .out
+
+Blocks of
+
+Examples:
+
+Simple networks for the MNIST dataset:
+
+////
+
+V in . 784
+matrix
+{ 20 vv1 20 matrix } 5
+10 vv1 10
+J average .out
+
+////
+
+V in . 784
+L up2 nopull .
+V . . 1568
+L cmatrix .
+{ 80 a2 80 cmatrix } 20
+20 abs2 10 v1 10
+J average .out
+
+////
+
+Feature extractors for voiced sounds.
+Input is the first 64 subfrequencies expressed as complex numbers
+and the last floating point number is the pitch of the sound:
+
+////
+
+V in . 129
+L reblock nopull .
+V . de 128
+V . freq 1
+
+L matrix .freq
+V . . 8
+{ matrix 8 a1 8 } 5
+matrix
+V . mul 16
+
+L dephase nopull .de
+V . re 128
+V . . 64
+matrix 32 a1 32
+matrix 16 a1 16
+L pmultiply .mul
+16 matrix 32 a1 32
+matrix
+V . . 64
+L rephase .re
+V . . 128
+
+J average .out
+
+////
+
+V in . 129
+L reblock nopull .
+V . de 128
+V . freq 1
+
+L dephase nopull .de
+V . re 128
+V . isplit 64
+
+L matrix .freq
+V . . 8
+{ matrix 8 csig 8 } 5
+L copy .freqv
+
+L interleave 1 64 64 7 16 .isplit
+{
+    V isplit^ . 16
+    matrix 32 a1 32
+    matrix 16 a1 16
+    matrix 8 a1
+
+    V . . 8
+    V freqv^ . 8
+    L pmultiply .
+    V . . 8
+    
+    matrix 16 a1 16
+    matrix 32 a1 32
+    matrix 16 v1 16 abs1
+    V . ijoin^ 16
+} 7
+
+L interleave 7 16 64 1 64 .ijoin
+V . . 64
+L rephase .re
+V . . 128
+
+J average .out
+
+////
+
+V in . 129
+L reblock nopull .
+V . de 128
+V . flog 1
+
+L dephase nopull .de
+V . re 128
+V . isplit 64
+
+L pitchlog -3 0.01 .flog
+V . . 1
+L copy .fcopy
+{
+    V fcopy^ . 1
+    matrix 8 vv1 8
+    matrix 16 vv1 16
+    matrix 32 vv1 32
+    matrix 64 vv1
+    V . freqv^ 64
+} 7
+
+L reblock .freqv
+
+L interleave 1 64 64 7 16 .isplit
+{
+    V isplit^ . 16
+    matrix 16 a1 16
+    matrix 32 a1 32
+    matrix 64 a1
+
+    V . . 64
+    V freqv^ . 64
+    L pmultiply .
+    V . . 64
+    
+    matrix 32 a1 32
+    matrix 16 a1 16
+    matrix 16 a1 16 abs1
+    V . ijoin^ 16
+} 7
+
+L interleave 7 16 64 1 64 .ijoin
+V . . 64
+L rephase .re
+V . . 128
+
+J average .out
+
+////
+

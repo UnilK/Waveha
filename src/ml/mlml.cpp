@@ -4,14 +4,19 @@
 
 namespace ml {
 
-CompilationResult error(
-        std::string error,
-        unsigned line,
-        std::string description){
-    return {0, "", nullptr};
-}
-
 CompilationResult compile(std::string file){
+
+    auto error = [&](
+            std::string error,
+            unsigned line,
+            std::string description) -> CompilationResult {
+        
+        return {
+            0,
+            error + " on line " + std::to_string(line),
+            nullptr};
+    };
+
     return {0, "", nullptr};
 }
 

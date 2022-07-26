@@ -1,0 +1,100 @@
+
+Overall objective:
+
+attempt to find a set of characteristics that makes a voice
+sound humanlike and natural to make a natural sounding
+voice changer. It seems that natural sounding text-to-speech
+devices are rather common today. However, voice changers that in
+my mind should be simpler all either sound robotic or just
+plain copy another voice that gets "transplanted" to the
+original one.
+
+
+
+Results from early experiments:
+
+The bulk of human voice characteristics are tied to the pitch:
+The fluctuations of the pitch and the inner contents of one
+period (the timbre) define the sound.
+
+Voicedness is defined by repetition: ANY timbre (even seemingly
+random gray noise) will sound voiced when played on loop.
+
+The human vocal characteristics that are not voiced, such
+as breath or hard-R's (and any other sound for that matter),
+are seemingly impossible to distinquish from the voiced part without
+losing quality. The quality required to fully capture a 100 Hz voice
+seems to be around 60 subfrequencies (f0 included).
+
+Conclusions:
+
+If the key characteristics exist, they are encoded to the pitch and
+it's timbre. More in depth research required -> waveha goes through
+a 4-month upgrade period.
+
+
+
+Experiment results:
+
+(DW - Didn't work)
+
+DW: tired to find clear features by looking at the sound
+and their spectral decompositions
+
+Voices with lower pitch usually have a ">" shape i.e. the
+amplitudes linearly decrease, then sharply increase.
+Separated from the rest, these sound like clicks... as
+do pretty much all very short sounds.
+
+Multiplying a low-pitched ">" period with a slant "<" that
+undoes the original shape does not affect the signal quality.
+
+DW: lower pitch voices are not defined by the ">"-shapiness.
+Multiplying by a "<" slant, then increasing the pitch,
+produces a helium-like voice. Doing the reverse still
+produces an overly bassy sound.
+
+KEY 0: both the phase and magnitude of subfrequencies affect the
+naturality of a voice. For the lower frequencies that form the
+bulk of the voices amplitudes (but not energy neccesarily...), 
+the phase seems to have less effect.
+
+KEY 1: both the phase and magnitudes have excellent error
+tolerances random gray noise swings of 2*pi/10 rad and
+magnitude gray noise relative errors of 0.7 - 1.5 distributed
+among all the subfrequencies still often produce natrual
+sounding voices.
+
+With this observation I attempted to create a feature extractor
+with machine learning that operated on complex numbers.
+The key issue with extracting information from periodic functions
+is that the overall phase (phase of f0 to be inprecise) should not
+matter as it just corresponds to a shift of the signal.
+
+SOLUTION 0:
+we can "delocalize" a fourier transform before feeding it to the
+network with the following F'[i] = F[i] * conj(F[i-1]) / abs(F[i-1]).
+effectively after this transformation each frequency component
+will have the form e^(x + i * (phase_of_f0 + y)) - that is, they all rotate
+at the same speed as f0. As long as the complex valued network's
+nonlinearities only operate on the magnitudes (exponent real parts),
+the overall phase of the signal will pass through the network unaffected.
+We can then inverse transform the signal:
+F[i] = F'[i] * PRODUCT(j = 0..i-1, F'[j] / abs(F'[j]))
+
+DW: the higher subfrequencies proved to have too unpredictable phases,
+which was somewhat expected. The lower 16 or so frequencies could
+be constructed with acceptable quality.
+
+KEY 2: the voiced part of an utterance has two major features:
+the resonating of low frequencies and the buzz of high frequencies.
+The latter has proved hard to extract features from.
+
+KEY 3: transplanting the phases from one voice to another often
+produces natural sounding results.
+
+-> discard the phases and only operate on magnitudes.
+
+-> split the spectrum into interleaved blocks to better capture
+the buzzer.
+

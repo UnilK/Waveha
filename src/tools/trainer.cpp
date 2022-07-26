@@ -66,6 +66,8 @@ void Trainer::save(ui::Saver &saver){
     saver.write_unsigned(tinterval);
     saver.write_double(speed);
     saver.write_double(decay);
+    
+    saver.write_float(slider.targetHeight);
 }
 
 void Trainer::load(ui::Loader &loader){
@@ -78,6 +80,8 @@ void Trainer::load(ui::Loader &loader){
     speed = loader.read_double();
     decay = loader.read_double();
     updatedFlag = 1;
+    
+    slider.set_target_size(0, loader.read_float());
 }
 
 void Trainer::on_tick(){

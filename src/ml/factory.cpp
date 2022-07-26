@@ -10,6 +10,7 @@
 #include "ml/reblock.h"
 #include "ml/multiply.h"
 #include "ml/phase.h"
+#include "ml/control.h"
 
 namespace ml {
 
@@ -27,11 +28,14 @@ std::string cnorm = "cnorm";
 std::string reblock = "reblock";
 std::string interleave = "interleave";
 std::string copy = "copy";
+std::string join = "join";
 std::string multiply = "multiply";
 std::string cmultiply = "cmultiply";
 std::string pmultiply = "pmultiply";
 std::string dephase = "dephase";
 std::string rephase = "rephase";
+std::string control = "control";
+std::string pitchlog = "pitchlog";
 
 std::string a1 = "a1";
 std::string v1 = "v1";
@@ -90,6 +94,9 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
     if(type == Factory::copy && Copy::ok(left, right, a))
         return new Copy(left, right, a);
 
+    if(type == Factory::join && Join::ok(left, right, a))
+        return new Join(left, right, a);
+
     if(type == Factory::multiply && Multiply::ok(left, right, a))
         return new Multiply(left, right, a);
 
@@ -104,6 +111,12 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
 
     if(type == Factory::rephase && Rephase::ok(left, right, a))
         return new Rephase(left, right, a);
+
+    if(type == Factory::control && Control::ok(left, right, a))
+        return new Control(left, right, a);
+
+    if(type == Factory::pitchlog && PitchLog::ok(left, right, a))
+        return new PitchLog(left, right, a);
 
 
 
@@ -153,9 +166,6 @@ Judge *create_judge(std::string type, std::vector<float> &result){
 
     if(type == Factory::average && Average::ok(result))
         return new Average(result);
-    
-    if(type == Factory::phaselax && Phaselax::ok(result))
-        return new Phaselax(result);
    
     return nullptr;
 }

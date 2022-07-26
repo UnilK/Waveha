@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 
 namespace ml {
 
@@ -12,10 +13,11 @@ public:
 
     virtual ~TrainingData();
 
-    virtual InputLabel get_random();
-    virtual InputLabel get_next();
-    virtual void go_to(size_t position = 0);
-    virtual size_t get_size();
+    InputLabel get_random();
+    virtual InputLabel get(size_t position);
+    virtual size_t size() const;
+
+    std::recursive_mutex mutex;
 
 };
 

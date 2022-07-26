@@ -60,8 +60,15 @@ void Creations::load(ui::Loader &loader){
 }
 
 void Creations::reset(){
-    for(auto &i : datas) delete std::get<2>(i.second);
-    for(auto &i : stacks) delete i.second;
+
+    std::vector<std::string> tdatas, tstacks;
+
+    for(auto [k, v] : datas) tdatas.push_back(k);
+    for(auto [k, v] : stacks) tstacks.push_back(k);
+    
+    for(auto i : tdatas) remove_mldata(i);
+    for(auto i : tstacks) remove_stack(i);
+
     datas.clear();
     stacks.clear();
 }
@@ -94,20 +101,24 @@ int Creations::load_mldata(std::string type, std::string file, std::string name)
 
     if(type == "mnist"){
         
-        ml::TrainingData *data = ml::mnist_data(file);
+        ml::MnistData *data = ml::mnist_data(file);
         
         if(data == nullptr) return 1;
         remove_mldata(name);
-        datas[name] = {"mnist", file, data};
+        datas[name] = {type, file, data};
         
     }
     else if(type == "wave"){
 
-        ml::TrainingData *data = ml::wave_data(file);
+        ml::WaveData *data = ml::wave_data(file);
         if(data == nullptr) return 1;
 
         remove_mldata(name);
+
         datas[name] = {type, file, data};
+        datas[name+"r"] = {type+"r", "", &data->raw};
+        datas[name+"l"] = {type+"l", "", &data->labeled};
+        datas[name+"m"] = {type+"m", "", &data->matched};
     }
     else {
         return 1;
@@ -119,7 +130,20 @@ int Creations::load_mldata(std::string type, std::string file, std::string name)
 int Creations::remove_mldata(std::string name){
     
     if(!datas.count(name)) return 1;
-    delete std::get<2>(datas[name]);
+
+    auto [type, file, pointer] = datas[name];
+  
+    if(type == "waver") return 2;
+    if(type == "wavel") return 2;
+    if(type == "wavem") return 2;
+
+    if(type == "wave"){
+        datas.erase(name+"r");
+        datas.erase(name+"l");
+        datas.erase(name+"m");
+    }
+
+    delete pointer;
     datas.erase(name);
     
     return 0;
@@ -172,6 +196,11 @@ ml::TrainingData *Creations::get_mldata(std::string name){
 ml::Stack *Creations::get_stack(std::string name){
     if(stacks.count(name)) return stacks[name];
     return nullptr;
+}
+
+std::string Creations::data_type(std::string name){
+    if(datas.count(name)) return std::get<0>(datas[name]);
+    return "";
 }
 
 // directory //////////////////////////////////////////////////////////////////

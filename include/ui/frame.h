@@ -24,7 +24,7 @@ struct FrameArgs {
     unsigned spany = 1;
     std::array<float, 4> pad = {0, 0, 0, 0}; // left, right, up, down
     std::array<float, 6> fill = {0, 1, 0, 0, 1, 0}; // left, mid, right, up, mid, down.
-    std::array<bool, 4> border = {1, 1, 1, 1}; // left, right, up, down
+    std::array<bool, 4> border = {0, 0, 0, 0}; // left, right, up, down
 
 };
 

@@ -279,6 +279,9 @@ void CanvasTool::save(ui::Saver &saver){
     saver.write_unsigned(frequency);
     saver.write_unsigned(data.size());
     for(float i : data) saver.write_float(i);
+    
+    saver.write_float(slider.targetHeight);
+    
     canvas.save(saver);
 }
 
@@ -292,6 +295,9 @@ void CanvasTool::load(ui::Loader &loader){
     frequency = loader.read_unsigned();
     data.resize(loader.read_unsigned());
     for(float &i : data) i = loader.read_float();
+    
+    slider.set_target_size(0, loader.read_float());
+    
     canvas.load(loader);
     update_data();
     canvas.update_info();

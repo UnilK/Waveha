@@ -6,6 +6,10 @@
 
 namespace ui {
 
+Borders::Borders() :
+    w(0), h(0), l(0), r(0), u(0), d(0), isl(0), isr(0), isu(0), isd(0)
+{}
+
 Borders::~Borders(){}
 
 void Borders::set_look(std::string look_){

@@ -84,8 +84,6 @@ baseterminal
     outputColor .dcyan
 ;
 
-
-
 agraph
     background .terminal
     borderColor .purple
@@ -95,6 +93,36 @@ agraph
     indicatorSize 18
     indicatorColor .green
     font default
+;
+
+
+
+inverseback
+    borderThickness 1
+    background .dwhite
+;
+
+inverseborder
+    .inverseback
+    borderColor .terminal
+;
+
+inversetext
+    .inverseborder
+    textSize 18
+    textColor .terminal
+    textStyle default
+    font default
+;
+
+inversedarktext
+    .inversetext
+    background .gray
+;
+
+inversebutton
+    normal inversetext
+    pressed inversedarktext
 ;
 
 ;

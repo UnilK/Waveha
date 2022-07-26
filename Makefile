@@ -10,8 +10,8 @@ MAINAPP := main
 TEST := test
 
 CXX := g++
-#ALTERNATIVE := -std=c++17 -g -Og -Wall
-CXXFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
+CXXFLAGS := -std=c++17 -g -Og -Wall
+#ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 RELEASEFLAGS := -std=c++17 -O3 -flto -funroll-loops -mavx2 -Wall
 
 
@@ -140,6 +140,7 @@ build/app/content.o: include/tools/recorder.h include/ui/clock.h
 build/app/content.o: include/wave/mic.h include/tools/trainer.h
 build/app/content.o: include/ml/stack.h include/ml/layer.h include/ml/util.h
 build/app/content.o: include/ml/judge.h include/ml/db.h include/tools/canvas.h
+build/app/content.o: include/tools/labler.h
 build/app/slot.o: include/app/slot.h include/ui/box.h include/ui/slider.h
 build/app/slot.o: include/ui/stack.h include/ui/frame.h include/ui/borders.h
 build/app/slot.o: include/ui/style.h include/ui/window.h include/ui/text.h
@@ -197,7 +198,7 @@ build/ml/factory.o: include/ui/fileio.h include/ml/field.h include/ml/field.inl
 build/ml/factory.o: include/ml/matrix.h include/ml/deloc.h include/ml/roll.h
 build/ml/factory.o: include/ml/ft.h include/ml/judge.h include/ml/norm.h
 build/ml/factory.o: include/ml/reblock.h include/ml/multiply.h
-build/ml/factory.o: include/ml/phase.h
+build/ml/factory.o: include/ml/phase.h include/ml/control.h
 build/ml/field.o: include/ml/field.h include/ml/layer.h include/ui/fileio.h
 build/ml/field.o: include/ml/util.h include/ml/field.inl
 build/ml/norm.o: include/ml/norm.h include/ml/layer.h include/ui/fileio.h
@@ -207,6 +208,8 @@ build/ml/deloc.o: include/ml/util.h
 build/ml/phase.o: include/ml/phase.h include/ml/layer.h include/ui/fileio.h
 build/ml/phase.o: include/ml/util.h
 build/ml/util.o: include/ml/util.h
+build/ml/control.o: include/ml/control.h include/ml/layer.h include/ui/fileio.h
+build/ml/control.o: include/ml/util.h
 build/ml/matrix.o: include/ml/matrix.h include/ml/layer.h include/ui/fileio.h
 build/ml/matrix.o: include/ml/util.h
 build/ml/mnist.o: include/ml/mnist.h include/ml/db.h include/ui/fileio.h
@@ -228,7 +231,7 @@ build/ml/ft.o: include/ml/util.h include/math/ft.h
 build/ml/stack.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/ml/stack.o: include/ml/util.h include/ml/judge.h include/ml/db.h
 build/ml/stack.o: include/ml/factory.h
-build/ml/db.o: include/ml/db.h
+build/ml/db.o: include/ml/db.h include/ml/util.h
 build/ml/reblock.o: include/ml/reblock.h include/ml/layer.h include/ui/fileio.h
 build/ml/reblock.o: include/ml/util.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
@@ -295,6 +298,18 @@ build/tools/graph.o: include/ui/terminal.h include/ui/fileio.h
 build/tools/graph.o: include/app/app.h include/ui/box.h include/ui/slider.h
 build/tools/graph.o: include/ui/stack.h include/ui/text.h include/ui/button.h
 build/tools/graph.o: include/app/tools.h include/math/constants.h
+build/tools/labler.o: include/tools/labler.h include/app/content.h
+build/tools/labler.o: include/ui/frame.h include/ui/borders.h
+build/tools/labler.o: include/ui/style.h include/ui/window.h
+build/tools/labler.o: include/app/session.h include/ui/terminal.h
+build/tools/labler.o: include/ui/fileio.h include/app/audio.h
+build/tools/labler.o: include/wave/source.h include/wave/cache.h
+build/tools/labler.o: include/wave/audio.h include/wave/file.h
+build/tools/labler.o: lib/Wstream/include/wstream/wstream.h
+build/tools/labler.o: include/tools/graph.h include/ui/slider.h
+build/tools/labler.o: include/ui/stack.h include/ui/text.h include/ui/button.h
+build/tools/labler.o: include/wave/sound.h include/wave/buffer.h
+build/tools/labler.o: include/app/app.h include/ui/box.h include/app/tools.h
 build/tools/canvas.o: include/tools/canvas.h include/app/content.h
 build/tools/canvas.o: include/ui/frame.h include/ui/borders.h
 build/tools/canvas.o: include/ui/style.h include/ui/window.h

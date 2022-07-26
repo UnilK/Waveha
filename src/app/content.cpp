@@ -5,6 +5,7 @@
 #include "tools/recorder.h"
 #include "tools/trainer.h"
 #include "tools/canvas.h"
+#include "tools/labler.h"
 
 namespace app {
 
@@ -15,6 +16,7 @@ std::string meditor = "medit";
 std::string recorder = "record";
 std::string trainer = "train";
 std::string canvas = "canvas";
+std::string labler = "label";
 
 }
 
@@ -27,6 +29,7 @@ Content *create_content(std::string type, App *app){
     if(type == Factory::recorder) return new Recorder(app);
     if(type == Factory::trainer) return new Trainer(app);
     if(type == Factory::canvas) return new CanvasTool(app);
+    if(type == Factory::labler) return new Labler(app);
 
     return nullptr;
 }
@@ -45,7 +48,8 @@ std::vector<std::string> valid_content_types(){
         Factory::meditor,
         Factory::recorder,
         Factory::canvas,
-        Factory::trainer
+        Factory::trainer,
+        Factory::labler
     };
 }
 

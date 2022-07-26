@@ -20,6 +20,7 @@ class Borders : public Styled {
 
 public:
 
+    Borders();
     virtual ~Borders();
 
     void set_look(std::string look_);
@@ -31,9 +32,9 @@ public:
     void update();
 
     sf::RectangleShape back, left, right, up, down;
-    float w = 0, h = 0;
-    float l = 0, r = 0, u = 0, d = 0;
-    bool isl = 1, isr = 1, isu = 1, isd = 1; 
+    float w, h;
+    float l, r, u, d;
+    bool isl, isr, isu, isd; 
 
 };
 

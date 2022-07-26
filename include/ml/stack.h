@@ -39,8 +39,12 @@ public:
             const std::vector<float> &input,
             const std::vector<float> &output);
 
-    void train_program(TrainingData &data, unsigned batchSize, unsigned batches,
-            float speed, float decay);
+    void train_program(
+            TrainingData &data,
+            unsigned batchSize,
+            unsigned batches,
+            float speed,
+            float decay);
 
     struct TestAnalysis {
         unsigned correct = 0;
@@ -48,7 +52,7 @@ public:
         std::vector<double> errors;
     };
 
-    TestAnalysis test(TrainingData &data);
+    TestAnalysis test(TrainingData &data, size_t amount = 0);
     
     void apply_changes(float factor, float decay, unsigned batchSize);
 
@@ -66,7 +70,7 @@ private:
     std::vector<std::vector<std::string> > build_trans;
     std::vector<std::tuple<std::string, std::string, unsigned> > build_links;
 
-    std::mutex lock;
+    std::recursive_mutex mutex;
 
 };
 

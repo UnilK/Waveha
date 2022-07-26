@@ -56,13 +56,29 @@ public:
 private:
 
     std::vector<float> middle;
-    std::vector<unsigned> lpos, rpos;
+    std::vector<unsigned> lpos, rpos, lcnt, rcnt;
 
 };
 
 
 
 class Copy : public Layer {
+
+public:
+
+    using Layer::Layer;
+
+    void push();
+    void pull();
+
+    std::string get_type();
+    static bool ok(arrays in, arrays out, args a);
+
+};
+
+
+
+class Join : public Layer {
 
 public:
 

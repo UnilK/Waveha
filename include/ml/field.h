@@ -118,7 +118,7 @@ public:
     std::string get_type();
 };
 
-class VV1Field : public Field<1, 1, 2, vv1> {
+class VV1Field : public Field<1, 1, 1, vv1> {
 public:
     VV1Field(arrays in, arrays out, args a);
     using Field::ok;

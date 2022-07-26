@@ -13,6 +13,7 @@
 #include <limits>
 #include <iostream>
 #include <filesystem>
+#include <cassert>
 
 namespace app {
 
@@ -356,6 +357,7 @@ Analyzer::Analyzer(App *a) :
 
     put(0, 0, &graph);
     put(1, 0, &slider);
+    slider.set_scrollable(0);
 
     slider.stack.create(2);
     slider.stack.put(&buttons, 0);
@@ -452,6 +454,8 @@ void Analyzer::save(ui::Saver &saver){
         saver.write_float(mag);
     }
 
+    saver.write_float(slider.targetHeight);
+
     graph.save(saver);
 }
 
@@ -477,6 +481,8 @@ void Analyzer::load(ui::Loader &loader){
     for(unsigned i=0; i<feedbacks; i++)
         feedback[loader.read_int()] = loader.read_float();
 
+    slider.set_target_size(0, loader.read_float());
+    
     graph.load(loader);
 
     update_data();
@@ -658,11 +664,20 @@ void Analyzer::info(ui::Command c){
 
 void Analyzer::check_ml_data(ui::Command c){
     
-    ml::TrainingData *all = app.creations.get_mldata(c.pop());
+    std::string name = c.pop();
+    auto type = app.creations.data_type(name);
+
+    if(type != "waver" && type != "wavel" && type != "waver" && type != "wave") return;
+
+    ml::TrainingData *all = app.creations.get_mldata(name);
     if(all == nullptr) return;
 
     std::vector<std::complex<float> > freq;
-    std::vector<float> rnd = all->get_random().label;
+    std::vector<float> rnd = all->get_random().input;
+    rnd.pop_back();
+    
+    assert(rnd.size()%2 == 0);
+
     freq.resize(rnd.size()/2);
     for(unsigned i=0; i<freq.size(); i++) freq[i] = {rnd[2*i], rnd[2*i+1]};
     graph.set_data(math::ift(freq, length));

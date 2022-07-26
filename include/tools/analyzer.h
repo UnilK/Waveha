@@ -62,7 +62,6 @@ private:
 class Analyzer : public Content {
 
 public:
-
     
     Analyzer(App*);
     ~Analyzer();

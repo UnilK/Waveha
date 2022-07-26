@@ -28,6 +28,7 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
         functions.put(1, 0, &buttons);
         functions.fill_width(0, 1);
         functions.fill_height(0, 1);
+        functions.set_border(1, 1, 0, 0);
         
         bar.setup_grid(2, 1);
         bar.put(0, 0, &dot);
@@ -48,6 +49,7 @@ Slider::Slider(Window *master_, Side barSide, Side stackStick, Kwargs kwargs) :
         functions.put(0, 1, &buttons);
         functions.fill_width(0, 1);
         functions.fill_height(0, 1);
+        functions.set_border(0, 0, 1, 1);
         
         bar.setup_grid(1, 2);
         bar.put(0, 0, &dot);

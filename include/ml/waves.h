@@ -12,31 +12,85 @@ class WaveData : public TrainingData {
 
 public:
 
-    using TrainingData::TrainingData;
-
+    WaveData();
+    ~WaveData();
+    
     bool open(std::string name);
 
-    InputLabel get_random();
-    InputLabel get_next();
-    void go_to(size_t position = 0);
-    size_t get_size();
+    InputLabel get(size_t position);
+    size_t size() const;
+    size_t labeled_size();
 
     std::string get_file();
 
-    void blur();
+    bool has_labeled();
+    bool has_unlabeled();
+    InputLabel next_unlabeled();
+    bool label_next(std::vector<char> mask);
+    bool discard_next();
+
+    void shuffle();
+    
+    void update_index();
+   
+    // sockets for accessing the data
+
+    class Raw : public TrainingData {
+    public:
+        Raw(WaveData&);
+        InputLabel get(size_t position);
+        size_t size() const;
+    private:
+        WaveData &src;
+    };
+    
+    class Labeled : public TrainingData {
+    public:
+        Labeled(WaveData&);
+        InputLabel get(size_t position);
+        size_t size() const;
+    private:
+        WaveData &src;
+    };
+    
+    class Matched : public TrainingData {
+    public:
+        Matched(WaveData&);
+        InputLabel get(size_t position);
+        size_t size() const;
+        void match_same(float probability);
+    private:
+        WaveData &src;
+        float sameProb;
+    };
+    
+    Raw raw;
+    Labeled labeled;
+    Matched matched;
 
 private:
 
+    void swap(size_t, size_t);
+    void go_tog(size_t);
+    void go_top(size_t);
+
     std::string file;
-    ui::Loader spectrums;
+    ui::Editor spectrums, labels;
 
-    size_t begin, size, pos, freqs, sampleSize;
+    size_t sbegin, ssize, freqs, sampleSize;
+    size_t lbegin, lsize;
+    size_t pos;
 
+    std::vector<std::vector<size_t> > index;
+
+    std::recursive_mutex mutex;
 };
 
 int create_wave_data(std::string directory, std::string output, unsigned N);
 
 WaveData *wave_data(std::string file);
+
+int merge_wave_data(std::string first, std::string second, std::string out);
 
 }
 

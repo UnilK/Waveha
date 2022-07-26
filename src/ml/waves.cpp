@@ -11,60 +11,159 @@
 #include <iostream>
 #include <iomanip>
 #include <cassert>
+#include <algorithm>
 
 namespace ml {
 
+WaveData::WaveData() :
+    TrainingData(),
+    raw(*this),
+    labeled(*this),
+    matched(*this)
+{}
+
+WaveData::~WaveData(){}
+
 bool WaveData::open(std::string name){
+    
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     file = name;
 
     spectrums.open(file);
+    labels.open(file);
 
-    if(spectrums.bad()) return 0;
+    if(spectrums.bad() || labels.bad()) return 0;
 
-    size = spectrums.read_unsigned();
+    ssize = spectrums.read_unsigned();
     freqs = spectrums.read_unsigned();
     sampleSize = (2 * freqs + 1) * sizeof(float);
-    begin = spectrums.tell();
+    sbegin = spectrums.tellg();
+
+    lsize = labels.read_unsigned();
+    lbegin = labels.tellg();
+    pos = 0;
 
     return 1;
 }
 
-InputLabel WaveData::get_random(){
+InputLabel WaveData::get(size_t position){
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     
-    size_t original = pos;
-    
-    pos = rng32() % size;
+    if(pos != position % ssize){
+        pos = position % ssize;
+        spectrums.seekg(sbegin + pos * sampleSize);
+        labels.seekg(lbegin + pos * 8);
+    }
 
-    go_to(pos);
-    auto data = get_next();
-    go_to(original);
+    InputLabel ret;
+    ret.input.resize(2 * freqs + 1);
+    ret.label.resize(64, 0.0f);
 
-    return data;
+    for(float &i : ret.input) i = spectrums.read_float();
+
+    auto label = labels.read_raw(8);
+    for(unsigned i=0; i<8; i++){
+        for(unsigned j=0; j<8; j++){
+            if(label[i] >> j & 1) ret.label[i*8+j] = 1.0f;
+        }
+    }
+
+    pos++;
+
+    return ret;
 }
 
-InputLabel WaveData::get_next(){
-
-    std::vector<float> data(2 * freqs + 1);
-
-    for(float &i : data) i = spectrums.read_float();
-
-    go_to(pos + 1);
-
-    auto nopitch = data;
-    nopitch.pop_back();
-
-    return {data, nopitch};
-}
-
-void WaveData::go_to(size_t position){
-    pos = position % size;
-    spectrums.seek(begin + pos * sampleSize);
-}
-
-size_t WaveData::get_size(){ return size; }
-
+size_t WaveData::size() const { return ssize; }
+size_t WaveData::labeled_size(){ return lsize; }
 std::string WaveData::get_file(){ return file; }
+bool WaveData::has_labeled(){ return lsize > 0; }
+bool WaveData::has_unlabeled(){ return lsize < ssize; }
+
+InputLabel WaveData::next_unlabeled(){ return get(lsize); }
+
+bool WaveData::label_next(std::vector<char> mask){
+    
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    assert(mask.size() == 8);
+
+    if(lsize == ssize) return 0;
+    
+    go_top(lsize);
+    labels.write_raw(mask.size(), mask.data());
+
+    lsize++;
+    labels.seekp(0);
+
+    return 1;
+}
+
+bool WaveData::discard_next(){
+
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
+    if(ssize == 0) return 0;
+    
+    swap(lsize, ssize-1);
+    ssize--;
+
+    return 1;
+}
+
+void WaveData::shuffle(){
+    
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
+    for(size_t i=lsize; i+1<ssize; i++) swap(i, i+rng32()%(ssize-i));
+}
+
+void WaveData::update_index(){
+    
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
+    for(int i=0; i<64; i++) index[i].clear();
+
+    for(size_t i=0; i<lsize; i++){
+        auto il = get(i);
+        for(int j=0; j<64; j++) if(il.label[j] > 0.5f) index[j].push_back(i);
+    }
+}
+
+void WaveData::swap(size_t a, size_t b){
+
+    if(a == b) return;
+
+    assert(a < ssize);
+    assert(b < ssize);
+    
+    go_tog(a);
+    std::vector<char> aspec(spectrums.read_raw(sampleSize));
+    std::vector<char> alabe(labels.read_raw(8));
+    
+    go_tog(b);
+    std::vector<char> bspec(spectrums.read_raw(sampleSize));
+    std::vector<char> blabe(labels.read_raw(8));
+
+    go_top(b);
+    spectrums.write_raw(aspec.size(), aspec.data());
+    labels.write_raw(alabe.size(), alabe.data());
+    
+    go_top(a);
+    spectrums.write_raw(bspec.size(), bspec.data());
+    labels.write_raw(blabe.size(), blabe.data());
+}
+
+void WaveData::go_tog(size_t position){
+    spectrums.seekg(lbegin + position * 8);
+    labels.seekg(sbegin + position * sampleSize);
+}
+
+void WaveData::go_top(size_t position){
+    spectrums.seekp(lbegin + position * 8);
+    labels.seekp(sbegin + position * sampleSize);
+}
 
 int create_wave_data(std::string directory, std::string output, unsigned N){
 
@@ -80,15 +179,17 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
         files.push_back(f);
     }
 
-    const int F = 64; 
+    const unsigned F = 64; 
 
-    ui::Saver S(output);
-    if(S.bad()) return 1;
+    ui::Saver spectrums(output+".spec"), labels(output+".lb");
+    if(spectrums.bad() || labels.bad()) return 1;
     
-    S.write_unsigned(0);
-    S.write_unsigned(F);
+    spectrums.write_unsigned(0);
+    spectrums.write_unsigned(F);
     unsigned datas = 0;
 
+    labels.write_unsigned(0);
+    
     for(auto f : files){
 
         iwstream I;
@@ -115,22 +216,27 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
                 int size = clip.size();
                 for(int i=0; i<size; i++) clip[i] *= 0.5f - 0.5f * std::cos(2 * PIF * i / size);
 
-                auto freq = math::precise_ft(clip, F, 0,
+                unsigned f = std::min(F, I.get_frame_rate() / (detector.period * 2));
+                auto freq = math::precise_ft(clip, f, 0,
                                 2.0f * (detector.real_period() / detector.period));
+                freq.resize(F, 0.0f);
                 
-                for(auto i : freq) S.write_complex(i);
-                S.write_float(detector.pitch);
+                for(auto i : freq) spectrums.write_complex(i);
+                spectrums.write_float(detector.pitch);
 
                 datas++;
             }
-
         }
     }
 
-    S.seek(0);
-    S.write_unsigned(datas);
+    spectrums.seek(0);
+    spectrums.write_unsigned(datas);
+    
+    char noLabel[8] = {0};
+    for(unsigned i=0; i<datas; i++) labels.write_raw(8, noLabel);
 
-    S.close();
+    spectrums.close();
+    labels.close();
 
     return 0;
 }
@@ -144,6 +250,140 @@ WaveData *wave_data(std::string file){
     }
 
     return wd;
+}
+
+int merge_wave_data(std::string first, std::string second, std::string out){
+    
+    ui::Loader fspec(first+".spec"), flabe(first+".lb");
+    ui::Loader sspec(second+".spec"), slabe(second+".lb");
+
+    if(fspec.bad() || flabe.bad() || sspec.bad() || slabe.bad()) return 1;
+
+    unsigned fssize = fspec.read_unsigned();
+    unsigned ffreqs = fspec.read_unsigned();
+    unsigned sampleSize = (2 * ffreqs + 1) * sizeof(float);
+    unsigned flsize = flabe.read_unsigned();
+    
+    unsigned sssize = sspec.read_unsigned();
+    unsigned sfreqs = sspec.read_unsigned();
+    unsigned slsize = slabe.read_unsigned();
+
+    if(ffreqs != sfreqs) return 2;
+
+    ui::Saver ospec(out+".spec"), olabe(out+".lb");
+    if(ospec.bad() || olabe.bad()) return 3;
+    
+    ospec.write_unsigned(fssize+sssize);
+    ospec.write_unsigned(ffreqs);
+    olabe.write_unsigned(flsize+slsize);
+
+    std::vector<char> bus;
+
+    bus = fspec.read_raw(flsize*sampleSize);
+    ospec.write_raw(bus.size(), bus.data());
+    
+    bus = sspec.read_raw(slsize*sampleSize);
+    ospec.write_raw(bus.size(), bus.data());
+
+    bus = fspec.read_raw((fssize-flsize)*sampleSize);
+    ospec.write_raw(bus.size(), bus.data());
+    
+    bus = sspec.read_raw((sssize-slsize)*sampleSize);
+    ospec.write_raw(bus.size(), bus.data());
+
+
+
+    bus = flabe.read_raw(flsize*8);
+    olabe.write_raw(bus.size(), bus.data());
+    
+    bus = slabe.read_raw(slsize*8);
+    olabe.write_raw(bus.size(), bus.data());
+
+    bus = flabe.read_raw((fssize-flsize)*8);
+    olabe.write_raw(bus.size(), bus.data());
+    
+    bus = slabe.read_raw((sssize-slsize)*8);
+    olabe.write_raw(bus.size(), bus.data());
+
+    fspec.close();
+    sspec.close();
+    ospec.close();
+    flabe.close();
+    slabe.close();
+    olabe.close();
+
+    return 0;
+}
+
+// raw ///////////////////////////////////////////////////////////////////////
+
+WaveData::Raw::Raw(WaveData &source) : 
+    src(source)
+{
+
+}
+
+InputLabel WaveData::Raw::get(size_t position){
+    auto ret = src.get(position);
+    ret.label = ret.input;
+    ret.label.pop_back();
+    return ret;
+}
+
+size_t WaveData::Raw::size() const { return src.ssize; }
+    
+// labeled ////////////////////////////////////////////////////////////////////
+
+WaveData::Labeled::Labeled(WaveData &source) :
+    src(source)
+{}
+
+InputLabel WaveData::Labeled::get(size_t position){
+    return src.get(position % src.lsize);
+}
+
+size_t WaveData::Labeled::size() const { return src.lsize; }
+
+// matched ////////////////////////////////////////////////////////////////////
+
+WaveData::Matched::Matched(WaveData &source) :
+    src(source),
+    sameProb(0.5f)
+{}
+
+InputLabel WaveData::Matched::get(size_t position){
+
+    std::lock_guard<std::recursive_mutex> lock(src.mutex);
+
+    for(auto &i : src.index){
+        if(i.size() > position){
+            
+            auto apos = i[position];
+            auto bpos = (float)rng32()/(1ll<<32) < sameProb ? apos : i[rng32()%i.size()];
+
+            InputLabel a = src.get(apos);
+            InputLabel b;
+            if(bpos != apos) b = src.get(bpos);
+            else b = a;
+
+            InputLabel ret;
+            ret.input = a.input;
+            ret.label = b.input;
+            ret.input.back() = ret.label.back() / ret.input.back();
+            ret.label.pop_back();
+
+            return ret;
+        }
+        position -= i.size();
+    }
+
+    return {{}, {}};
+}
+
+size_t WaveData::Matched::size() const { return src.lsize; }
+
+void WaveData::Matched::match_same(float probability){
+    sameProb = std::min(1.0f, std::max(0.0f, probability));
 }
 
 }

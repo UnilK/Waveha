@@ -19,6 +19,8 @@ Meditor::Meditor(App *a) :
     link(*a),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}})
 {
+    matrix.resize(64);
+
     setup_grid(1, 1);
     fill_width(0, 1);
     fill_height(0, 1);
@@ -39,9 +41,10 @@ Meditor::Meditor(App *a) :
     terminal.put_function("magset", [&](ui::Command c){ set_magnitude(c); });
     terminal.put_function("stack", [&](ui::Command c){ set_stack(c); });
     terminal.put_function("mode", [&](ui::Command c){ set_mode(c); });
-    terminal.put_function("auto", [&](ui::Command c){ set_refresh(c); });
+    terminal.put_function("auto", [&](ui::Command c){ set_auto(c); });
     terminal.put_function("slant", [&](ui::Command c){ set_slant(c); });
     terminal.put_function("pitch", [&](ui::Command c){ set_pitch(c); });
+    terminal.put_function("reme", [&](ui::Command c){ remember(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
 
     terminal.document("link", "[name] link audio to be edited."
@@ -55,9 +58,10 @@ Meditor::Meditor(App *a) :
     terminal.document("magset", "[low] [high] [factor] multply frequencies in ragne [low, high[ by angle.");
     terminal.document("stack", "[stack] use this stack to transform the waves.");
     terminal.document("mode", "[mode] use this transformation mode.");
-    terminal.document("auto", "switch auto refresh");
+    terminal.document("auto", "switch auto auto");
     terminal.document("slant", "[in] [out] multiply wave by a linear function");
     terminal.document("pitch", "[factor] multiply wavelength by factor");
+    terminal.document("reme", "remember magnitudes from current input");
     terminal.document("info", "list configuration.");
 }
 
@@ -121,7 +125,7 @@ void Meditor::update_output(){
 
         freq = matrix*freq;
 
-        data = math::ift(freq, (unsigned)std::round(pitch*data.size()));
+        data = math::ift(freq, (unsigned)std::round(data.size() / pitch));
         
         for(unsigned i=0; i<data.size(); i++){
             float d = (float)i/data.size();
@@ -129,7 +133,7 @@ void Meditor::update_output(){
         }
     }
     else if(mode == 1){
-        data = change::ml_graph(app.creations.get_stack(stack), data);
+        data = change::ml_graph(app.creations.get_stack(stack), data, pitch);
     }
     else if(mode == 2){
        
@@ -161,7 +165,17 @@ void Meditor::update_output(){
     }
     else if(mode == 3){
         
+        auto freq = math::ft(data, matrix.size());
 
+        auto mag = rmags;
+        mag.resize(matrix.size(), 0.0f);
+
+        for(unsigned i=0; i<freq.size(); i++){
+            float d = std::abs(freq[i]);
+            if(d != 0.0f) freq[i] *= mag[i] / d;
+        }
+
+        data = math::ift(freq, (unsigned)std::round(data.size() / pitch));
 
     }
     
@@ -344,7 +358,18 @@ void Meditor::set_pitch(ui::Command c){
     }
 }
 
-void Meditor::set_refresh(ui::Command c){
+void Meditor::remember(ui::Command c){
+    
+    auto data = link.get(link.size(), 0);
+    
+    auto freq = math::ft(data, matrix.size());
+
+    rmags.resize(matrix.size());
+    for(unsigned i=0; i<matrix.size(); i++) rmags[i] = std::abs(freq[i]);
+
+}
+
+void Meditor::set_auto(ui::Command c){
     autoRefresh ^= 1;
 }
 

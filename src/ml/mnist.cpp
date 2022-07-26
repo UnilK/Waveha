@@ -5,6 +5,7 @@
 #include "ml/util.h"
 
 #include <cassert>
+#include <iostream>
 
 namespace ml {
 
@@ -17,6 +18,8 @@ unsigned endian_flip(unsigned x){
 
 bool MnistData::open(std::string name){
 
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+
     file = name;
     bool ok = labels.open(file+".lb") && images.open(file+".img");
 
@@ -27,13 +30,13 @@ bool MnistData::open(std::string name){
 
     if(!ok) return 0;
 
-    size = endian_flip(labels.read_unsigned());
-    ok &= size == endian_flip(images.read_unsigned());
+    msize = endian_flip(labels.read_unsigned());
+    ok &= msize == endian_flip(images.read_unsigned());
     
     if(!ok) return 0;
 
-    imgw = endian_flip(images.read_unsigned()); 
-    imgh = endian_flip(images.read_unsigned());
+    imgh = endian_flip(images.read_unsigned()); 
+    imgw = endian_flip(images.read_unsigned());
     pos = 0;
 
     lbegin = labels.tell();
@@ -42,54 +45,62 @@ bool MnistData::open(std::string name){
     return 1;
 }
 
-InputLabel MnistData::get_random(){
-    
-    size_t original = pos;
-    
-    pos = rng32() % size;
+InputLabel MnistData::get(size_t position){
 
-    go_to(pos);
-    auto data = get_next();
-    go_to(original);
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+   
+    if(msize == 0) return {{}, {}};
 
-    return data;
-}
-
-InputLabel MnistData::get_next(){
+    if(position % msize != pos){
+        pos = position % msize;
+        images.seek(ibegin + pos * imgh * imgw);
+        labels.seek(lbegin + pos);
+    }
 
     InputLabel data;
-    data.input.resize(imgw*imgh, 0.0f);
+    data.input.resize(imgh*imgw, 0.0f);
     data.label.resize(10, 0.0f);
 
     int num = labels.read_byte();
     data.label[num] = 1.0f;
     
-    vector<char> buff = images.read_raw(imgw*imgh);
-    for(int j=0; j<imgw*imgh; j++)
+    const int pic = imgh * imgw;
+    vector<char> buff = images.read_raw(pic);
+    
+    for(int j=0; j<pic; j++)
         data.input[j] = (float)(unsigned char)buff[j] / 255;
 
-    go_to(pos + 1);
+    /*
+    if((rng32()&((1<<15)-1)) == 0){
+        std::cout << num << '\n';
+        for(int i=0, k=0; i<imgh; i++){
+            for(int j=0; j<imgw; j++, k++){
+                if(data.input[k] > 0.7f) std::cout << '#';
+                else if(data.input[k] > 0.4f) std::cout << 'o';
+                else std::cout << '.';
+            } std::cout << '\n';
+        } std::cout << '\n';
+    }
+    */
+
+    pos++;
 
     return data;
 }
 
-void MnistData::go_to(size_t position){
+size_t MnistData::size() const { return msize; }
+
+std::string MnistData::get_file(){
     
-    pos = position % size;
-    images.seek(ibegin + pos * imgw * imgh);
-    labels.seek(lbegin + pos);
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
+    return file;
 }
-
-size_t MnistData::get_size(){ return size; }
-
-std::string MnistData::get_file(){ return file; }
 
 void MnistData::blur(){
     
-    size_t previousPos = pos;
-    go_to(0);
-
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    
     vector<vector<float> > kernel = {
         {0.1, 0.3, 0.1},
         {0.3, 1.0, 0.3},
@@ -98,23 +109,23 @@ void MnistData::blur(){
     
     ui::Saver out(file + ".img");
 
-    for(size_t iter = size; iter --> 0;){
+    for(size_t iter = 0; iter < msize; iter++){
         
         size_t here = images.tell();
 
-        auto [matrix, label] = get_next();
+        auto [matrix, label] = get(iter);
        
         float osum = 0.0f;
         for(float i : matrix) osum += i;
 
-        vector<float> conv(imgw*imgh, 0.0f);
+        vector<float> conv(imgh*imgw, 0.0f);
 
-        for(int i=0; i<imgw; i++){
-            for(int j=0; j<imgh; j++){
+        for(int i=0; i<imgh; i++){
+            for(int j=0; j<imgw; j++){
                 for(int ii=-1; ii<2; ii++){
                     for(int jj=-1; jj<2; jj++){
-                        if(i+ii < 0 || i+ii >= imgw || j+jj < 0 || j+jj >= imgh) continue;
-                        conv[(i+ii)*imgh+j+jj] += matrix[i*imgh+j] * kernel[ii+1][jj+1];
+                        if(i+ii < 0 || i+ii >= imgh || j+jj < 0 || j+jj >= imgw) continue;
+                        conv[(i+ii)*imgw+j+jj] += matrix[i*imgw+j] * kernel[ii+1][jj+1];
                     }
                 }
             }
@@ -126,8 +137,8 @@ void MnistData::blur(){
         float diff = osum / csum;
         for(float &i : conv) i *= diff; 
 
-        vector<unsigned char> buff(imgw*imgh);
-        for(int j=0; j<imgw*imgh; j++)
+        vector<unsigned char> buff(imgh*imgw);
+        for(int j=0; j<imgh*imgw; j++)
             buff[j] = (unsigned char)std::min(255.0f, conv[j] * 255);
 
         out.seek(here);
@@ -135,8 +146,6 @@ void MnistData::blur(){
     }
 
     out.close();
-
-    go_to(previousPos);
 }
 
 MnistData *mnist_data(std::string file){

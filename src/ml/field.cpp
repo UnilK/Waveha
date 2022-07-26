@@ -77,36 +77,40 @@ void v1::df(float *left, float *right, float *var, float *change){
 
 void vv1::f(float *left, float *right, float *var){
     
-    float x = std::abs(left[0] * var[0] + var[1]);
-    float s = sign(left[0]);
-
+    float x = left[0] + var[0];
     float y;
 
-    if(x <= 1.0f){
-        y = x*x / 3.0f;
+    if(x >= 1.0f){
+        y = 1.0f - 1.0f / (x*x);
     } else {
-        y = (1.5f - 1.0f / x) / 1.5f;
+        x = 2.0f - x;
+        y = (1.0f / ((x*x)*(x*x)) - 1.0f) * 0.5f;
     }
-    
-    right[0] = s * y;
+
+    const float div = 1.0f / 1.5f;
+    y = (y + 0.5f) * div;
+
+    right[0] = y;
 }
 
 void vv1::df(float *left, float *right, float *var, float *change){
     
-    float x = std::abs(left[0] * var[0] + var[1]);
+    float x = left[0] + var[0];
     float dx = right[0];
+    float y = 0.0f;
 
-    float y;
-
-    if(x <= 1.0f){
-        y = x / 1.5f;
+    if(x >= 1.0f){
+        y = 2.0f / (x*x*x);
     } else {
-        y = 1.0f / (x*x) / 1.5f;
+        x = 2.0f - x;
+        y = 2.0f / ((x*x)*(x*x)*x);
     }
 
-    change[0] += left[0] * dx * y * 0.01;
-    change[1] += dx * y;
-    left[0] = var[0] * dx * y;
+    const float div = 1.0f / 1.5f;
+    y *= div;
+
+    change[0] += dx * y;
+    left[0] = dx * y;
 }
 
 // s1 /////////////////////////////////////////////////////////////////////////
@@ -388,7 +392,7 @@ namespace Factory { extern std::string v1; }
 std::string V1Field::get_type(){ return Factory::v1; };
 
 VV1Field::VV1Field(arrays in, arrays out, args a) :
-    Field(in, out, a, {1, 0}) {}
+    Field(in, out, a, {1}) {}
 namespace Factory { extern std::string vv1; }
 std::string VV1Field::get_type(){ return Factory::vv1; };
 

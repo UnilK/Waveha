@@ -78,6 +78,21 @@ Interleave::Interleave(arrays in, arrays out, args a) :
     for(unsigned i=0; i<nums[3]-1; i++){
         rpos[i] = std::round((float)(nums[2]-nums[4])*i/(nums[3]-1));
     }
+    
+    lcnt.resize(nums[2], 0);
+    rcnt.resize(nums[2], 0);
+    
+    for(unsigned i=0; i<left.size(); i++){
+        for(unsigned j=0; j<left[i].size; j++){
+            lcnt[lpos[i]+j]++;
+        }
+    }
+    
+    for(unsigned i=0; i<right.size(); i++){
+        for(unsigned j=0; j<right[i].size; j++){
+            rcnt[rpos[i]+j]++;
+        }
+    }
 }
 
 void Interleave::push(){
@@ -89,6 +104,9 @@ void Interleave::push(){
             middle[lpos[i]+j] += left[i][j];
         }
     }
+
+    for(unsigned i=0; i<middle.size(); i++)
+        if(lcnt[i]) middle[i] /= lcnt[i];
     
     for(unsigned i=0; i<right.size(); i++){
         for(unsigned j=0; j<right[i].size; j++){
@@ -108,6 +126,9 @@ void Interleave::pull(){
             middle[rpos[i]+j] += right[i][j];
         }
     }
+    
+    for(unsigned i=0; i<middle.size(); i++)
+        if(rcnt[i]) middle[i] /= rcnt[i];
     
     for(unsigned i=0; i<left.size(); i++){
         for(unsigned j=0; j<left[i].size; j++){
@@ -171,6 +192,40 @@ bool Copy::ok(arrays in, arrays out, args a){
     
     if(in.size() != 1 || out.size() < 1) return 0;
     for(auto i : out) if(i.size != in[0].size) return 0;
+    return 1;
+}
+
+// join ///////////////////////////////////////////////////////////////////////
+
+void Join::push(){
+
+    for(unsigned i=0; i<right[0].size; i++) right[0][i] = 0.0f;
+
+    for(unsigned i=0; i<left.size(); i++){
+        for(unsigned j=0; j<right[0].size; j++){
+            right[0][j] += left[i][j];
+        }
+    }
+}
+
+void Join::pull(){
+
+    if(nopull) return;
+
+    for(unsigned i=0; i<left.size(); i++){
+        for(unsigned j=0; j<right[0].size; j++){
+            left[i][j] = right[0][j];
+        }
+    }
+}
+
+namespace Factory { extern std::string join; }
+std::string Join::get_type(){ return Factory::join; }
+
+bool Join::ok(arrays in, arrays out, args a){
+    
+    if(out.size() != 1 || in.size() < 1) return 0;
+    for(auto i : out) if(i.size != out[0].size) return 0;
     return 1;
 }
 

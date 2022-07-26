@@ -19,10 +19,8 @@ public:
 
     bool open(std::string name);
 
-    InputLabel get_random();
-    InputLabel get_next();
-    void go_to(size_t position = 0);
-    size_t get_size();
+    InputLabel get(size_t position);
+    size_t size() const;
 
     std::string get_file();
 
@@ -33,7 +31,7 @@ private:
     std::string file;
     ui::Loader images, labels;
 
-    size_t size, pos;
+    size_t msize, pos;
     int imgw, imgh;
     size_t lbegin, ibegin;
 

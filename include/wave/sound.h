@@ -12,15 +12,14 @@ namespace wave {
 /*
     Note:
 
-    openAL seems to use some HRTF by default.
-    It's not a fit for my head and screws up the
-    sounds.
+    openAL seems to use some HRTF by default. It's not a fit for my
+    head and screws up the sounds.
 
     setting
     stereo-mode = speakers
     (etc)/openal/alsoft.conf
 
-    fixed the thing (obviously a HRTF shouldn't be used with spwakers).
+    fixed the thing (obviously a HRTF shouldn't be used with speakers).
 */
 
 class Player : public sf::SoundStream {

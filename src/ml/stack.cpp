@@ -347,14 +347,12 @@ Layer *Stack::get_layer(unsigned index){
 
 std::vector<float > Stack::run(const std::vector<float> &input){
 
-    lock.lock();
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     if(!good() || input.size() != vectors[0].size()) return {};
 
     for(unsigned i=0; i<input.size(); i++) vectors[0][i] = input[i];
     for(Layer *layer : layers) layer->push();
-    
-    lock.unlock();
 
     return vectors.back();
 }
@@ -363,7 +361,7 @@ void Stack::train(
         const std::vector<float> &input,
         const std::vector<float> &output){
 
-    lock.lock();
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 
     if(!good() || input.size() != vectors[0].size()
             || output.size() != vectors.back().size()) return;
@@ -373,13 +371,15 @@ void Stack::train(
     
     judge->feedback(output);
 
-    for(unsigned i=layers.size(); i-- > 0;) layers[i]->pull();
-    
-    lock.unlock();
+    for(unsigned i=layers.size(); i --> 0;) layers[i]->pull();
 }
 
-void Stack::train_program(TrainingData &data, unsigned batchSize, unsigned batches,
-        float speed, float decay){
+void Stack::train_program(
+        TrainingData &data,
+        unsigned batchSize,
+        unsigned batches,
+        float speed,
+        float decay){
 
     for(unsigned i=0; i<batches; i++){
         for(unsigned j=0; j<batchSize; j++){
@@ -390,14 +390,19 @@ void Stack::train_program(TrainingData &data, unsigned batchSize, unsigned batch
     }
 }
 
-Stack::TestAnalysis Stack::test(TrainingData &data){
+Stack::TestAnalysis Stack::test(TrainingData &data, size_t amount){
+
+    std::lock_guard<std::recursive_mutex> lock(data.mutex);
 
     TestAnalysis result;
     result.errors.resize(vectors.back().size(), 0.0f);
 
-    for(size_t iter=0; iter<data.get_size(); iter++){
+    size_t total = data.size();
+    if(amount != 0) total = std::min(total, data.size());
+
+    for(size_t iter=0; iter<total; iter++){
         
-        auto i = data.get_next();
+        auto i = data.get(iter);
 
         if(!good() || i.label.size() != vectors.back().size()
                 || i.input.size() != vectors[0].size()){
@@ -421,7 +426,7 @@ Stack::TestAnalysis Stack::test(TrainingData &data){
     }
 
     for(double &i : result.errors){
-        i /= data.get_size();
+        i /= total;
         result.error += i;
     }
 

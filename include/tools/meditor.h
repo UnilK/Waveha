@@ -39,11 +39,12 @@ public:
     void link_audio(ui::Command);
     void set_stack(ui::Command);
     void set_mode(ui::Command);
-    void set_refresh(ui::Command);
+    void set_auto(ui::Command);
     void info(ui::Command);
 
     void set_slant(ui::Command);
     void set_pitch(ui::Command);
+    void remember(ui::Command);
 
 private:
 
@@ -64,6 +65,7 @@ private:
     // temporary experiments
 
     float slantIn = 1, slantOut = 1, pitch = 1;
+    std::vector<float> rmags;
 
 };
 

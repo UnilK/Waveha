@@ -245,7 +245,7 @@ unsigned hinted_pitch(const float *audio, unsigned size, unsigned hint, Correlat
     return hint + offset;
 }
 
-std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio){
+std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio, float pitch){
 
     if(stack == nullptr || !stack->good()) return std::vector<float>(audio.size(), 3.14f);
     
@@ -263,7 +263,7 @@ std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio){
         freqs[2*i+1] = f[i].imag();
     }
     
-    freqs.push_back((float)clip.size() / 44100);
+    freqs.push_back(44100 / (float)clip.size() * pitch);
     freqs = stack->run(freqs);
 
     for(int i=0; i<N/2; i++) f[i] = {freqs[2*i], freqs[2*i+1]};

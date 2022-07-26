@@ -72,6 +72,8 @@ public:
 
     ml::TrainingData *get_mldata(std::string name);
     ml::Stack *get_stack(std::string name);
+    
+    std::string data_type(std::string name);
 
     CreationsDir dir;
     friend class CreationsDir;
