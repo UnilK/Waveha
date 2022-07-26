@@ -82,6 +82,7 @@ Labler::Labler(App *a) :
 
     terminal.erase_entry("cd");
     terminal.erase_entry("pwd");
+    terminal.put_function("link", [&](ui::Command c){ link_data(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.document("*hotkeys",
@@ -90,6 +91,7 @@ Labler::Labler(App *a) :
             "D set the label\n"
             "F switch auto labeling\n"
             "R discard the data");
+    terminal.document("link", "link a dataset to be labeled");
     terminal.document("info", "list the configuration");
 }
 
@@ -101,18 +103,23 @@ ui::Frame::Capture Labler::on_event(sf::Event event, int priority){
 
     if(event.type == sf::Event::KeyPressed){
         if(event.key.code == sf::Keyboard::A){
+            switch_audio();
             return Capture::capture;
         }
         if(event.key.code == sf::Keyboard::S){
+            clear_label();
             return Capture::capture;
         }
         if(event.key.code == sf::Keyboard::D){
+            set_label();
             return Capture::capture;
         }
         if(event.key.code == sf::Keyboard::F){
+            auto_label();
             return Capture::capture;
         }
         if(event.key.code == sf::Keyboard::R){
+            discard_data();
             return Capture::capture;
         }
     }
@@ -216,11 +223,26 @@ void Labler::next_data(){
     time.set_reconfig();
     frequency.set_reconfig();
 
+    bool wasPlaying = playing;
+    if(playing) switch_audio();
+
     audio.data = waves1;
     cache.open(&audio);
     player.open(&cache);
 
+    if(wasPlaying) switch_audio();
+
     clear_label();
+}
+
+void Labler::discard_data(){
+
+    ml::WaveData *source = (ml::WaveData*)app.creations.get_mldata(data);
+    if(source == nullptr) return;
+    
+    source->discard_next();
+
+    next_data();
 }
 
 void Labler::switch_bit(int i, int j){

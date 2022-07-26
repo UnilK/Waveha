@@ -680,7 +680,10 @@ void Analyzer::check_ml_data(ui::Command c){
 
     freq.resize(rnd.size()/2);
     for(unsigned i=0; i<freq.size(); i++) freq[i] = {rnd[2*i], rnd[2*i+1]};
-    graph.set_data(math::ift(freq, length));
+    
+    auto waves = math::ift(freq, length);
+    for(int i=0; i<length; i++) waves.push_back(waves[i]);
+    graph.set_data(waves);
 
     graph.set_reconfig();
 }

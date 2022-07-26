@@ -43,6 +43,8 @@ private:
     void load_stack(ui::Command);
     void save_stack(ui::Command);
     void remove_stack(ui::Command);
+    
+    void shuffle_waves(ui::Command);
 
 };
 

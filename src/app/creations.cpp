@@ -217,6 +217,7 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     put_function("sdel", [&](ui::Command c){ remove_stack(c); });
     put_function("mblur", [&](ui::Command c){ blur_mnist(c); });
     put_function("mft", [&](ui::Command c){ ft_mnist(c); });
+    put_function("wshuf", [&](ui::Command c){ shuffle_waves(c); });
 
     document("list", "list creations");
     document("dload", "[type] [file] {name} load data for ml stacks");
@@ -228,6 +229,7 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     document("sdel", "[name] delete a ml stack");
     document("mblur", "[name] blur images in mnist dataset");
     document("mft", "[name] fourier transform images in mnist dataset");
+    document("wshuf", "[name] shuffle the order of data in a wave dataset");
 }
 
 void CreationsDir::create_waves(ui::Command c){
@@ -369,6 +371,18 @@ void CreationsDir::remove_stack(ui::Command c){
     } else {
         int code = creations.remove_stack(name);
         if(code == 1) c.source.push_error("stack not found: " + name);
+    }
+}
+
+void CreationsDir::shuffle_waves(ui::Command c){
+
+    std::string name = c.pop();
+
+    if(creations.data_type(name) == "wave"){
+        auto [type, file, pointer] = creations.datas[name];
+        ((ml::WaveData*)pointer)->shuffle();
+    } else {
+        c.source.push_error("dataset not found: " + name);
     }
 }
 

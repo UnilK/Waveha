@@ -30,8 +30,8 @@ bool WaveData::open(std::string name){
 
     file = name;
 
-    spectrums.open(file);
-    labels.open(file);
+    spectrums.open(file + ".spec");
+    labels.open(file + ".lb");
 
     if(spectrums.bad() || labels.bad()) return 0;
 
@@ -51,11 +51,7 @@ InputLabel WaveData::get(size_t position){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
     
-    if(pos != position % ssize){
-        pos = position % ssize;
-        spectrums.seekg(sbegin + pos * sampleSize);
-        labels.seekg(lbegin + pos * 8);
-    }
+    if(pos != position % ssize) go_tog(position % ssize);
 
     InputLabel ret;
     ret.input.resize(2 * freqs + 1);
@@ -96,6 +92,9 @@ bool WaveData::label_next(std::vector<char> mask){
 
     lsize++;
     labels.seekp(0);
+    labels.write_unsigned(lsize);
+
+    pos = ssize;
 
     return 1;
 }
@@ -156,13 +155,14 @@ void WaveData::swap(size_t a, size_t b){
 }
 
 void WaveData::go_tog(size_t position){
-    spectrums.seekg(lbegin + position * 8);
-    labels.seekg(sbegin + position * sampleSize);
+    labels.seekg(lbegin + position * 8);
+    spectrums.seekg(sbegin + position * sampleSize);
+    pos = position;
 }
 
 void WaveData::go_top(size_t position){
-    spectrums.seekp(lbegin + position * 8);
-    labels.seekp(sbegin + position * sampleSize);
+    labels.seekp(lbegin + position * 8);
+    spectrums.seekp(sbegin + position * sampleSize);
 }
 
 int create_wave_data(std::string directory, std::string output, unsigned N){
@@ -319,9 +319,7 @@ int merge_wave_data(std::string first, std::string second, std::string out){
 
 WaveData::Raw::Raw(WaveData &source) : 
     src(source)
-{
-
-}
+{}
 
 InputLabel WaveData::Raw::get(size_t position){
     auto ret = src.get(position);

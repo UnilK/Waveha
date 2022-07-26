@@ -32,6 +32,7 @@ public:
     void clear_label();
     void auto_label();
     void next_data();
+    void discard_data();
 
     void switch_bit(int i, int j);
 
