@@ -7,6 +7,7 @@
 
 #include <math.h>
 #include <algorithm>
+#include <iostream>
 
 namespace change {
 
@@ -15,12 +16,16 @@ CorrelationVars defaultCorrelationVars;
 
 float sign(float x){ return (int)(x > 0) - (x < 0); }
 
+Detector _detector;
+
 std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
     
-    Detector wayee;
-    wayee.feed(audio);
-
-    return {(float)wayee.quiet*100, (float)wayee.voiced*100, wayee.confidence*100, wayee.pitch};
+    std::vector<float> food(128, 0.0f);
+    for(int i=0; i<std::min(128, (int)audio.size()); i++) food[i] = audio[i];
+    _detector.feed(food);
+    
+    return {(float)_detector.quiet*100, (float)_detector.voiced*100,
+        _detector.confidence*100, _detector.pitch};
 
     /*
     auto plot = audio;
@@ -116,6 +121,13 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
 std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){
 
     /*
+    auto filter = [](std::vector<float> &plot) -> void {
+        for(float &i : plot) i *= i;
+        plot = math::ift(math::ft(plot, 20), plot.size());
+    };
+    */
+
+    /*
     unsigned n = audio.size();
     std::vector<float> corr(audio.size(), 0.0f);
 
@@ -133,10 +145,44 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
 
     if(sum != 0.0f) for(float &i : corr) i /= sum;
     */
+   
+    /*
+    unsigned n = 1470 / 2;
+    std::vector<float> left(n), right(n);
+    for(unsigned i=0; i<std::min((unsigned)audio.size(), n); i++){
+        left[i] = audio[i];
+        right[i] = audio[n+i];
+    }
 
+    // filter(left);
+    // filter(right);
+
+    auto corr = math::correlation(left, right);
+
+    float sum = 0.0f;
+    for(float i : left) sum += i*i;
+    for(float i : right) sum += i*i;
+
+    for(unsigned i=0; i<n; i++){
+        corr[i] = (sum - 2 * corr[i]) / (n-i);
+        sum -= left[i]*left[i] + right[n-i-1]*right[n-i-1];
+    }
+
+    corr.resize(n+1);
+    reverse(corr.begin(), corr.end());
+
+    sum = 0.0f;
+    for(unsigned i=1; i<=n; i++){
+        corr[i] = abs(corr[i]);
+        sum += corr[i];
+        if(sum/i != 0.0f) corr[i] /= (sum/i);
+    }
+    */
+  
+    /*
     unsigned n = 1470;
     std::vector<float> plot(n, 0.0f);
-    for(int i=audio.size()-1, j=n-1; i>=0 && j>=0; i--, j--) plot[j] = audio[i];
+    for(int i=(int)audio.size()-1, j=n-1; i>=0 && j>=0; i--, j--) plot[j] = audio[i];
 
     auto [corr, tmp] = math::autocorrelation(plot);
 
@@ -155,6 +201,7 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
         sum += corr[i];
         if(sum != 0.0f) corr[i] /= (sum/i);
     }
+    */
 
     /*
     if(vars.sign) for(float &i : copy) i = sign(i) * std::pow(std::abs(i), vars.exponent);
@@ -166,7 +213,38 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     auto plot = math::convolution(copy, reverseCopy);
     */
 
-    return corr;
+    /*
+    static std::vector<float> previous;
+
+    n /= 2;
+
+    previous.resize(n, 0.0f);
+    auto cumu = corr;
+    cumu.resize(n);
+
+    for(unsigned i=0; i<n; i++) cumu[i] += previous[i] * 0.9;
+    
+    float avg = 0.0f, min = 1e9;
+    for(unsigned i=60; i<n; i++){
+        avg += std::abs(cumu[i]);
+        min = std::min(min, std::abs(cumu[i]));
+    }
+
+    avg /= n;
+    if(avg != 0.0f) min /= avg;
+
+    for(unsigned i=0; i<n; i++) previous[i] = previous[i] * 0.7f + (1.0f - min) * corr[i];
+    */
+
+    std::vector<float> food(128, 0.0f);
+    for(int i=0; i<std::min(128, (int)audio.size()); i++) food[i] = audio[i];
+    _detector.feed(food);
+
+    auto mse = _detector.get_mse();
+    auto iavg = 1.0f / _detector.momentum.avg;
+    for(float &i : mse) i *= iavg;
+
+    return mse;
 }
 
 unsigned pitch(const std::vector<float> &audio, CorrelationVars vars){

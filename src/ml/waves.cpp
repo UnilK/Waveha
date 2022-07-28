@@ -202,8 +202,7 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
             
             detector.feed(samples);
 
-            if(detector.voiced && !detector.noise &&
-                    !detector.quiet && detector.confidence > 0.5f){
+            if(detector.voiced){
                 
                 auto clip = detector.get2();
 

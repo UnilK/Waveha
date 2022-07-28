@@ -46,8 +46,7 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
         if(event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::D){
             
             int speed = 16;
-            if(event.key.code == sf::Keyboard::A) speed = -speed;
-
+            
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
                 && sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                 speed = speed / 16 * analyzer.link.frameRate * analyzer.link.channels;
@@ -55,6 +54,10 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
                 speed /= 16;
             else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
                 speed *= 16;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt))
+                speed = 128;
+            
+            if(event.key.code == sf::Keyboard::A) speed = -speed;
 
             if(analyzer.link.size() != 0){
                 analyzer.position = (analyzer.position + speed) % (int)analyzer.link.size();

@@ -15,7 +15,7 @@ public:
     Detector(
             unsigned frameRate = 44100, // input sampling rate, Hz
             float lower = 60,           // pitch search range lower bound, Hz
-            float upper = 600);         // pitch search range upper bound, Hz
+            float upper = 900);         // pitch search range upper bound, Hz
 
     // size fits 2 periods of lower bound frequency. Access only.
     unsigned size;
@@ -40,20 +40,16 @@ public:
     // changing these to some funny values might result in segfaults.
     
     unsigned peakCandidates;
-    unsigned peakWindowMin;
+    unsigned peakWindowMax;
     unsigned subRange;
-    unsigned distrust;
-    unsigned lowPass;
 
-    float lowTrust;
-    float highTrust;
     float minCutoff;
     float subCutoff;
     float voicedLimit;
     float nonVoicedLimit;
     float quietThreshold;
-    float noiseThreshold;
     float movementLimit;
+    float decay;
 
     // the pitch is updated only if the buffer has been fed at least <size> samples.
     // time & space complexity of feed is O(size * log(size)).
@@ -68,13 +64,26 @@ public:
     // get two periods from the buffer. Lag is size + period / 2.
     std::vector<float> get2();
 
-private:
+    // get the momentum mse graph. for debugging purposes.
+    std::vector<float> get_mse();
 
     const unsigned rate;
-    unsigned min, max, trust;
-    unsigned previousTrusted, notrust;
+    unsigned min, max;
 
     std::deque<float> buffer;
+
+    struct Info {
+        unsigned size, half;
+        std::vector<float> time, mse;
+        std::vector<unsigned> peaks;
+        float power;
+        float avg;
+        float min;
+        unsigned top;
+        float value;
+    };
+
+    Info momentum;
 
 };
 
