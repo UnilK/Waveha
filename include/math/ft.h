@@ -12,9 +12,15 @@ std::complex<float> lt(const std::vector<float> &waves, float frequency);
 // Poor man's DFT. can't handle vectors larger than 2^15
 std::vector<std::complex<float> > ft(
         const float *waves, unsigned size, unsigned n, bool haszero = 0);
-
 std::vector<std::complex<float> > ft(
         const std::vector<float> &waves, unsigned n, bool haszero = 0);
+
+// multiplies the waves by a cosine window (convolution kernel [0.25, 0.5, 0.25] on frequency side)
+// and then takes dft of every other frequency
+std::vector<std::complex<float> > cos_window_ft(
+        float *waves, unsigned size, unsigned n, bool haszero = 0);
+std::vector<std::complex<float> > cos_window_ft(
+        std::vector<float> waves, unsigned n, bool haszero = 0);
 
 std::vector<std::complex<float> > precise_ft(
         const std::vector<float> &waves, unsigned n, bool haszero = 0, float speed = 1.0f);

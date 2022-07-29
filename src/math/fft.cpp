@@ -204,7 +204,7 @@ std::array<vector<float>, 2> autocorrelation(vector<float> a, vector<float> b){
         
         float xr = c[i].real()+c[j].real(), xi = c[i].imag()-c[j].imag();
         float yr = c[i].real()-c[j].real(), yi = c[i].imag()+c[j].imag();
-        c[i] = c[j] = {(xr*xr + xi*xi) / 4, (yr*yr + yi*yi) / 4};
+        c[i] = c[j] = {(xr*xr + xi*xi) * 0.25f, (yr*yr + yi*yi) * 0.25f};
         
         /*
         auto l = c[i]+c[j];

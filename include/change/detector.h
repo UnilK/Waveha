@@ -53,6 +53,7 @@ public:
 
     // the pitch is updated only if the buffer has been fed at least <size> samples.
     // time & space complexity of feed is O(size * log(size)).
+    // detector is currently tuned for 128 sample feeds at 44100 Hz
     void feed(const std::vector<float> &data);
     
     // clear previous information.

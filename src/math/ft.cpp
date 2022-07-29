@@ -47,6 +47,32 @@ vector<complex<float> > ft(const vector<float> &waves, unsigned n, bool haszero)
     return ft(waves.data(), waves.size(), n, haszero);
 }
 
+vector<complex<float> > cos_window_ft(float *waves, unsigned size, unsigned n, bool haszero){
+    
+    vector<complex<float> > frequencies(n, 0.0f);
+    
+    vector<complex<float> > exp(size);
+    for(unsigned i=0; i<size; i++) exp[i] = cexp((double)(size - i) / size);
+
+    for(unsigned i=0; i<size; i++) waves[i] *= 0.5f - 0.5f * exp[i].real();
+
+    unsigned offset = !haszero;
+
+    for(unsigned i=0; i<size; i++){
+        for(unsigned j=0; j<n; j++){
+            frequencies[j] += exp[i * (2*(j+offset)) % size] * waves[i];
+        }
+    }
+
+    for(auto &i : frequencies) i = 4.0f * i / (float)size;
+
+    return frequencies;
+}
+
+vector<complex<float> > cos_window_ft(vector<float> waves, unsigned n, bool haszero){
+    return cos_window_ft(waves.data(), waves.size(), n, haszero);
+}
+
 vector<complex<float> > precise_ft(const vector<float> &waves,
         unsigned n, bool haszero, float speed){
     

@@ -310,6 +310,8 @@ build/tools/labler.o: include/tools/graph.h include/ui/slider.h
 build/tools/labler.o: include/ui/stack.h include/ui/text.h include/ui/button.h
 build/tools/labler.o: include/wave/sound.h include/wave/buffer.h
 build/tools/labler.o: include/app/app.h include/ui/box.h include/app/tools.h
+build/tools/labler.o: include/app/creations.h include/ml/waves.h
+build/tools/labler.o: include/ml/db.h include/math/ft.h
 build/tools/canvas.o: include/tools/canvas.h include/app/content.h
 build/tools/canvas.o: include/ui/frame.h include/ui/borders.h
 build/tools/canvas.o: include/ui/style.h include/ui/window.h

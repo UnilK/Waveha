@@ -59,7 +59,7 @@ Labler::Labler(App *a) :
     for(char &i : label) i = 0;
     phonetics = {
         "a","e","o","u","w","y","ae","oe","","","","","","","","",
-        "i","j","v","","","","","","","","","","","","","",
+        "i","j","g","v","","","","","","","","","","","","",
         "m","n","ng","th","","","","","","","","","","","","",
         "l","r","","","","","","","","","","","","","",""};
     buttons.resize(64);
@@ -181,6 +181,9 @@ void Labler::set_label(){
     if(count == 0) return;
 
     source->label_next(label);
+    
+    terminal.push_output("progress: " + std::to_string(source->labeled_size())
+            + " / " + std::to_string(source->size()));
 
     next_data();
 }
@@ -193,7 +196,12 @@ void Labler::clear_label(){
     }
 }
 
-void Labler::auto_label(){}
+void Labler::auto_label(){
+    
+    // currently acts as a refresh...
+
+    next_data();
+}
 
 void Labler::next_data(){
 
@@ -226,11 +234,17 @@ void Labler::next_data(){
     bool wasPlaying = playing;
     if(playing) switch_audio();
 
+    float norm = 0.2f * std::sqrt(120.0f / pitch);
+
+    for(float &i : waves1) i *= norm;
+
     audio.data = waves1;
     cache.open(&audio);
     player.open(&cache);
 
     if(wasPlaying) switch_audio();
+
+    terminal.push_output("pitch: " + std::to_string(pitch));
 
     clear_label();
 }
@@ -241,6 +255,9 @@ void Labler::discard_data(){
     if(source == nullptr) return;
     
     source->discard_next();
+    
+    terminal.push_output("progress: " + std::to_string(source->labeled_size())
+            + " / " + std::to_string(source->size()));
 
     next_data();
 }

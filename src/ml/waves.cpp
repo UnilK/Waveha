@@ -66,7 +66,7 @@ InputLabel WaveData::get(size_t position){
         }
     }
 
-    pos++;
+    pos = position + 1;
 
     return ret;
 }
@@ -103,7 +103,7 @@ bool WaveData::discard_next(){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
-    if(ssize == 0) return 0;
+    if(ssize == 0 || lsize == ssize) return 0;
     
     swap(lsize, ssize-1);
     ssize--;
@@ -115,6 +115,7 @@ void WaveData::shuffle(){
     
     std::lock_guard<std::recursive_mutex> lock(mutex);
     
+    for(size_t i=0; i+1<lsize; i++) swap(i, i+rng32()%(lsize-i));
     for(size_t i=lsize; i+1<ssize; i++) swap(i, i+rng32()%(ssize-i));
 }
 
@@ -173,10 +174,15 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
     };
 
     std::vector<std::string> files;
-    for(auto &file : std::filesystem::directory_iterator(directory)){
-        std::string f = file.path();
-        if(!iswave(f)) continue;
-        files.push_back(f);
+    try {
+        for(auto &file : std::filesystem::directory_iterator(directory)){
+            std::string f = file.path();
+            if(!iswave(f)) continue;
+            files.push_back(f);
+        }
+    }
+    catch(const std::filesystem::filesystem_error &e){
+        return 1;
     }
 
     const unsigned F = 64; 
@@ -188,8 +194,6 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
     spectrums.write_unsigned(F);
     unsigned datas = 0;
 
-    labels.write_unsigned(0);
-    
     for(auto f : files){
 
         iwstream I;
@@ -204,21 +208,20 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
 
             if(detector.voiced){
                 
-                auto clip = detector.get2();
-
-                float max = 0.0f;
-                for(float i : clip) max = std::max(max, std::abs(i));
-
-                if(max > 0.1f) for(float &i : clip) i /= max;
-                else continue;
-
-                int size = clip.size();
-                for(int i=0; i<size; i++) clip[i] *= 0.5f - 0.5f * std::cos(2 * PIF * i / size);
-
-                unsigned f = std::min(F, I.get_frame_rate() / (detector.period * 2));
-                auto freq = math::precise_ft(clip, f, 0,
-                                2.0f * (detector.real_period() / detector.period));
+                unsigned f = std::min(F, (unsigned)std::floor(
+                            std::min((float)I.get_frame_rate() / 2, 7500.0f)
+                            / detector.pitch));
+                auto freq = math::cos_window_ft(detector.get2(), f);
                 freq.resize(F, 0.0f);
+
+                float sum = 0.0f;
+                for(unsigned i=0; i<F; i++) sum += (freq[i]*std::conj(freq[i])).real();
+                sum = std::sqrt(sum);
+
+                if(sum < 1e-9) continue;
+
+                sum = 1.0f / sum;
+                for(auto &i : freq) i *= sum;
                 
                 for(auto i : freq) spectrums.write_complex(i);
                 spectrums.write_float(detector.pitch);
@@ -230,6 +233,8 @@ int create_wave_data(std::string directory, std::string output, unsigned N){
 
     spectrums.seek(0);
     spectrums.write_unsigned(datas);
+    
+    labels.write_unsigned(0);
     
     char noLabel[8] = {0};
     for(unsigned i=0; i<datas; i++) labels.write_raw(8, noLabel);

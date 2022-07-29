@@ -676,7 +676,7 @@ void Analyzer::check_ml_data(ui::Command c){
     if(all == nullptr) return;
 
     std::vector<std::complex<float> > freq;
-    std::vector<float> rnd = all->get_random().input;
+    auto [rnd, label] = all->get_random();
     rnd.pop_back();
     
     assert(rnd.size()%2 == 0);
@@ -689,6 +689,19 @@ void Analyzer::check_ml_data(ui::Command c){
     graph.set_data(waves);
 
     graph.set_reconfig();
+
+    std::vector<std::string> phonetics = {
+        "a","e","o","u","w","y","ae","oe","","","","","","","","",
+        "i","j","g","v","","","","","","","","","","","","",
+        "m","n","ng","th","","","","","","","","","","","","",
+        "l","r","","","","","","","","","","","","","",""};
+    
+    std::string message = "label: ";
+    for(size_t i=0; i<label.size(); i++){
+        if(label[i] > 0.5f) message += phonetics[i] + ",";
+    }
+
+    c.source.push_output(message);
 }
 
 void Analyzer::name_dataset(ui::Command c){
