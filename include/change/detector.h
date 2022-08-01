@@ -32,28 +32,22 @@ public:
     float confidence = 0;
     bool voiced = 0;
     bool quiet = 1;
-    bool noise = 0;
 
     float real_period();
 
-    // tweakable variables. Look up the default values in initializer.
+    // tweakable variables. Look up the default values in the initializer.
     // changing these to some funny values might result in segfaults.
     
-    unsigned peakCandidates;
     unsigned peakWindowMax;
-    unsigned subRange;
+    unsigned trustLimit;
 
     float minCutoff;
-    float subCutoff;
-    float voicedLimit;
-    float nonVoicedLimit;
+    float voicedThreshold;
     float quietThreshold;
-    float movementLimit;
-    float decay;
+    float momentumDecay;
 
     // the pitch is updated only if the buffer has been fed at least <size> samples.
     // time & space complexity of feed is O(size * log(size)).
-    // detector is currently tuned for 128 sample feeds at 44100 Hz
     void feed(const std::vector<float> &data);
     
     // clear previous information.
@@ -68,23 +62,22 @@ public:
     // get the momentum mse graph. for debugging purposes.
     std::vector<float> get_mse();
 
+private:
+
     const unsigned rate;
-    unsigned min, max;
+    unsigned min, max, trust;
+    float power;
 
     std::deque<float> buffer;
 
     struct Info {
-        unsigned size, half;
-        std::vector<float> time, mse;
-        std::vector<unsigned> peaks;
-        float power;
-        float avg;
-        float min;
-        unsigned top;
-        float value;
+        unsigned move, top;
+        std::vector<float> mse;
+        float voiced, value;
     };
 
     Info momentum;
+    std::vector<float> nonorm;
 
 };
 

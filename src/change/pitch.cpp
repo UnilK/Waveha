@@ -177,6 +177,8 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
         sum += corr[i];
         if(sum/i != 0.0f) corr[i] /= (sum/i);
     }
+
+    return corr;
     */
   
     /*
@@ -241,8 +243,6 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     _detector.feed(food);
 
     auto mse = _detector.get_mse();
-    auto iavg = 1.0f / _detector.momentum.avg;
-    for(float &i : mse) i *= iavg;
 
     return mse;
 }

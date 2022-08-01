@@ -256,64 +256,98 @@ WaveData *wave_data(std::string file){
     return wd;
 }
 
-int merge_wave_data(std::string first, std::string second, std::string out){
+namespace _merge_wave_data {
+
+Input::Input(std::string s, std::string l) :
+    spectrums(s),
+    labels(l)
+{}
+
+}
+
+int merge_wave_data(std::string directory, std::string output){
+
+    using namespace _merge_wave_data;
+
+    std::vector<Input* > inputs;
+
+    {
+        auto isspec = [](std::string &s) -> bool {
+            if(s.size() < 5) return 0;
+            return s.substr(s.size()-5) == ".spec";
+        };
+        
+        auto islabe = [](std::string &s) -> bool {
+            if(s.size() < 3) return 0;
+            return s.substr(s.size()-3) == ".lb";
+        };
+
+        std::vector<std::string> spectrums, labels;
+        try {
+            for(auto &file : std::filesystem::directory_iterator(directory)){
+                std::string f = file.path();
+                if(isspec(f)) spectrums.push_back(f);
+                if(islabe(f)) labels.push_back(f);
+            }
+        }
+        catch(const std::filesystem::filesystem_error &e){
+            return 1;
+        }
+
+        std::sort(spectrums.begin(), spectrums.end());
+        std::sort(labels.begin(), labels.end());
+
+        if(spectrums != labels || labels.empty()) return 1;
     
-    ui::Loader fspec(first+".spec"), flabe(first+".lb");
-    ui::Loader sspec(second+".spec"), slabe(second+".lb");
+        for(unsigned i=0; i<labels.size(); i++){
+            Input *in = new Input(spectrums[i], labels[i]);
+            if(in->spectrums.bad() || in->labels.bad()) return 1;
+            in->ssize = in->spectrums.read_unsigned();
+            in->freqs = in->spectrums.read_unsigned();
+            in->lsize = in->labels.read_unsigned();
+            inputs.push_back(in);
+        }
 
-    if(fspec.bad() || flabe.bad() || sspec.bad() || slabe.bad()) return 1;
+        unsigned freqs = inputs[0]->freqs;
+        for(Input *i : inputs) if(i->freqs != freqs) return 1;
+    }
 
-    unsigned fssize = fspec.read_unsigned();
-    unsigned ffreqs = fspec.read_unsigned();
-    unsigned sampleSize = (2 * ffreqs + 1) * sizeof(float);
-    unsigned flsize = flabe.read_unsigned();
     
-    unsigned sssize = sspec.read_unsigned();
-    unsigned sfreqs = sspec.read_unsigned();
-    unsigned slsize = slabe.read_unsigned();
-
-    if(ffreqs != sfreqs) return 2;
-
-    ui::Saver ospec(out+".spec"), olabe(out+".lb");
+    ui::Saver ospec(output+".spec"), olabe(output+".lb");
     if(ospec.bad() || olabe.bad()) return 3;
     
-    ospec.write_unsigned(fssize+sssize);
-    ospec.write_unsigned(ffreqs);
-    olabe.write_unsigned(flsize+slsize);
+    unsigned ssize = 0, lsize = 0;
+    unsigned freqs = inputs[0]->freqs;
+    unsigned sampleSize = (2 * freqs + 1) * sizeof(float);
+
+    for(Input *i : inputs) ssize += i->ssize;
+    for(Input *i : inputs) lsize += i->lsize;
+
+    ospec.write_unsigned(ssize);
+    ospec.write_unsigned(freqs);
+    olabe.write_unsigned(lsize);
 
     std::vector<char> bus;
 
-    bus = fspec.read_raw(flsize*sampleSize);
-    ospec.write_raw(bus.size(), bus.data());
+    for(Input *i : inputs){
+        bus = i->spectrums.read_raw(i->lsize*sampleSize);
+        ospec.write_raw(bus.size(), bus.data());
+        
+        bus = i->labels.read_raw(i->lsize*8);
+        olabe.write_raw(bus.size(), bus.data());
+    }
+
+    for(Input *i : inputs){
+        bus = i->spectrums.read_raw((i->ssize-i->lsize)*sampleSize);
+        ospec.write_raw(bus.size(), bus.data());
+        
+        bus = i->labels.read_raw((i->ssize-i->lsize)*8);
+        olabe.write_raw(bus.size(), bus.data());
+    }
+
+    for(Input *i : inputs) delete i;
     
-    bus = sspec.read_raw(slsize*sampleSize);
-    ospec.write_raw(bus.size(), bus.data());
-
-    bus = fspec.read_raw((fssize-flsize)*sampleSize);
-    ospec.write_raw(bus.size(), bus.data());
-    
-    bus = sspec.read_raw((sssize-slsize)*sampleSize);
-    ospec.write_raw(bus.size(), bus.data());
-
-
-
-    bus = flabe.read_raw(flsize*8);
-    olabe.write_raw(bus.size(), bus.data());
-    
-    bus = slabe.read_raw(slsize*8);
-    olabe.write_raw(bus.size(), bus.data());
-
-    bus = flabe.read_raw((fssize-flsize)*8);
-    olabe.write_raw(bus.size(), bus.data());
-    
-    bus = slabe.read_raw((sssize-slsize)*8);
-    olabe.write_raw(bus.size(), bus.data());
-
-    fspec.close();
-    sspec.close();
     ospec.close();
-    flabe.close();
-    slabe.close();
     olabe.close();
 
     return 0;

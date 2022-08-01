@@ -132,7 +132,7 @@ vector<float> convolution(vector<float> &a, vector<float> &b, unsigned size){
     in_place_fft(c);
 
     for(unsigned i=0; 2*i<=cz; i++){
-        unsigned j = (cz-i)%cz;
+        unsigned j = i == 0 ? 0 : cz-i;
         c[i] = -(c[i]-conj(c[j]))*(c[i]+conj(c[j]))*complex<float>(0, 0.25f);
         c[j] = conj(c[i]);
     }

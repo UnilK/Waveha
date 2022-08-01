@@ -90,7 +90,19 @@ int create_wave_data(std::string directory, std::string output, unsigned N);
 
 WaveData *wave_data(std::string file);
 
-int merge_wave_data(std::string first, std::string second, std::string out);
+namespace _merge_wave_data {
+
+struct Input {
+    Input(std::string, std::string);
+    ui::Loader spectrums, labels;
+    unsigned ssize;
+    unsigned freqs;
+    unsigned lsize;
+};
+
+}
+
+int merge_wave_data(std::string directory, std::string output);
 
 }
 
