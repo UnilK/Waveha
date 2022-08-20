@@ -47,17 +47,17 @@ public:
     float momentumDecay;
 
     // the pitch is updated only if the buffer has been fed at least <size> samples.
-    // time & space complexity of feed is O(size * log(size)).
+    // time complexity of feed is O(size * log(size)).
     void feed(const std::vector<float> &data);
     
     // clear previous information.
     void reset();
 
     // get one period from the buffer. The buffer has a lag of size samples.
-    std::vector<float> get();
+    std::vector<float> get(unsigned amount = 0);
     
-    // get two periods from the buffer. Lag is size + period / 2.
-    std::vector<float> get2();
+    // get two periods from the buffer. One extending after the lag and one before.
+    std::vector<float> get2(unsigned amount = 0);
 
     // get the momentum mse graph. for debugging purposes.
     std::vector<float> get_mse();

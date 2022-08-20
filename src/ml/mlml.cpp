@@ -6,6 +6,7 @@ namespace ml {
 
 CompilationResult compile(std::string file){
 
+    /*
     auto error = [&](
             std::string error,
             unsigned line,
@@ -16,6 +17,7 @@ CompilationResult compile(std::string file){
             error + " on line " + std::to_string(line),
             nullptr};
     };
+    */
 
     return {0, "", nullptr};
 }

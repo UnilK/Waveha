@@ -104,6 +104,11 @@ struct relu { // max(0, x)
     static void df(float *left, float *right, float *var, float *change);
 };
 
+struct exp { // e^(1-1/x)
+    static void f(float *left, float *right, float *var);
+    static void df(float *left, float *right, float *var, float *change);
+};
+
 class A1Field : public Field<1, 1, 0, a1> {
 public:
     using Field::Field;
@@ -187,6 +192,13 @@ public:
 };
 
 class ReluField : public Field<1, 1, 0, relu> {
+public:
+    using Field::Field;
+    using Field::ok;
+    std::string get_type();
+};
+
+class ExpField : public Field<1, 1, 0, exp> {
 public:
     using Field::Field;
     using Field::ok;

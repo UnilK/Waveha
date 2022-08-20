@@ -48,7 +48,7 @@ private:
 
     // config
     std::string stackName = "", dataName = "", testName = "";
-    unsigned bsize = 100, tinterval = 100;
+    unsigned bsize = 100, tinterval = 100, tests = 100;
     float speed = 0.01f, decay = 0.0f;
     
     int mode = 0;

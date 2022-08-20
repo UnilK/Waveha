@@ -177,6 +177,22 @@ void Meditor::update_output(){
 
         data = math::ift(freq, (unsigned)std::round(data.size() / pitch));
 
+    } else if(mode == 4){
+        
+        data = change::pitch_changer(data, pitch);
+
+    } else if(mode == 5){
+
+        const int N = 64;
+
+        auto freq = math::ft(data, N);
+
+        freq = change::translate(freq, pitch);
+
+        data = math::ift(freq, (unsigned)std::round(data.size() / pitch));
+
+    } else if(mode == 6){
+        data = math::ift(math::cos_window_ft(data, 64), data.size()/2);
     }
     
     wave::Audio *audio = new wave::Audio();

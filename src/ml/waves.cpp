@@ -20,7 +20,9 @@ WaveData::WaveData() :
     raw(*this),
     labeled(*this),
     matched(*this)
-{}
+{
+    index.resize(64);
+}
 
 WaveData::~WaveData(){}
 
@@ -44,10 +46,12 @@ bool WaveData::open(std::string name){
     lbegin = labels.tellg();
     pos = 0;
 
+    update_index();
+
     return 1;
 }
 
-InputLabel WaveData::get(size_t position){
+InputLabel WaveData::direct_get(size_t position){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
     
@@ -359,10 +363,12 @@ WaveData::Raw::Raw(WaveData &source) :
     src(source)
 {}
 
-InputLabel WaveData::Raw::get(size_t position){
+InputLabel WaveData::Raw::direct_get(size_t position){
     auto ret = src.get(position);
+    ret.input.pop_back();
     ret.label = ret.input;
-    ret.label.pop_back();
+    ret.input.push_back(1.0f);
+    ret.input.push_back(1.0f);
     return ret;
 }
 
@@ -374,7 +380,7 @@ WaveData::Labeled::Labeled(WaveData &source) :
     src(source)
 {}
 
-InputLabel WaveData::Labeled::get(size_t position){
+InputLabel WaveData::Labeled::direct_get(size_t position){
     return src.get(position % src.lsize);
 }
 
@@ -387,7 +393,7 @@ WaveData::Matched::Matched(WaveData &source) :
     sameProb(0.5f)
 {}
 
-InputLabel WaveData::Matched::get(size_t position){
+InputLabel WaveData::Matched::direct_get(size_t position){
 
     std::lock_guard<std::recursive_mutex> lock(src.mutex);
 
@@ -405,8 +411,25 @@ InputLabel WaveData::Matched::get(size_t position){
             InputLabel ret;
             ret.input = a.input;
             ret.label = b.input;
+
+            float arasp = 0, brasp = 0;
+            for(unsigned i=6; i+1<a.input.size(); i += 2){
+                if(i*a.input.back()/2 > 1000.0f){
+                    arasp += a.input[i]*a.input[i] + a.input[i+1]*a.input[i+1];
+                }
+                if(i*b.input.back()/2 > 1000.0f){
+                    brasp += b.input[i]*b.input[i] + b.input[i+1]*b.input[i+1];
+                }
+            }
+
+            arasp = std::sqrt(arasp);
+            brasp = std::sqrt(brasp);
+
             ret.input.back() = ret.label.back() / ret.input.back();
             ret.label.pop_back();
+
+            if(arasp == 0.0f) arasp = 1.0f;
+            ret.input.push_back(brasp / arasp);
 
             return ret;
         }

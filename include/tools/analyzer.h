@@ -98,6 +98,7 @@ private:
     void reverb_audio(ui::Command);
     void config_feedback(ui::Command);
     void process_pitch(ui::Command);
+    void translate_pitch(ui::Command);
     void info(ui::Command);
 
     AudioLink link;

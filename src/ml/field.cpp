@@ -80,15 +80,7 @@ void vv1::f(float *left, float *right, float *var){
     float x = left[0] + var[0];
     float y;
 
-    if(x >= 1.0f){
-        y = 1.0f - 1.0f / (x*x);
-    } else {
-        x = 2.0f - x;
-        y = (1.0f / ((x*x)*(x*x)) - 1.0f) * 0.5f;
-    }
-
-    const float div = 1.0f / 1.5f;
-    y = (y + 0.5f) * div;
+    y = 0.5f + 0.5f * x / (1.0f + std::abs(x));
 
     right[0] = y;
 }
@@ -99,15 +91,8 @@ void vv1::df(float *left, float *right, float *var, float *change){
     float dx = right[0];
     float y = 0.0f;
 
-    if(x >= 1.0f){
-        y = 2.0f / (x*x*x);
-    } else {
-        x = 2.0f - x;
-        y = 2.0f / ((x*x)*(x*x)*x);
-    }
-
-    const float div = 1.0f / 1.5f;
-    y *= div;
+    float abs = std::abs(x);
+    y = 0.5f / ((1.0f + abs) * (1.0f + abs));
 
     change[0] += dx * y;
     left[0] = dx * y;
@@ -184,12 +169,12 @@ void e11::df(float *left, float *right, float *var, float *change){
 // csig ////////////////////////////////////////////////////////////////////////
 
 void csig::f(float *left, float *right, float *var){
-    right[0] = left[0] / (1.0f + std::abs(left[0]));
+    right[0] = 0.5f + 0.5f * left[0] / (1.0f + std::abs(left[0]));
 }
 
 void csig::df(float *left, float *right, float *var, float *change){
     float abs = std::abs(left[0]);
-    left[0] = right[0] / ((1.0f + abs) * (1.0f + abs));
+    left[0] = 0.5f * right[0] / ((1.0f + abs) * (1.0f + abs));
 }
 
 // a2 /////////////////////////////////////////////////////////////////////////
@@ -383,6 +368,17 @@ void relu::df(float *left, float *right, float *var, float *change){
     left[0] = right[0] * (left[0] >= 0);
 }
 
+// exp ////////////////////////////////////////////////////////////////////////
+
+void exp::f(float *left, float *right, float *var){
+    if(left[0] == 0.0f) left[0] = 1e-9f;
+    right[0] = std::exp(1.0f - 1.0f / left[0]);
+}
+
+void exp::df(float *left, float *right, float *var, float *change){
+    left[0] = right[0] * std::exp(1.0f - 1.0f / left[0]) / (left[0] * left[0]);
+}
+
 // boilerplate ////////////////////////////////////////////////////////////////
 
 namespace Factory { extern std::string a1; }
@@ -425,6 +421,9 @@ std::string Up2Field::get_type(){ return Factory::up2; };
 
 namespace Factory { extern std::string relu; }
 std::string ReluField::get_type(){ return Factory::relu; };
+
+namespace Factory { extern std::string exp; }
+std::string ExpField::get_type(){ return Factory::exp; };
 
 }
 

@@ -153,5 +153,46 @@ bool CMatrix::ok(arrays in, arrays out, args a){
 namespace Factory { extern std::string cmatrix; }
 std::string CMatrix::get_type(){ return Factory::cmatrix; };
 
+// pmatrix ////////////////////////////////////////////////////////////////////
+
+PMatrix::PMatrix(arrays in, arrays out, args a) :
+    Layer(in, out, a),
+    l(left[0]),
+    r(right[0]),
+    matrix(left[1])
+{}
+
+void PMatrix::push(){
+    
+    for(unsigned i=0; i<r.size; i++) r[i] = 0;
+
+    for(unsigned i=0, k=0; i<l.size; i++){
+        for(unsigned j=0; j<r.size; j++, k++){
+            r[j] += l[i] * matrix[k];
+        }
+    }
+}
+
+void PMatrix::pull(){
+    
+    std::vector<float> lc(l.size, 0.0f), mc(matrix.size, 0.0f);
+
+    for(unsigned i=0; i<l.size; i++) r[i] = 0;
+
+    for(unsigned i=0, k=0; i<l.size; i++){
+        for(unsigned j=0; j<r.size; j++, k++){
+            lc[i] += matrix[k] * r[j];
+            mc[k] = l[i] * r[j];
+        }
+    }
+}
+
+bool PMatrix::ok(arrays in, arrays out, args){
+    return in.size() == 2 && out.size() == 1 && in[0].size * out[0].size == in[1].size;
+}
+
+namespace Factory { extern std::string pmatrix; }
+std::string PMatrix::get_type(){ return Factory::pmatrix; }
+
 }
 

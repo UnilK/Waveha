@@ -17,7 +17,7 @@ public:
     
     bool open(std::string name);
 
-    InputLabel get(size_t position);
+    InputLabel direct_get(size_t position);
     size_t size() const;
     size_t labeled_size();
 
@@ -38,7 +38,7 @@ public:
     class Raw : public TrainingData {
     public:
         Raw(WaveData&);
-        InputLabel get(size_t position);
+        InputLabel direct_get(size_t position);
         size_t size() const;
     private:
         WaveData &src;
@@ -47,7 +47,7 @@ public:
     class Labeled : public TrainingData {
     public:
         Labeled(WaveData&);
-        InputLabel get(size_t position);
+        InputLabel direct_get(size_t position);
         size_t size() const;
     private:
         WaveData &src;
@@ -56,7 +56,7 @@ public:
     class Matched : public TrainingData {
     public:
         Matched(WaveData&);
-        InputLabel get(size_t position);
+        InputLabel direct_get(size_t position);
         size_t size() const;
         void match_same(float probability);
     private:

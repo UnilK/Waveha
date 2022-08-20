@@ -62,6 +62,7 @@ void Trainer::save(ui::Saver &saver){
     saver.write_string(stackName);
     saver.write_string(dataName);
     saver.write_string(testName);
+    saver.write_unsigned(tests);
     saver.write_unsigned(bsize);
     saver.write_unsigned(tinterval);
     saver.write_double(speed);
@@ -75,6 +76,7 @@ void Trainer::load(ui::Loader &loader){
     stackName = loader.read_string();
     dataName = loader.read_string();
     testName = loader.read_string();
+    tests = loader.read_unsigned();
     bsize = loader.read_unsigned();
     tinterval = loader.read_unsigned();
     speed = loader.read_double();
@@ -128,6 +130,10 @@ void Trainer::config(ui::Command c){
         else if(var == "test"){
             testName = c.pop();
         }
+        else if(var == "tests"){
+            unsigned n = std::stoul(c.pop());
+            tests = n;
+        }
         else if(var == "bsize"){
             unsigned n = std::stoul(c.pop());
             if(n > 0 && n < (1<<20)) bsize = n;
@@ -150,7 +156,7 @@ void Trainer::config(ui::Command c){
         }
         else {
             c.source.push_error("variable not recognized: " + var + "\n"
-                    "options are: data, stack, test, bsize, interval, speed, mode");
+                    "options are: data, stack, test, tests, bsize, interval, speed, mode");
         }
     }
     catch (const std::invalid_argument &e){
@@ -207,6 +213,7 @@ void Trainer::info(ui::Command c){
     if(app.creations.get_mldata(testName)) message += "ok\n";
     else message += "not found\n";
     
+    message += "test size: " + std::to_string(tests) + "\n";
     message += "batch size: " + std::to_string(bsize) + "\n";
     message += "test interval: " + std::to_string(tinterval) + "\n";
     message += "change speed: " + std::to_string(speed) + "\n";
@@ -233,7 +240,7 @@ void Trainer::train_on_thread(){
             ml::Stack *stack = app.creations.get_stack(stackName);
             ml::TrainingData *data = app.creations.get_mldata(testName);
             if(data != nullptr && stack != nullptr){
-                auto res = stack->test(*data);
+                auto res = stack->test(*data, tests);
                 dataLock.lock();
                 results.push_back(res);
                 updatedFlag = 1;

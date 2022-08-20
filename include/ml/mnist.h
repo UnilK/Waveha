@@ -19,7 +19,7 @@ public:
 
     bool open(std::string name);
 
-    InputLabel get(size_t position);
+    InputLabel direct_get(size_t position);
     size_t size() const;
 
     std::string get_file();

@@ -19,6 +19,7 @@ namespace Factory {
 std::string sink = "sink";
 std::string matrix = "matrix";
 std::string cmatrix = "cmatrix";
+std::string pmatrix = "pmatrix";
 std::string unroll = "unroll";
 std::string reroll = "reroll";
 std::string deloc = "deloc";
@@ -50,6 +51,7 @@ std::string abs1 = "abs1";
 std::string abs2 = "abs2";
 std::string up2 = "up2";
 std::string relu = "relu";
+std::string exp = "exp";
 
 std::string average = "average";
 std::string phaselax = "phaselax";
@@ -66,6 +68,9 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
     
     if(type == Factory::cmatrix && CMatrix::ok(left, right, a))
         return new CMatrix(left, right, a);
+    
+    if(type == Factory::pmatrix && PMatrix::ok(left, right, a))
+        return new PMatrix(left, right, a);
     
     if(type == Factory::unroll && Unroll::ok(left, right, a))
         return new Unroll(left, right, a);
@@ -158,6 +163,9 @@ Layer *create_layer(std::string type, arrays left, arrays right, args a){
     
     if(type == Factory::relu && ReluField::ok(left, right, a))
         return new ReluField(left, right, a);
+    
+    if(type == Factory::exp && ExpField::ok(left, right, a))
+        return new ExpField(left, right, a);
     
     return nullptr;
 }

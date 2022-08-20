@@ -398,7 +398,7 @@ Stack::TestAnalysis Stack::test(TrainingData &data, size_t amount){
     result.errors.resize(vectors.back().size(), 0.0f);
 
     size_t total = data.size();
-    if(amount != 0) total = std::min(total, data.size());
+    if(amount != 0) total = std::min(amount, data.size());
 
     for(size_t iter=0; iter<total; iter++){
         

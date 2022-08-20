@@ -62,5 +62,28 @@ protected:
 
 };
 
+
+
+class PMatrix : public Layer {
+
+    // runs a complex valued vector through a compled valued matrix
+
+public:
+
+    PMatrix(arrays in, arrays out, args);
+
+    virtual void push();
+    virtual void pull();
+    
+    static bool ok(arrays in, arrays out, args);
+    
+    virtual std::string get_type();
+
+protected:
+    
+    array &l, &r, &matrix;
+
+};
+
 }
 

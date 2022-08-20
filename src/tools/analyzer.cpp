@@ -7,6 +7,7 @@
 #include "wstream/wstream.h"
 #include "change/detector.h"
 #include "ml/waves.h"
+#include "math/constants.h"
 
 #include <algorithm>
 #include <cmath>
@@ -398,6 +399,7 @@ Analyzer::Analyzer(App *a) :
     terminal.put_function("reverb", [&](ui::Command c){ reverb_audio(c); });
     terminal.put_function("cfeed", [&](ui::Command c){ config_feedback(c); });
     terminal.put_function("ppitch", [&](ui::Command c){ process_pitch(c); });
+    terminal.put_function("translate", [&](ui::Command c){ translate_pitch(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("check", [&](ui::Command c){ check_ml_data(c); });
@@ -416,6 +418,7 @@ Analyzer::Analyzer(App *a) :
     terminal.document("reverb", "[input] [output] reverb process input audio and save it to output");
     terminal.document("cfeed", "[delay] [magnitude] add reverb feedback");
     terminal.document("ppitch", "[audio] [output] get pitch envelopoe of audio");
+    terminal.document("traslate", "[audio] [output] [factor] translate the pitch of audio");
     terminal.document("*hotkeys",
             "use W and S to control interval length shown on graph\n"
             "A and D control interval position. shift and ctrl are speed modifiers\n"
@@ -518,7 +521,7 @@ void Analyzer::update_data(){
         
     } else if(dataMode == peakMode){
 
-        graph.set_data(change::peak_match_graph(link.get_loop(length, position), peakVars));
+        graph.set_data(change::phase_graph(link.get_loop(link.size(), position), link.size()));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
@@ -670,18 +673,15 @@ void Analyzer::check_ml_data(ui::Command c){
     std::string name = c.pop();
     auto type = app.creations.data_type(name);
 
-    if(type != "waver" && type != "wavel" && type != "waver" && type != "wave") return;
+    if(type != "waver" && type != "wavel" && type != "wavem" && type != "wave") return;
 
     ml::TrainingData *all = app.creations.get_mldata(name);
     if(all == nullptr) return;
 
     std::vector<std::complex<float> > freq;
     auto [rnd, label] = all->get_random();
-    rnd.pop_back();
     
-    assert(rnd.size()%2 == 0);
-
-    freq.resize(rnd.size()/2);
+    freq.resize(rnd.size()/2 - 1);
     for(unsigned i=0; i<freq.size(); i++) freq[i] = {rnd[2*i], rnd[2*i+1]};
     
     auto waves = math::ift(freq, length);
@@ -697,7 +697,7 @@ void Analyzer::check_ml_data(ui::Command c){
         "l","r","","","","","","","","","","","","","",""};
     
     std::string message = "label: ";
-    for(size_t i=0; i<label.size(); i++){
+    for(size_t i=0; i<phonetics.size(); i++){
         if(label[i] > 0.5f) message += phonetics[i] + ",";
     }
 
@@ -847,6 +847,102 @@ void Analyzer::process_pitch(ui::Command c){
     wave::Audio *out = new wave::Audio();
     out->name = output;
     out->data = pitch;
+    app.audio.add_cache(out);
+}
+
+void Analyzer::translate_pitch(ui::Command c){
+   
+    std::string input = c.pop(), output = c.pop();
+
+    if(input.empty() || output.empty()){
+        c.source.push_error("give an audio source and an output name");
+        return;
+    }
+    
+    float factor;
+
+    try {
+        factor = std::stof(c.pop());
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+        return;
+    }
+
+    AudioLink src(app);
+    change::Detector detector;
+    src.open(input);
+
+    unsigned window = 128;
+    unsigned window2 = 2 * window;
+    unsigned N = 64;
+
+    std::vector<float> result(window, 0.0f), temp;
+
+    src.pull(detector.size, temp);
+        
+    if(src.size() == 0) c.source.push_error("input audio does not exist");
+
+    auto roll_move = [&](float pitch) -> float {
+        return (float)window / src.frameRate * pitch;
+    };
+
+    auto roll_mod = [&](float b) -> float {
+        return b - std::floor(b);
+    };
+
+    auto roll_freqs = [&](float roll, std::vector<std::complex<float> > &f) -> void {
+        for(unsigned i=0; i<N; i++) f[i] *= math::cexp((i+1)*roll);
+    };
+
+    float roll = 0.0f;
+    std::vector<std::complex<float> > phase(N, 0.0f);
+    bool previousVoiced = 0;
+
+    while(src.good){
+
+        for(unsigned i=0; i<window; i++) result.push_back(0.0f);
+
+        src.pull(window, temp);
+        detector.feed(temp);
+
+        float pitch = detector.pitch;
+        int period = detector.period;
+        if(pitch == 0.0f) pitch = 100.0f;
+        if(period == 0) period = 100;
+
+        auto piece = detector.get(period);
+        auto original_f = math::ft(piece, N);
+        auto transformed_f = change::translate(original_f, factor);
+        std::vector<float> abso(N);
+        for(unsigned i=0; i<N; i++) abso[i] = std::abs(transformed_f[i]);
+
+        if(detector.voiced && !previousVoiced){
+            for(unsigned i=0; i<N; i++){
+                if(abso[i] != 0.0f) phase[i] = transformed_f[i] / abso[i];
+                else phase[i] = 0.0f;
+            }
+        }
+
+        previousVoiced = detector.voiced;
+        
+        auto phased = phase;
+        for(unsigned i=0; i<N; i++) phased[i] *= abso[i];
+
+        auto transformed = math::sized_ift(phased, period/factor, window2);
+
+        for(unsigned i=0; i<window2; i++){
+            transformed[i] *= 0.5f - 0.5f * math::cexp((double)i/window2).real();
+            result[result.size()-window2+i] += transformed[i];
+        }
+        
+        roll_freqs(roll_move(pitch * factor), phase);
+
+    }
+
+    wave::Audio *out = new wave::Audio();
+    out->name = output;
+    out->data = result;
     app.audio.add_cache(out);
 }
 

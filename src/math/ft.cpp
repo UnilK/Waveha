@@ -52,7 +52,7 @@ vector<complex<float> > cos_window_ft(float *waves, unsigned size, unsigned n, b
     vector<complex<float> > frequencies(n, 0.0f);
     
     vector<complex<float> > exp(size);
-    for(unsigned i=0; i<size; i++) exp[i] = cexp((double)(size - i) / size);
+    for(unsigned i=0; i<size; i++) exp[i] = cexp((double)-i / size);
 
     for(unsigned i=0; i<size; i++) waves[i] *= 0.5f - 0.5f * exp[i].real();
 
@@ -94,8 +94,7 @@ vector<complex<float> > precise_ft(const vector<float> &waves,
 
 vector<float> ift(const vector<complex<float> > &frequencies,
         unsigned size,
-        bool haszero,
-        float speed){
+        bool haszero){
     
     std::vector<float> waves(size, 0);
     
@@ -104,7 +103,7 @@ vector<float> ift(const vector<complex<float> > &frequencies,
 
     unsigned n = frequencies.size();
     
-    unsigned offset = haszero ? 0 : 1;
+    unsigned offset = !haszero;
 
     for(unsigned j=0; j<n; j++){
         for(unsigned i=0; i<size; i++){
@@ -115,9 +114,29 @@ vector<float> ift(const vector<complex<float> > &frequencies,
     return waves;
 }
 
+vector<float> sized_ift(const vector<complex<float> > &frequencies,
+        unsigned period,
+        unsigned size){
+    
+    std::vector<float> waves(size, 0);
+    
+    vector<complex<float> > exp(period);
+    for(unsigned i=0; i<period; i++) exp[i] = cexp((double)i / period);
+
+    unsigned n = frequencies.size();
+    
+    for(unsigned j=0; j<n; j++){
+        for(unsigned i=0; i<size; i++){
+            waves[i] += (frequencies[j]*exp[i * (j+1) % period]).real();
+        }
+    }
+
+    return waves;
+}
+
 FTPrecalc::FTPrecalc(){
     for(unsigned i=0; i<N; i++){
-        exp[i] = std::polar(1.0f, 2.0f*PIF*i/N);
+        exp[i] = std::polar(1.0, 2.0*PI*i/N);
     }
     exp[N] = exp[0];
 }
@@ -126,7 +145,9 @@ FTPrecalc ftPrecalc;
 
 complex<float> cexp(double radians){
     double dummy;
-    return ftPrecalc.exp[(unsigned)(std::modf(radians, &dummy)*ftPrecalc.N)];
+    double fractional = std::modf(radians, &dummy);
+    fractional = fractional < 0.0 ? fractional + 1.0 : fractional;
+    return ftPrecalc.exp[(unsigned)(fractional*ftPrecalc.N)];
 }
 
 }

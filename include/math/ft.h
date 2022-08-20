@@ -27,7 +27,11 @@ std::vector<std::complex<float> > precise_ft(
 
 std::vector<float> ift(
         const std::vector<std::complex<float> > &frequencies,
-        unsigned size, bool haszero = 0, float speed = 1.0f);
+        unsigned size, bool haszero = 0);
+
+std::vector<float> sized_ift(
+        const std::vector<std::complex<float> > &frequencies,
+        unsigned period, unsigned size);
 
 struct FTPrecalc {
     FTPrecalc();

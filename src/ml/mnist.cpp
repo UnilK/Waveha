@@ -45,7 +45,7 @@ bool MnistData::open(std::string name){
     return 1;
 }
 
-InputLabel MnistData::get(size_t position){
+InputLabel MnistData::direct_get(size_t position){
 
     std::lock_guard<std::recursive_mutex> lock(mutex);
    

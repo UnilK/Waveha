@@ -333,18 +333,24 @@ void Detector::reset(){
     for(float &i : nonorm) i = 0.0f;
 }
 
-std::vector<float> Detector::get(){
+std::vector<float> Detector::get(unsigned amount){
 
-    std::vector<float> samples(period);
-    for(unsigned i=0; i<period; i++) samples[i] = buffer[size + i];
+    if(amount == 0) amount = period;
+    amount = std::min(amount, max);
+
+    std::vector<float> samples(amount);
+    for(unsigned i=0; i<amount; i++) samples[i] = buffer[size + i];
 
     return samples;
 }
 
-std::vector<float> Detector::get2(){
+std::vector<float> Detector::get2(unsigned amount){
 
-    std::vector<float> samples(2*period);
-    for(unsigned i=0; i<2*period; i++) samples[i] = buffer[size - period/2 + i];
+    if(amount == 0) amount = period;
+    amount = std::min(amount, max);
+    
+    std::vector<float> samples(2*amount);
+    for(unsigned i=0; i<2*amount; i++) samples[i] = buffer[size - amount + i];
 
     return samples;
 }

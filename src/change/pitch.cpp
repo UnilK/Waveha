@@ -18,12 +18,42 @@ float sign(float x){ return (int)(x > 0) - (x < 0); }
 
 Detector _detector;
 
+std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period){
+    
+    const int N = 64;
+    const int M = 512;
+
+    auto freq = math::ft(audio.data(), period, N);
+    std::vector<float> args(N);
+    for(int i=0; i<N; i++) args[i] = std::arg(freq[i]);
+
+    auto rot = [&](float d){   
+        auto a = args;
+        for(int i=0; i<N; i++) a[i] += (i+1)*d;
+        for(auto &i : a) i -= std::floor(i/(2*PIF))*(2*PIF);
+        for(int i=1; i<N; i++){
+            while(std::abs(a[i]-a[i-1]) > std::abs(a[i]-a[i-1]+2*PIF)) a[i] += 2*PIF;
+        }
+        return a;
+    };
+
+    float pos = 0;
+    float best = 1e9;
+    for(int i=0; i<M; i++){
+        auto a = rot((float)i*2*PIF/M);
+        float sum = 0.0f;
+        for(int i=1; i<N; i++) sum += abs(a[i]-a[i-1]);
+        if(sum < best){
+            best = sum;
+            pos = (float)i*2*PIF/M;
+        }
+    }
+
+    return rot(pos);
+}
+
 std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
-    
-    std::vector<float> food(128, 0.0f);
-    for(int i=0; i<std::min(128, (int)audio.size()); i++) food[i] = audio[i];
-    _detector.feed(food);
-    
+   
     return {(float)_detector.quiet*100, (float)_detector.voiced*100,
         _detector.confidence*100, _detector.pitch};
 
@@ -329,30 +359,139 @@ std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio, f
     
     std::vector<float> clip = audio;
 
-    float amax = 0.0f;
-    for(float &i : clip) amax = std::max(amax, std::abs(i));
-    if(amax != 0.0f) for(float &i : clip) i /= amax;
-
-    int N = stack->in_size()-1;
+    int N = stack->in_size()-2;
     auto f = math::ft(audio, N/2);
+    
+    float sum = 0;
+    for(auto i : f) sum += (i * std::conj(i)).real();
+    sum = std::sqrt(sum);
+
+    if(sum != 0.0f){
+        float isum = 1.0f / sum;
+        for(auto &i : f) i *= isum;
+    }
+
     std::vector<float> freqs(N);
     for(int i=0; i<N/2; i++){
         freqs[2*i] = f[i].real();
         freqs[2*i+1] = f[i].imag();
     }
     
-    freqs.push_back(44100 / (float)clip.size() * pitch);
+    freqs.push_back(pitch);
+    freqs.push_back(1.0f);
     freqs = stack->run(freqs);
 
     for(int i=0; i<N/2; i++) f[i] = {freqs[2*i], freqs[2*i+1]};
 
+    float sum2 = 0.0f;
+    for(float i : freqs) sum2 += i*i;
+    sum2 = std::sqrt(sum2);
+
+    if(sum2 != 0.0f){
+        float mul = sum / sum2;
+        for(auto &i : f) i *= mul;
+    }
+
     clip = math::ift(f, audio.size());
 
-    float bmax = 0.0f;
-    for(float &i : clip) bmax = std::max(bmax, std::abs(i));
-    for(float &i : clip) i *= amax/bmax;
-
     return clip;
+}
+
+std::vector<float> pitch_changer(std::vector<float> audio, float pitch){
+    
+    unsigned size = audio.size();
+    unsigned nsize = audio.size() / pitch;
+
+    const int F = 64;
+
+    std::vector<float> mag(F, 0.0f);
+    for(unsigned i=0; i<size; i++){
+        std::vector<float> time(2*nsize);
+        for(unsigned j=0; j<2*nsize; j++) time[j] = audio[(j+i)%size];
+        auto x = math::cos_window_ft(time, F);
+        for(int j=0; j<F; j++) mag[j] += std::abs(x[j]);
+    }
+
+    auto freq = math::ft(audio, F);
+    
+    for(auto &i : freq){
+        float d = std::abs(i);
+        if(i != 0.0f) i /= d;
+    }
+
+    for(unsigned j=0; j<F; j++) freq[j] *= mag[j] / (float)size;
+
+    return math::ift(freq, nsize, 0);
+}
+
+std::vector<float> pitch_translate(float pitch){
+   
+    float top = 5.0f;
+    float step = top / 50;
+
+    std::vector<float> graph;
+
+    for(float x=top; x>=0.0f; x-=step){
+
+        int n = 1<<12;
+        int m = n * x;
+
+        std::vector<float> w(n+2*m);
+        for(int i=0; i<n+2*m; i++) w[i] = math::cexp((double)i/n).real();
+
+        float avg = 0.0f;
+
+        for(int i=0; i<n; i++){
+            std::vector<float> v(2*m);
+            for(int j=0; j<2*m; j++) v[j] = w[i+j];
+            
+            std::complex<float> c = 0.0f;
+            for(int j=0; j<2*m; j++) v[j] *= 0.5f - 0.5f * math::cexp((double)j/(2*m)).real();
+            for(int j=0; j<2*m; j++) c += v[j]*math::cexp(-(double)j/m);
+
+            avg += 2 * abs(c) / n;
+        }
+
+        avg /= n;
+
+        graph.push_back(avg);
+    }
+
+    return graph;
+}
+
+std::vector<std::complex<float> > translate(
+        const std::vector<std::complex<float> > &frequencies,
+        float pitch){
+    
+    int n = frequencies.size();
+
+    auto sinc = [&](float x) -> float {
+        if(std::abs(x) < 1e-8) return 1.0f;
+        return std::sin(x*PIF)/(x*PIF);
+    };
+    
+    std::vector<float> leni(n, 0.0f);
+    std::vector<float> leno(n, 0.0f);
+    std::vector<std::complex<float> > args(n, 0.0f);
+
+    for(int i=0; i<n; i++) leni[i] = std::abs(frequencies[i]);
+
+    for(int i=0; i<n; i++){
+        for(int j=0; j<n; j++){
+            float y = sinc(i-j*pitch);
+            leno[j] += leni[i] * y*y;
+            args[j] += frequencies[i] * y;
+        }
+    }
+
+    for(int i=0; i<n; i++){
+        float d = std::abs(args[i]);
+        if(d != 0.0f) args[i] /= d;
+        args[i] *= leno[i];
+    }
+
+    return args;
 }
 
 }

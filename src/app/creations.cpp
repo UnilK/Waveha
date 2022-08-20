@@ -210,6 +210,7 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     put_function("list", [&](ui::Command c){ list_stuff(c); });
     put_function("dload", [&](ui::Command c){ load_mldata(c); });
     put_function("ddel", [&](ui::Command c){ remove_mldata(c); });
+    put_function("dcache", [&](ui::Command c){ cache_mldata(c); });
     put_function("wcreate", [&](ui::Command c){ create_waves(c); });
     put_function("screate", [&](ui::Command c){ create_stack(c); });
     put_function("sload", [&](ui::Command c){ load_stack(c); });
@@ -218,10 +219,13 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     put_function("mblur", [&](ui::Command c){ blur_mnist(c); });
     put_function("mft", [&](ui::Command c){ ft_mnist(c); });
     put_function("wshuf", [&](ui::Command c){ shuffle_waves(c); });
+    put_function("wdex", [&](ui::Command c){ index_waves(c); });
+    put_function("wsame", [&](ui::Command c){ set_sameprob(c); });
 
     document("list", "list creations");
     document("dload", "[type] [file] {name} load data for ml stacks");
     document("ddel", "[name] delete ml data");
+    document("dcache", "[name] cache database to RAM");
     document("wcreate", "[directory] [output] [density] create wave data from directory of .wav files");
     document("screate", "[file] {name} create a ml stack from a file");
     document("sload", "[file] {name} load a ml stack");
@@ -230,6 +234,8 @@ CreationsDir::CreationsDir(Creations &c) : creations(c) {
     document("mblur", "[name] blur images in mnist dataset");
     document("mft", "[name] fourier transform images in mnist dataset");
     document("wshuf", "[name] shuffle the order of data in a wave dataset");
+    document("wdex", "[name] index the data in a wave dataset");
+    document("wsame", "[name] [prob] set 'same probability' to a wavem dataset");
 }
 
 void CreationsDir::create_waves(ui::Command c){
@@ -384,6 +390,45 @@ void CreationsDir::shuffle_waves(ui::Command c){
     } else {
         c.source.push_error("dataset not found: " + name);
     }
+}
+
+void CreationsDir::index_waves(ui::Command c){
+
+    std::string name = c.pop();
+
+    if(creations.data_type(name) == "wave"){
+        auto [type, file, pointer] = creations.datas[name];
+        ((ml::WaveData*)pointer)->update_index();
+    } else {
+        c.source.push_error("dataset not found: " + name);
+    }
+}
+
+void CreationsDir::set_sameprob(ui::Command c){
+    
+    try {
+
+        std::string name = c.pop();
+        float prob = std::stof(c.pop());
+
+        if(creations.data_type(name) == "wavem"){
+            auto [type, file, pointer] = creations.datas[name];
+            ((ml::WaveData::Matched*)pointer)->match_same(prob);
+        } else {
+            c.source.push_error("dataset not found: " + name);
+        }
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
+}
+
+void CreationsDir::cache_mldata(ui::Command c){
+
+    std::string name = c.pop();
+
+    auto [type, file, pointer] = creations.datas[name];
+    if(pointer != nullptr) pointer->switch_to_cache();
 }
 
 }

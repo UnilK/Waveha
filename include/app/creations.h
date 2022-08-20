@@ -36,6 +36,7 @@ private:
 
     void load_mldata(ui::Command);
     void remove_mldata(ui::Command);
+    void cache_mldata(ui::Command);
     
     void list_stuff(ui::Command);
     
@@ -45,6 +46,8 @@ private:
     void remove_stack(ui::Command);
     
     void shuffle_waves(ui::Command);
+    void index_waves(ui::Command);
+    void set_sameprob(ui::Command);
 
 };
 
