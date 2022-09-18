@@ -147,7 +147,7 @@ complex<float> cexp(double radians){
     double dummy;
     double fractional = std::modf(radians, &dummy);
     fractional = fractional < 0.0 ? fractional + 1.0 : fractional;
-    return ftPrecalc.exp[(unsigned)(fractional*ftPrecalc.N)];
+    return ftPrecalc.exp[(unsigned)(fractional*ftPrecalc.dN)];
 }
 
 }

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+stay="bash -c \"read var\""
+
+gnome-terminal -- bash -c "./waveha; $stay;"

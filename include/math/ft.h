@@ -36,6 +36,7 @@ std::vector<float> sized_ift(
 struct FTPrecalc {
     FTPrecalc();
     static const unsigned N = 1<<18;
+    static constexpr double dN = N;
     std::complex<float> exp[N+1];
 };
 

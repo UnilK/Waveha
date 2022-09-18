@@ -51,7 +51,7 @@ std::vector<float> ml_graph(ml::Stack *stack,
 
 std::vector<float> pitch_changer(std::vector<float> audio, float pitch);
 
-std::vector<std::complex<float> > translate(
+std::vector<float> translate(
         const std::vector<std::complex<float> > &frequencies,
         float pitch);
 

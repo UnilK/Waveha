@@ -4,6 +4,7 @@
 #include "math/constants.h"
 #include "ml/stack.h"
 #include "change/detector.h"
+#include "change/changer.h"
 
 #include <math.h>
 #include <algorithm>
@@ -17,16 +18,80 @@ CorrelationVars defaultCorrelationVars;
 float sign(float x){ return (int)(x > 0) - (x < 0); }
 
 Detector _detector;
+Changer _changer;
 
 std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period){
+
+    using std::vector;
+    typedef std::complex<float> C;
+
+    unsigned min = 6;
+    unsigned x = 735;
     
-    const int N = 64;
-    const int M = 512;
+    if(audio.size() <= x) return {0.0f, 0.0f};
 
-    auto freq = math::ft(audio.data(), period, N);
-    std::vector<float> args(N);
-    for(int i=0; i<N; i++) args[i] = std::arg(freq[i]);
+    vector<unsigned> sizes;
+    for(unsigned i=min; i<=x;){
+        sizes.push_back(i);
+        float j = i; i++;
+        while(44100.0f/j - 44100/i < 1.0f) i++;
+    }
 
+    vector<float> all(audio.size()-x, 0.0f);
+
+    for(unsigned i : sizes){
+        
+        vector<C > e(audio.size());
+
+        for(unsigned j=0; j<audio.size(); j++){
+            e[j] = math::cexp((float)j/i) * audio[j];
+        }
+        
+        C sum = 0.0f;
+        for(unsigned j=0; j<audio.size(); j++){
+            sum += e[j];
+            if(j>=i) sum -= e[j-i];
+            if(j>=x) all[j-x] += (sum.real()*sum.real() + sum.imag()*sum.imag()) / (i*i);
+        }
+    }
+
+    vector<float> norm(all.size(), 0.0f);
+
+    float avg = 0.0f;
+    for(unsigned i=0; i<all.size(); i++){
+        avg += all[i];
+        if(i >= 49) avg -= all[i-49];
+        norm[i] = all[i] - avg / 49;
+    }
+
+    return norm;
+
+    /*
+    if(audio.size() > 1000) return {0.0f, 0.0f};
+
+    auto freq = math::ft(audio, (period+1)/2, 1);
+    std::vector<float> args(freq.size());
+    for(unsigned i=0; i<freq.size(); i++) args[i] = std::arg(freq[i]);
+
+    int n = args.size();
+
+    for(int i=2; i<n; i++){
+        float d = args[i-1]-args[i];
+        while(d < 0) d += 2*M_PI;
+        while(d > 2*M_PI) d -= 2*M_PI;
+        args[i-1] += d * (i-1);
+        args[i-1] -= std::floor(args[i-1]/(2*M_PI))*2*M_PI;
+    }
+    
+    for(int i=n-1; i>=1; i--){
+        args[i] -= args[1];
+        while(args[i] < 0) args[i] += 2*M_PI;
+    }
+
+    return args;
+    */
+
+    /*
     auto rot = [&](float d){   
         auto a = args;
         for(int i=0; i<N; i++) a[i] += (i+1)*d;
@@ -50,6 +115,7 @@ std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period)
     }
 
     return rot(pos);
+    */
 }
 
 std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
@@ -268,13 +334,33 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     for(unsigned i=0; i<n; i++) previous[i] = previous[i] * 0.7f + (1.0f - min) * corr[i];
     */
 
+    /*
     std::vector<float> food(128, 0.0f);
     for(int i=0; i<std::min(128, (int)audio.size()); i++) food[i] = audio[i];
     _detector.feed(food);
 
     auto mse = _detector.get_mse();
-
+    
     return mse;
+    */
+
+    /*
+    int low = 128;
+    auto f = math::fft(audio);
+    for(auto &i : f) i = std::abs(i);
+    for(unsigned i=f.size()/2; i<f.size(); i++) f[i] = 0.0f;
+    math::in_place_fft(f);
+    for(int i=-low; i<=low; i++) f[std::abs((int)f.size()+i)%f.size()] *= 2*(float)(low - std::abs(i)) / low;
+    for(unsigned i=low+1; i+low<f.size(); i++) f[i] = 0.0f;
+    math::in_place_fft(f, 1);
+    std::vector<float> a(f.size());
+    for(unsigned i=0; i<f.size(); i++) a[i] = f[i].real();
+    a.resize(a.size()/2);
+    */
+
+    for(float i : audio) _changer.process(i);
+
+    return _changer.debug_mse();
 }
 
 unsigned pitch(const std::vector<float> &audio, CorrelationVars vars){
@@ -460,7 +546,7 @@ std::vector<float> pitch_translate(float pitch){
     return graph;
 }
 
-std::vector<std::complex<float> > translate(
+std::vector<float> translate(
         const std::vector<std::complex<float> > &frequencies,
         float pitch){
     
@@ -473,7 +559,6 @@ std::vector<std::complex<float> > translate(
     
     std::vector<float> leni(n, 0.0f);
     std::vector<float> leno(n, 0.0f);
-    std::vector<std::complex<float> > args(n, 0.0f);
 
     for(int i=0; i<n; i++) leni[i] = std::abs(frequencies[i]);
 
@@ -481,17 +566,10 @@ std::vector<std::complex<float> > translate(
         for(int j=0; j<n; j++){
             float y = sinc(i-j*pitch);
             leno[j] += leni[i] * y*y;
-            args[j] += frequencies[i] * y;
         }
     }
 
-    for(int i=0; i<n; i++){
-        float d = std::abs(args[i]);
-        if(d != 0.0f) args[i] /= d;
-        args[i] *= leno[i];
-    }
-
-    return args;
+    return leno;
 }
 
 }

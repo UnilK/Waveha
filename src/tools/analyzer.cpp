@@ -8,6 +8,7 @@
 #include "change/detector.h"
 #include "ml/waves.h"
 #include "math/constants.h"
+#include "change/changer.h"
 
 #include <algorithm>
 #include <cmath>
@@ -521,13 +522,22 @@ void Analyzer::update_data(){
         
     } else if(dataMode == peakMode){
 
-        graph.set_data(change::phase_graph(link.get_loop(link.size(), position), link.size()));
+        // graph.set_data(change::phase_graph(link.get_loop(link.size(), position), link.size()));
+        
+        graph.set_data(change::phase_graph(link.get_loop(length, position), link.size()));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
     } else if(dataMode == correlationMode){
         
-        graph.set_data(change::correlation_graph(link.get_loop(length, position), corrVars));
+        int speed = 16;
+
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
+            speed /= 16;
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+            speed *= 16;
+        
+        graph.set_data(change::correlation_graph(link.get_loop(speed, position+length-speed), corrVars));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
@@ -824,24 +834,33 @@ void Analyzer::process_pitch(ui::Command c){
     }
 
     AudioLink src(app);
-    change::Detector detector;
     src.open(input);
 
+    // change::Detector detector;
+    change::Changer detector;
+    
     std::vector<float> pitch, temp;
 
-    unsigned window = 128;
+    unsigned window = 32;
 
-    src.pull(detector.size, temp);
-        
     if(src.size() == 0) c.source.push_error("input audio does not exist");
 
     while(src.good){
 
+        /*
         src.pull(window, temp);
         detector.feed(temp);
-        
+
         if(detector.voiced) pitch.push_back(detector.pitch);
         else pitch.push_back(0.0f);
+        */
+        
+        src.pull(window, temp);
+        for(float i : temp) detector.process(i);
+        
+        if(detector.is_voiced()) pitch.push_back(detector.get_pitch());
+        else pitch.push_back(0.0f);
+        
     }
 
     wave::Audio *out = new wave::Audio();
@@ -851,7 +870,8 @@ void Analyzer::process_pitch(ui::Command c){
 }
 
 void Analyzer::translate_pitch(ui::Command c){
-   
+  
+    /*
     std::string input = c.pop(), output = c.pop();
 
     if(input.empty() || output.empty()){
@@ -944,6 +964,7 @@ void Analyzer::translate_pitch(ui::Command c){
     out->name = output;
     out->data = result;
     app.audio.add_cache(out);
+    */
 }
 
 }

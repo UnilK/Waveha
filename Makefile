@@ -113,7 +113,9 @@ build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/constants.h
 build/change/pitch.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/change/pitch.o: include/ml/util.h include/ml/judge.h include/ml/db.h
-build/change/pitch.o: include/change/detector.h
+build/change/pitch.o: include/change/detector.h include/change/changer.h
+build/change/changer.o: include/change/changer.h include/math/ft.h
+build/change/changer.o: include/math/constants.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
 build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
@@ -291,6 +293,7 @@ build/tools/analyzer.o: include/app/app.h include/ui/box.h include/app/tools.h
 build/tools/analyzer.o: include/app/creations.h include/math/fft.h
 build/tools/analyzer.o: include/math/ft.h include/change/detector.h
 build/tools/analyzer.o: include/ml/waves.h include/ml/db.h
+build/tools/analyzer.o: include/math/constants.h include/change/changer.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h
