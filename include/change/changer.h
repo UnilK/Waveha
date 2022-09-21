@@ -41,10 +41,9 @@ struct PID {
 struct rvec {
     
     // rolling vector - a specialezed deque-like structure
-    // simiplified for the bare essentials to make it easy for the
+    // simiplified to the bare essentials to make it easy for the
     // compiler to use SIMD instructions and to reduce cache load.
 
-    rvec(int size_ = 1, int index_ = 1, float val = 0.0f);
     void init(int size_ = 1, int index_ = 1, float val = 0.0f);
     ~rvec();
 
@@ -52,7 +51,7 @@ struct rvec {
     void push(const float &x);
 
     int size, buffer, index, length;
-    float *data;
+    float *data = nullptr;
 
 };
 
@@ -127,8 +126,11 @@ private:
     rvec c_raw, c_out;
 
     // short time ft and the used periods.
-    std::vector<cfloat> f_short;
+    std::vector<double> f_short_r, f_short_i;
     std::vector<int> f_short_period, f_short_index;
+
+    // energy envelopes of the short time fourier transforms
+    std::vector<rvec> f_envelope;
 
     // pitch tracking
     std::vector<double> p_mse1, p_mse2;
@@ -151,7 +153,7 @@ private:
 
     // precalculated tables
     std::vector<float> x_inv;
-    std::vector<cfloat> x_short_root, x_long_root;
+    std::vector<double> x_root_r, x_root_i;
 
 };
 

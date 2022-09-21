@@ -1,5 +1,5 @@
-#pragma GCC target("avx2")
-#pragma GCC optimize("O3")
+// #pragma GCC target("avx2")
+// #pragma GCC optimize("O3")
 #include "change/changer.h"
 #include "math/ft.h"
 #include "math/constants.h"
@@ -37,15 +37,12 @@ float PID::get(float target){
     return y;
 }
 
-rvec::rvec(int size_, int index_, float val){
-    init(size_, index_, val);
-}
-
 void rvec::init(int size_, int index_, float val){
     size = size_;
     buffer = 8;
-    index = index_;
     length = 2 * buffer + 8 * size;
+    index = std::min(length - buffer - size - 1, std::max(buffer, index_ + buffer));
+    if(data != nullptr) delete[] data;
     data = new(std::align_val_t(32)) float[length];
     for(int i=0; i<length; i++) data[i] = val;
 }
@@ -126,10 +123,10 @@ Changer::Changer(float rate, float low, float high, ChangerVars setup) :
 
     {   // initialize rolling caches. Balance memmove load.
 
-        int pos = 8 * c_size / 5;
+        int pos = 8 * c_size / 2;
 
-        c_raw.init(c_size, 5 + 0 * pos);
-        c_out.init(c_size, 5 + 4 * pos);
+        c_raw.init(c_size, 0 * pos);
+        c_out.init(c_size, 1 * pos);
     }
 
     {   // initialize online fourier transforms
@@ -143,18 +140,26 @@ Changer::Changer(float rate, float low, float high, ChangerVars setup) :
         assert(!f_short_period.empty());
 
         if(f_short_period.back() != p_max) f_short_period.push_back(p_max);
-        f_short.resize(f_short_period.size(), 0.0f);
+        f_short_r.resize(f_short_period.size(), 0.0f);
+        f_short_i.resize(f_short_period.size(), 0.0f);
 
         f_short_index.resize(p_max+1, 0);
         for(int i=1, j=0; i<=p_max; i++){
             if(i > f_short_period[j]) j++;
             f_short_index[i] = j;
         }
+
+        f_envelope.resize(f_short_period.size());
+
+        int pos = 8 * p_max / f_short_period.size();
+        for(unsigned i=0; i<f_envelope.size(); i++){
+            f_envelope[i].init(p_max, pos * i);
+        }
     }
     
     {   // initialize tickers
 
-        f_short_t = ticker(f_short_period.size(), 16, 0);
+        f_short_t = ticker(f_short_period.size(), 1, 0);
         p_norm_t = ticker(std::ceil(c_rate / var.p_rate), 1, 0);
     }
    
@@ -181,9 +186,10 @@ Changer::Changer(float rate, float low, float high, ChangerVars setup) :
         x_inv.resize(c_size + 1, 0.0f);
         for(int i=1; i<=c_size; i++) x_inv[i] = 1.0 / i;
         
-        x_short_root.clear();
         for(int i : f_short_period){
-            x_short_root.push_back(std::polar(1.0f, 2.0f * PIF / i));
+            auto x = std::polar(1.0, 2.0 * PI / i);
+            x_root_r.push_back(x.real());
+            x_root_i.push_back(x.imag());
         }
     }
 }
@@ -217,18 +223,38 @@ bool Changer::is_voiced() const {
     return p_confidence > var.p_confident;
 }
 
+unsigned lol = 0;
 std::vector<float> Changer::debug_mse(){
-    return p_norm;
+    std::vector<float> v(p_max, 0.0f);
+    lol = (lol + 1) % f_envelope.size();
+    for(int i=0; i<p_max; i++) v[i] = f_envelope[lol][i];
+    return v;
 }
 
 void Changer::update_short(){
 
-    for(unsigned x=0; x<f_short.size(); x++){
-        
-        std::complex<float> &f = f_short[x];
-        const int &p = f_short_period[x];
+    // weird online short-time fourier transform
 
-        f = (f + c_raw[right(0)] - c_raw[right(-p)]) * x_short_root[x];
+    for(unsigned x=0; x<f_short_period.size(); x++){
+        
+        const int &p = f_short_period[x];
+        
+        // do complex multiplication by hand to make it easier to vectorize.
+        // (vectorize by hand later on if needed).
+
+        // implementation with std::complex
+        // f_short[x] = (f_short[x] + c_raw[right(0)] - c_raw[right(-p)]) * x_root[x];
+        
+        float rr = (f_short_r[x] + c_raw[right(0)] - c_raw[right(-p)]) * x_root_r[x]
+            - f_short_i[x] * x_root_i[x];
+        
+        float ii = (f_short_r[x] + c_raw[right(0)] - c_raw[right(-p)]) * x_root_i[x]
+            + f_short_i[x] * x_root_r[x];
+
+        f_short_r[x] = rr;
+        f_short_i[x] = ii;
+
+        f_envelope[x].push((rr*rr + ii*ii) * x_inv[p] * x_inv[p]);
     }
     
     recalc_short(f_short_t.tick());
@@ -239,11 +265,18 @@ void Changer::recalc_short(int index){
     if(index < 0) return;
 
     int x = index;
-    auto &f = f_short[x];
-    
-    f = 0.0f;
+    f_short_r[x] = f_short_i[x] = 0.0f;
+
     for(int i=1-x; i<=0; i++){
-        f = (f + c_raw[right(i)] - c_raw[right(-f_short_period[x])]) * x_short_root[x];
+        
+        float rr = (f_short_r[x] + c_raw[right(i)]) * x_root_r[x]
+            - f_short_i[x] * x_root_i[x];
+        
+        float ii = (f_short_r[x] + c_raw[right(i)]) * x_root_i[x]
+            + f_short_i[x] * x_root_r[x];
+
+        f_short_r[x] = rr;
+        f_short_i[x] = ii;
     }
 }
 
@@ -268,6 +301,8 @@ void Changer::update_mse(){
 }
 
 void Changer::update_pitch(){
+
+    // the sacred nonsense. Change at your own risk.
 
     {
         float sum = 0.0f;
@@ -368,7 +403,7 @@ void Changer::refine_pitch(int block){
     p_block = std::round(p_period);
 
     float c = p_confidence * var.p_follow *
-        std::exp(2 * (1 - std::max(m_pitch, p_pitch)/std::min(m_pitch, p_pitch)));
+        std::exp(1.0f * (1 - std::max(m_pitch, p_pitch)/std::min(m_pitch, p_pitch)));
     
     if(std::max(p_pitch, p_pitch_avg)/std::min(p_pitch, p_pitch_avg) > 3.0f) c *= 1e-5f;
     
