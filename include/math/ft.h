@@ -43,5 +43,14 @@ struct FTPrecalc {
 extern FTPrecalc ftPrecalc;
 std::complex<float> cexp(double radians);
 
+struct DFTPrecalc {
+    DFTPrecalc();
+    static const unsigned N = 1<<18;
+    static constexpr double dN = N;
+    std::complex<float> exp[N+1];
+};
+
+extern DFTPrecalc dftPrecalc;
+std::complex<float> dexp(double radians);
 }
 

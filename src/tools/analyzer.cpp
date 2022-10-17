@@ -16,6 +16,7 @@
 #include <iostream>
 #include <filesystem>
 #include <cassert>
+#include <random>
 
 namespace app {
 
@@ -871,6 +872,74 @@ void Analyzer::process_pitch(ui::Command c){
 
 void Analyzer::translate_pitch(ui::Command c){
   
+    std::string input = c.pop(), output = c.pop();
+
+    if(input.empty() || output.empty()){
+        c.source.push_error("give an audio source and an output name");
+        return;
+    }
+    
+    AudioLink src(app);
+    src.open(input);
+
+    change::Changer changer;
+    
+    const int N = 32;
+
+    std::vector<float> result, tmp;
+
+    while(src.good){
+        src.pull(N, tmp);
+        for(float i : tmp) result.push_back(changer.process(i));
+    }
+
+    /*
+    const int N = 100;
+    const int n = 128;
+    auto freq = math::ft(src.get(src.size(), 0), n);
+    int m = N * src.size();
+
+    std::mt19937 rgen;
+    rgen.seed(0);
+
+    std::normal_distribution<float> distr(0.0f, 0.7f);
+
+    auto rnd = [&]() -> float { return std::uniform_real_distribution<float>(0, 1)(rgen); };
+    auto norm = [&]() -> float { return distr(rgen); };
+
+    std::vector<double> phase(n, 0.0f), abs(n, 0.0f), spd(n, 0.0f), anchor(n, 0.0f);
+    std::vector<float> result(m, 0.0f);
+
+    float fact = 2.0f * M_PI / src.size();
+    
+    for(int i=0; i<n; i++){
+        abs[i] = std::abs(freq[i]);
+        if(abs[i] != 0.0f) phase[i] = std::arg(freq[i]);
+        anchor[i] = spd[i] = fact * (i+1);
+        phase[i] = 2.0f * M_PI * rnd();
+    }
+    
+    for(int i=0; i<100; i++){
+        for(int j=0; j<n; j++){
+            spd[j] += fact * (norm() + (anchor[j] - spd[j]) * 0.8f);
+        }
+    }
+    
+    for(int i=0; i<m; i++){
+        for(int j=0; j<n; j++){
+            result[i] += std::polar(abs[j], phase[j]).real();
+            phase[j] += spd[j];
+            spd[j] += fact * ((rnd() - 0.5f) + (anchor[j] - spd[j]) * 0.8f);
+            if(phase[j] > M_PI) phase[j] -= 2 * M_PI;
+        }
+    }
+    */
+
+    wave::Audio *out = new wave::Audio();
+    out->name = output;
+    out->data = result;
+    app.audio.add_cache(out);
+
     /*
     std::string input = c.pop(), output = c.pop();
 

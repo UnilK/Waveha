@@ -11,14 +11,17 @@ struct ChangerVars {
     float c_quiet_limit;
     float p_rate;       // pitch update rate, Hz
     float p_cutoff;     // minimum limit for forced pitch catch
-    float p_decay;      // momentum decay
-    float p_confident;  // confidence limit for pitch quesses.
+    float p_decay;      // pitch detection momentum decay
+    float c_decay;      // noise amplitude distribution decay.
+    float r_decay;      // voice amplitude distribution decay.
+    float rp_decay;     // voice phase distribution decay.
+    float p_voiced;     // confidence limit for pitch quesses.
     float p_pid_p;      // pitch output pid controller
     float p_pid_i;
     float p_pid_d;
-    float p_follow;
-    float p_remember;
-    float f_cutoff;     // voice extraction lowpass limit
+    float r_cutoff;     // voiced part extraction lowpass limit.
+    float c_cutoff;     // noise extraction lowpass limit.
+    int r_freqs;        // max number of frequencies for voiced part tracking
 };
 
 extern ChangerVars defaultVars;
@@ -67,7 +70,6 @@ struct ticker {
 
 };
 
-
 class Changer {
 
 public:
@@ -80,7 +82,8 @@ public:
 
     // c_size = 2 * ceil(framerate / low)
 
-    // feed samples to be processed. Works in O(c_size) and has latency of c_size.
+    // feed samples to be processed. Works in O(c_size).
+    // Latency of c_size samples.
     float process(float sample);
     
     // get the latency. Returns c_size
@@ -99,16 +102,21 @@ public:
 private:
     
     ChangerVars var;
-    static const int v_max = 64;
 
     typedef std::complex<float> cfloat;
-
-    // short time fourier transform for voice de/reconstruction.
-    void update_short();
-    void recalc_short(int index);
+    typedef std::complex<double> cdouble;
 
     // mse for pitch detection
     void update_mse();
+
+    // update noise frequency distribution
+    void update_noise();
+    
+    // update voice frequency distribution
+    void update_voice();
+
+    // reconstruct voice and noise from distributions.
+    void reconstruct();
 
     // refining methods for pitch tracking
     void update_pitch();
@@ -119,42 +127,47 @@ private:
     int mid(const int&) const;
     int right(const int&) const;
 
+    // cut float to 15 bits of mantissa, no exponent, sign is preserved.
+    float cut16(float);
+
     // framerate
     float c_rate;
 
     // rolling caches
-    rvec c_raw, c_out;
-
-    // short time ft and the used periods.
-    std::vector<double> f_short_r, f_short_i;
-    std::vector<int> f_short_period, f_short_index;
-
-    // energy envelopes of the short time fourier transforms
-    std::vector<rvec> f_envelope;
+    rvec c_raw, c_out, r_phase;
 
     // pitch tracking
     std::vector<double> p_mse1, p_mse2;
-    std::vector<float> p_nmse, p_momentum, p_norm;
+    std::vector<float> p_nmse, p_momentum;
 
     // tickers for load balancing
-    ticker f_short_t, p_norm_t, c_short_t;
+    ticker p_norm_t;
 
     // pitch search range
     int p_min, p_max, c_size;
     float p_high, p_low;
 
-    int m_block, t_block, p_block;          // period integer part
-    float m_period, t_period, p_period;     // accurate period
-    float m_pitch, t_pitch, p_pitch;        // accurate pitch
-    float p_confidence;                     // confidence in pitch assesment.
-    float p_pitch_avg;
+    int t_block, p_block;                   // period integer part (samples)
+    float t_period, p_period;               // accurate period (samples)
+    float t_pitch, p_pitch, mp_pitch;       // accurate pitch (Hz)
+    float p_confidence;                     // confidence in classification. (0.0 - 1.0)
+    float v_confidence;                     // voiced confidence
+    float n_confidence;                     // noise confidence
+    float p_decay, r_decay;                 // decay rates
+    float rp_decay, c_decay;
 
-    PID p_pid;                  // pitch PID controller
+    // pitch PID controller
+    PID p_pid, m_pid;
+
+    // deconstruction and reconstruction
+    std::vector<cdouble> c_freq, r_freq, t_freq;
+    std::vector<cfloat> r_psum;
+    std::vector<double> c_amplitude, r_amplitude;
+    std::vector<float> c_phase, c_speed;
+    int c_freqs, r_freqs, r_left;
 
     // precalculated tables
     std::vector<float> x_inv;
-    std::vector<double> x_root_r, x_root_i;
-
 };
 
 }

@@ -150,5 +150,27 @@ complex<float> cexp(double radians){
     return ftPrecalc.exp[(unsigned)(fractional*ftPrecalc.dN)];
 }
 
+DFTPrecalc::DFTPrecalc(){
+    
+    double b15 = 1<<15, i15 = 1.0f / (1<<15);
+
+    for(unsigned i=0; i<N; i++){
+        auto x = std::polar(1.0, 2.0*PI*i/N);
+        float xr = ((int)(x.real()*b15))*i15;
+        float xi = ((int)(x.imag()*b15))*i15;
+        exp[i] = {xr, xi};
+    }
+    exp[N] = exp[0];
+}
+
+DFTPrecalc dftPrecalc;
+
+complex<float> dexp(double radians){
+    double dummy;
+    double fractional = std::modf(radians, &dummy);
+    fractional = fractional < 0.0 ? fractional + 1.0 : fractional;
+    return dftPrecalc.exp[(unsigned)(fractional*dftPrecalc.dN)];
+}
+
 }
 

@@ -1,5 +1,5 @@
-// #pragma GCC target("avx2")
-// #pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#pragma GCC optimize("O3")
 #include "change/changer.h"
 #include "math/ft.h"
 #include "math/constants.h"
@@ -85,14 +85,17 @@ ChangerVars defaultVars {
     .c_quiet_limit = 1e-5f,
     .p_rate = 5000,
     .p_cutoff = 0.15,
-    .p_decay = 0.6f,
-    .p_confident = 0.3f,
+    .p_decay = 0.001f,
+    .c_decay = 0.0005f,
+    .r_decay = 0.002f,
+    .rp_decay = 0.05f,
+    .p_voiced = 0.6f,
     .p_pid_p = 0.05f,
     .p_pid_i = 1.0f,
     .p_pid_d = 1e-5f,
-    .p_follow = 0.1f,
-    .p_remember = 0.01f,
-    .f_cutoff = 6000
+    .r_cutoff = 6000.0f,
+    .c_cutoff = 12000.0f,
+    .r_freqs = 64,
 };
 
 Changer::Changer(float rate, float low, float high, ChangerVars setup) :
@@ -104,7 +107,8 @@ Changer::Changer(float rate, float low, float high, ChangerVars setup) :
         assert(low <= high);
         assert(rate / low < 1e9);
         high = std::min(high, rate / 2);
-        var.f_cutoff = std::min(var.f_cutoff, rate / 2);
+        var.r_cutoff = std::min(var.r_cutoff, rate / 2);
+        var.c_cutoff = std::min(var.c_cutoff, rate / 2);
     }
 
     {   // apply basic input parameters
@@ -123,161 +127,104 @@ Changer::Changer(float rate, float low, float high, ChangerVars setup) :
 
     {   // initialize rolling caches. Balance memmove load.
 
-        int pos = 8 * c_size / 2;
+        int pos = 8 * c_size / 3;
 
         c_raw.init(c_size, 0 * pos);
         c_out.init(c_size, 1 * pos);
+        r_phase.init(c_size, 2 * pos);
     }
 
-    {   // initialize online fourier transforms
-        
-        for(int i=std::max(1, (int)std::floor(c_rate / var.f_cutoff)); i<=p_max; ){
-            f_short_period.push_back(i);
-            float j = i; i++;
-            while(c_rate/j - c_rate/i < 1.0f) i++;
-        }
-
-        assert(!f_short_period.empty());
-
-        if(f_short_period.back() != p_max) f_short_period.push_back(p_max);
-        f_short_r.resize(f_short_period.size(), 0.0f);
-        f_short_i.resize(f_short_period.size(), 0.0f);
-
-        f_short_index.resize(p_max+1, 0);
-        for(int i=1, j=0; i<=p_max; i++){
-            if(i > f_short_period[j]) j++;
-            f_short_index[i] = j;
-        }
-
-        f_envelope.resize(f_short_period.size());
-
-        int pos = 8 * p_max / f_short_period.size();
-        for(unsigned i=0; i<f_envelope.size(); i++){
-            f_envelope[i].init(p_max, pos * i);
-        }
-    }
-    
-    {   // initialize tickers
-
-        f_short_t = ticker(f_short_period.size(), 1, 0);
-        p_norm_t = ticker(std::ceil(c_rate / var.p_rate), 1, 0);
-    }
-   
     {   // initialize pitch tracking
+        
+        p_norm_t = ticker(std::ceil(c_rate / var.p_rate), 1, 0);
 
         p_mse1.resize(p_max + 1, 0.0);
         p_mse2.resize(p_max + 1, 0.0);
         p_nmse.resize(p_max + 1, 0.0f);
         p_momentum.resize(p_max + 1, 0.0f);
-        p_norm.resize(p_max + 1, 0.0f);
 
-        var.p_decay = std::pow(var.p_decay, 1.0f / (c_rate / (50.0f * p_norm_t.period)));
+        p_decay = std::pow(0.5f, 1.0f / (var.p_decay * c_rate));
 
-        p_pitch_avg = m_pitch = t_pitch = p_pitch = 120;
-        m_period = t_period = p_period = c_rate / p_pitch;
-        m_block = t_block = p_block = std::round(p_period);
+        p_pitch = mp_pitch = t_pitch = 120;
+        p_period = t_period = c_rate / p_pitch;
+        p_block = t_block = std::round(t_period);
 
         p_pid = PID(var.p_pid_p, var.p_pid_i, var.p_pid_d, 1.0f / c_rate);
         p_pid.initialize(t_pitch);
+        
+        m_pid = PID(var.p_pid_p, var.p_pid_i, var.p_pid_d, 1.0f / c_rate);
+        m_pid.initialize(t_pitch);
+
+        p_confidence = 0.0;
+        n_confidence = 1.0f;
+        v_confidence = 0.0f;
     }
 
-    {   // precalculation tables
+    {   // initilize deconstruction / reconstruction
+        
+        r_decay = std::pow(0.5f, 1.0f / (var.r_decay * c_rate));
+        rp_decay = std::pow(0.5f, 1.0f / (var.rp_decay * c_rate));
+        c_decay = std::pow(0.5f, 1.0f / (var.c_decay * c_rate));
+        
+        c_freqs = std::floor(var.c_cutoff / (c_rate / p_max));
+        r_freqs = var.r_freqs;
+
+        c_freq.resize(c_freqs, 0.0);
+        r_freq.resize(r_freqs, 0.0);
+        t_freq.resize(r_freqs, 0.0);
+        r_psum.resize(r_freqs, 0.0f);
+        c_amplitude.resize(c_freqs, 0.0);
+        r_amplitude.resize(var.r_freqs, 0.0);
+        
+        c_speed.resize(c_freqs, 0.0);
+        for(int i=0; i<c_freqs; i++) c_speed[i] = 2 * PI * (i + 1) / p_max;
+
+        r_left = 0;
+    }
+
+    {   // precalculate tables
 
         x_inv.resize(c_size + 1, 0.0f);
         for(int i=1; i<=c_size; i++) x_inv[i] = 1.0 / i;
-        
-        for(int i : f_short_period){
-            auto x = std::polar(1.0, 2.0 * PI / i);
-            x_root_r.push_back(x.real());
-            x_root_i.push_back(x.imag());
-        }
     }
 }
 
 float Changer::process(float sample){
 
-    std::modf(sample*(1<<16), &sample);
-    sample /= (1<<16);
+    sample = cut16(sample);
 
     c_raw.push(sample);
     c_out.push(0.0f);
 
-    update_short();
     update_mse();
    
     if(p_norm_t.tick() == 0) update_pitch();
 
     move_pitch();
 
-    return 0.0f;
+    update_noise();
+    update_voice();
+
+    reconstruct();
+
+    return c_out[right(0)];
 }
 
 int Changer::get_latency() const { return c_size; }
-float Changer::get_pitch() const { return m_pitch; }
+float Changer::get_pitch() const { return p_pitch; }
 
 float Changer::get_confidence() const {
     return p_confidence;
 }
 
 bool Changer::is_voiced() const {
-    return p_confidence > var.p_confident;
+    return v_confidence > n_confidence;
 }
 
-unsigned lol = 0;
 std::vector<float> Changer::debug_mse(){
-    std::vector<float> v(p_max, 0.0f);
-    lol = (lol + 1) % f_envelope.size();
-    for(int i=0; i<p_max; i++) v[i] = f_envelope[lol][i];
-    return v;
-}
-
-void Changer::update_short(){
-
-    // weird online short-time fourier transform
-
-    for(unsigned x=0; x<f_short_period.size(); x++){
-        
-        const int &p = f_short_period[x];
-        
-        // do complex multiplication by hand to make it easier to vectorize.
-        // (vectorize by hand later on if needed).
-
-        // implementation with std::complex
-        // f_short[x] = (f_short[x] + c_raw[right(0)] - c_raw[right(-p)]) * x_root[x];
-        
-        float rr = (f_short_r[x] + c_raw[right(0)] - c_raw[right(-p)]) * x_root_r[x]
-            - f_short_i[x] * x_root_i[x];
-        
-        float ii = (f_short_r[x] + c_raw[right(0)] - c_raw[right(-p)]) * x_root_i[x]
-            + f_short_i[x] * x_root_r[x];
-
-        f_short_r[x] = rr;
-        f_short_i[x] = ii;
-
-        f_envelope[x].push((rr*rr + ii*ii) * x_inv[p] * x_inv[p]);
-    }
-    
-    recalc_short(f_short_t.tick());
-}
-
-void Changer::recalc_short(int index){
-
-    if(index < 0) return;
-
-    int x = index;
-    f_short_r[x] = f_short_i[x] = 0.0f;
-
-    for(int i=1-x; i<=0; i++){
-        
-        float rr = (f_short_r[x] + c_raw[right(i)]) * x_root_r[x]
-            - f_short_i[x] * x_root_i[x];
-        
-        float ii = (f_short_r[x] + c_raw[right(i)]) * x_root_i[x]
-            + f_short_i[x] * x_root_r[x];
-
-        f_short_r[x] = rr;
-        f_short_i[x] = ii;
-    }
+    std::vector<float> x(r_freqs);
+    for(int i=0; i<r_freqs; i++) x[i] = std::arg(r_psum[i]);
+    return x;
 }
 
 void Changer::update_mse(){
@@ -286,107 +233,101 @@ void Changer::update_mse(){
 
     for(int i=1; i<=p_max; i++){
 
-        const float &fl = c_raw[left(-1)];
-        const float &fr = c_raw[left(i-1)];
-        const float &sl = c_raw[right(-i)];
-        const float &sr = c_raw[right(0)];
+        const float &fl1 = c_raw[left(0)];
+        const float &fr1 = c_raw[left(i)];
+        const float &sl1 = c_raw[right(-i)];
+        const float &sr1 = c_raw[right(0)];
 
-        const float &l = c_raw[mid(-i-1)];
-        const float &m = c_raw[mid(-1)];
-        const float &r = c_raw[mid(i-1)];
+        const float &fl2 = c_raw[right(-2*i)];
+        const float &fr2 = c_raw[right(-i)];
+        const float &sl2 = c_raw[right(-i)];
+        const float &sr2 = c_raw[right(0)];
 
-        p_mse1[i] += (double)((sr-sl)*(sr-sl)) - (double)((fr-fl)*(fr-fl));
-        p_mse2[i] += (double)((r-m)*(r-m)) - (double)((m-l)*(m-l));
+        p_mse1[i] += (double)((sr1-sl1)*(sr1-sl1)) - (double)((fr1-fl1)*(fr1-fl1));
+        p_mse2[i] += (double)((sr2-sl2)*(sr2-sl2)) - (double)((fr2-fl2)*(fr2-fl2));
     }
 }
 
 void Changer::update_pitch(){
 
-    // the sacred nonsense. Change at your own risk.
-
-    {
-        float sum = 0.0f;
-
-        float w1 = std::min(0.7f, std::max(0.05f, 1.0f - p_confidence));
-        float w2 = 1.0f - w1;
-        float c = var.c_quiet_limit / (2 * p_max);
-
+    {   // the sacred nonsense. Change at your own risk.
+        
+        double sum = 0.0f;
         for(int i=1; i<=p_max; i++){
-            p_nmse[i] = (2 * p_max - i) * c + (float)p_mse1[i] * x_inv[c_size-i] * w1
-                + w2 * (float)p_mse2[i] * x_inv[i];
+            float e1 = (float)(p_mse1[i]) * x_inv[c_size-i];
+            float e2 = (float)p_mse2[i] * x_inv[i];
+            p_nmse[i] = e1 * n_confidence + e2 * v_confidence + 1e-7f;
             sum += p_nmse[i];
             p_nmse[i] *= i / sum;
+        }
+
+        auto tmp = p_nmse;
+
+        const int N = 8;
+        double z = (2*N + 1);
+        double iz = 1 / z;
+        sum = z * p_nmse[1];
+
+        for(int i = 1-N; i<=p_max; i++){
+            if(i+N <= p_max) sum += tmp[i+N];
+            else sum += tmp[p_max];
+            if(i-N-1 > 0) sum -= tmp[i-N-1];
+            else sum -= tmp[1];
+            if(i > 0) p_nmse[i] = sum * iz;
         }
     }
 
     for(int i=0; i<=p_max; i++){
-        p_momentum[i] = p_momentum[i] * var.p_decay + p_nmse[i];
+        p_momentum[i] = p_momentum[i] * p_decay + p_nmse[i] * (1.0f - p_decay);
     }
 
-    float avg = 0.0f;
-    for(int i=p_min; i<=p_max; i++) avg += p_momentum[i];
-    avg /= (p_max-p_min+1);
+    {   // pick a peak. todo: improve.
 
-    if(avg > 1e-18){
-        float iavg = 1.0f / avg;
-        for(int i=0; i<=p_max; i++) p_norm[i] = p_momentum[i] * iavg;
-    }
+        float best = 1e9;
+        int n_block = p_max;
 
-    // find minimum peaks
-
-    const int N = 32;
-    const int M = std::min(N/2 - 1, std::max(p_min/2, 1));
-    const int L = 2*M+1;
-
-    std::vector<float> segtree(2*N, 1e9);
-    auto add = [&](int i, const float &o) -> void {
-        i = (i%L)+N;
-        segtree[i] = o;
-        for(i /= 2; i; i /= 2) segtree[i] = std::min(segtree[2*i], segtree[2*i+1]);
-    };
-
-    for(int i=1; i<=std::min(p_min+M-1, p_max); i++) add(i, p_norm[i]);
-
-    float best = 1e9;
-    int n_block = p_max;
-    avg = 0.0f;
-
-    for(int i=p_min; i<=p_max && best > var.p_cutoff; i++){
-
-        if(i+M <= p_max) add(i+4, p_norm[i+M]);
-        else add(i+M, 1e9);
-
-        avg += p_norm[i];
-        if(segtree[1] < best){
-            n_block = i;
-            best = p_norm[i];
+        int left = std::max(p_min, 2);
+        int right = p_max - 2;
+        for(int i=left; i<=right && best > var.p_cutoff; i++){
+            if(     p_momentum[i-1] > p_momentum[i] &&
+                    best > p_momentum[i] &&
+                    p_momentum[i+1] > p_momentum[i] &&
+                    p_momentum[i+2] > p_momentum[i] &&
+                    p_momentum[i-2] > p_momentum[i]){
+                best = p_momentum[i];
+                n_block = i;
+            }
         }
+
+        if(best < var.p_voiced){
+            p_confidence = std::max((var.p_voiced - best) / var.p_voiced, 0.0f);
+            v_confidence = 0.5f + p_confidence * 0.5f;
+            n_confidence = 1.0f - v_confidence;
+        } else {
+            p_confidence = std::min(1.0f, (best - var.p_voiced) / (1.0f - var.p_voiced));
+            n_confidence = 0.5f + p_confidence * 0.5f;
+            v_confidence = 1.0f - n_confidence;
+        }
+
+        if(is_voiced()) refine_pitch(n_block);
     }
-
-    avg /= (p_max-p_min+1);
-
-    p_confidence = 1.0f - (p_norm[n_block] / avg);
-
-    if(p_confidence > var.p_confident) refine_pitch(n_block);
 }
 
 void Changer::refine_pitch(int block){
 
-    p_period = block;
     p_pitch = c_rate / block;
     
     if(block > 1 && block + 1 <= p_max){
         
-        float l = p_norm[t_block-1];
-        float m = p_norm[t_block];
-        float r = p_norm[t_block+1];
+        float l = p_momentum[block-1];    // (-1, l)
+        float m = p_momentum[block];      // (0, m)
+        float r = p_momentum[block+1];    // (1, r)
 
         // construct a parabola using the three points around
         // the peak. set the peak as origo and find the
-        // bottom of the parabola. val[0] and val[2] are at distance
-        // 1 from val[1] on the x-axis.
+        // bottom of the parabola.
 
-        // y = ax^2 + bx
+        // y = ax^2 + bx + c
 
         float y0 = l - m, y1 = r - m;
         float a = (y1 + y0) / 2;
@@ -395,36 +336,84 @@ void Changer::refine_pitch(int block){
         float bottom = -b / (2*a);
 
         if(bottom > -1.0f && bottom < 1.0f){
-            p_period = p_block + bottom;
-            p_pitch = c_rate / p_period;
+            p_pitch = c_rate / (block + bottom);
         }
     }
 
+    mp_pitch = mp_pitch * p_decay + p_pitch * (1.0f - p_decay);
+    p_period = c_rate / p_pitch;
     p_block = std::round(p_period);
-
-    float c = p_confidence * var.p_follow *
-        std::exp(1.0f * (1 - std::max(m_pitch, p_pitch)/std::min(m_pitch, p_pitch)));
-    
-    if(std::max(p_pitch, p_pitch_avg)/std::min(p_pitch, p_pitch_avg) > 3.0f) c *= 1e-5f;
-    
-    m_pitch = c * p_pitch + (1.0f - c) * m_pitch;
-    m_period = c_rate / m_pitch;
-    m_block = std::round(m_period);
-
-    p_pitch_avg = var.p_remember * m_pitch + (1.0f - var.p_remember) * p_pitch_avg;
 }
 
 void Changer::move_pitch(){
     
-    t_pitch = p_pid.get(m_pitch);
+    t_pitch = p_pid.get(p_pitch);
     t_period = c_rate / t_pitch;
     t_block = std::round(t_period);
+}
+
+void Changer::update_noise(){
+
+}
+
+void Changer::update_voice(){
+
+    {
+        float p = r_phase[right(0)] + mp_pitch / c_rate;
+        if(is_voiced()) p = r_phase[right(0)] + p_pitch / c_rate;
+        if(p > 1) p -= 2.0f;
+        r_phase.push(p);
+    }
+
+    r_left--;
+
+    for(int i=0; i<r_freqs; i++){
+        r_freq[i] += c_raw[right(0)] * math::dexp(-r_phase[right(0)]*(i+1));
+    }
+
+    while(1){
+        float r = r_phase[right(0)];
+        float l = r_phase[right(r_left)];
+        float d = r - l;
+        if(d < 0.0f) d += 2;
+        if(d <= 1.0f) break;
+        for(int i=0; i<r_freqs; i++){
+            r_freq[i] -= c_raw[right(r_left)] * math::dexp(-r_phase[right(r_left)]*(i+1));
+        }
+        r_left++;
+    }
+
+    for(int i=0; i<r_freqs; i++){
+        r_amplitude[i] = r_amplitude[i] * r_decay + std::abs(r_freq[i]) * (1.0f - r_decay);
+        r_psum[i] = r_psum[i] * r_decay + (1.0f - r_decay) * (std::complex<float>)r_freq[i];
+    }
+}
+
+void Changer::reconstruct(){
+
+    float &out = c_out[right(0)];
+
+    float ilen = 1.0f / (1-r_left);
+    for(int i=0; i<r_freqs; i++){
+        float d = std::abs(r_psum[i]);
+        float dd = r_amplitude[i] * ilen;
+        if(d < 1e-9f) continue;
+        out += (r_psum[i] / d * dd * math::dexp(r_phase[right(0)]*(i+1))).real();
+    }
 
 }
 
 int Changer::left(const int &i) const { return i; }
 int Changer::mid(const int &i) const { return i + p_max; }
 int Changer::right(const int &i) const { return i + c_size - 1; }
+
+float Changer::cut16(float sample){
+    const float b15 = 1<<15;
+    const float i15 = 1.0f / (1<<15);
+    std::modf(sample * b15, &sample);
+    sample *= i15;
+    return sample;
+}
 
 }
 
