@@ -9,6 +9,7 @@
 #include "ml/waves.h"
 #include "math/constants.h"
 #include "change/changer.h"
+#include "change/changer2.h"
 
 #include <algorithm>
 #include <cmath>
@@ -838,7 +839,7 @@ void Analyzer::process_pitch(ui::Command c){
     src.open(input);
 
     // change::Detector detector;
-    change::Changer detector;
+    change::Changer2 detector;
     
     std::vector<float> pitch, temp;
 
@@ -859,9 +860,7 @@ void Analyzer::process_pitch(ui::Command c){
         src.pull(window, temp);
         for(float i : temp) detector.process(i);
         
-        if(detector.is_voiced()) pitch.push_back(detector.get_pitch());
-        else pitch.push_back(0.0f);
-        
+        pitch.push_back(detector.get_pitch());
     }
 
     wave::Audio *out = new wave::Audio();
@@ -882,7 +881,7 @@ void Analyzer::translate_pitch(ui::Command c){
     AudioLink src(app);
     src.open(input);
 
-    change::Changer changer;
+    change::Changer2 changer;
     
     const int N = 32;
 
@@ -892,6 +891,11 @@ void Analyzer::translate_pitch(ui::Command c){
         src.pull(N, tmp);
         for(float i : tmp) result.push_back(changer.process(i));
     }
+
+    wave::Audio *out = new wave::Audio();
+    out->name = output;
+    out->data = result;
+    app.audio.add_cache(out);
 
     /*
     const int N = 100;
@@ -933,106 +937,6 @@ void Analyzer::translate_pitch(ui::Command c){
             if(phase[j] > M_PI) phase[j] -= 2 * M_PI;
         }
     }
-    */
-
-    wave::Audio *out = new wave::Audio();
-    out->name = output;
-    out->data = result;
-    app.audio.add_cache(out);
-
-    /*
-    std::string input = c.pop(), output = c.pop();
-
-    if(input.empty() || output.empty()){
-        c.source.push_error("give an audio source and an output name");
-        return;
-    }
-    
-    float factor;
-
-    try {
-        factor = std::stof(c.pop());
-    }
-    catch (const std::invalid_argument &e){
-        c.source.push_error("sto_ parse error");
-        return;
-    }
-
-    AudioLink src(app);
-    change::Detector detector;
-    src.open(input);
-
-    unsigned window = 128;
-    unsigned window2 = 2 * window;
-    unsigned N = 64;
-
-    std::vector<float> result(window, 0.0f), temp;
-
-    src.pull(detector.size, temp);
-        
-    if(src.size() == 0) c.source.push_error("input audio does not exist");
-
-    auto roll_move = [&](float pitch) -> float {
-        return (float)window / src.frameRate * pitch;
-    };
-
-    auto roll_mod = [&](float b) -> float {
-        return b - std::floor(b);
-    };
-
-    auto roll_freqs = [&](float roll, std::vector<std::complex<float> > &f) -> void {
-        for(unsigned i=0; i<N; i++) f[i] *= math::cexp((i+1)*roll);
-    };
-
-    float roll = 0.0f;
-    std::vector<std::complex<float> > phase(N, 0.0f);
-    bool previousVoiced = 0;
-
-    while(src.good){
-
-        for(unsigned i=0; i<window; i++) result.push_back(0.0f);
-
-        src.pull(window, temp);
-        detector.feed(temp);
-
-        float pitch = detector.pitch;
-        int period = detector.period;
-        if(pitch == 0.0f) pitch = 100.0f;
-        if(period == 0) period = 100;
-
-        auto piece = detector.get(period);
-        auto original_f = math::ft(piece, N);
-        auto transformed_f = change::translate(original_f, factor);
-        std::vector<float> abso(N);
-        for(unsigned i=0; i<N; i++) abso[i] = std::abs(transformed_f[i]);
-
-        if(detector.voiced && !previousVoiced){
-            for(unsigned i=0; i<N; i++){
-                if(abso[i] != 0.0f) phase[i] = transformed_f[i] / abso[i];
-                else phase[i] = 0.0f;
-            }
-        }
-
-        previousVoiced = detector.voiced;
-        
-        auto phased = phase;
-        for(unsigned i=0; i<N; i++) phased[i] *= abso[i];
-
-        auto transformed = math::sized_ift(phased, period/factor, window2);
-
-        for(unsigned i=0; i<window2; i++){
-            transformed[i] *= 0.5f - 0.5f * math::cexp((double)i/window2).real();
-            result[result.size()-window2+i] += transformed[i];
-        }
-        
-        roll_freqs(roll_move(pitch * factor), phase);
-
-    }
-
-    wave::Audio *out = new wave::Audio();
-    out->name = output;
-    out->data = result;
-    app.audio.add_cache(out);
     */
 }
 

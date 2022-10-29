@@ -5,6 +5,7 @@
 #include "ml/stack.h"
 #include "change/detector.h"
 #include "change/changer.h"
+#include "change/changer2.h"
 
 #include <math.h>
 #include <algorithm>
@@ -18,7 +19,7 @@ CorrelationVars defaultCorrelationVars;
 float sign(float x){ return (int)(x > 0) - (x < 0); }
 
 Detector _detector;
-Changer _changer;
+Changer2 _changer;
 
 std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period){
 
@@ -360,7 +361,7 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
 
     for(float i : audio) _changer.process(i);
 
-    return _changer.debug_mse();
+    return _changer.debug();
 }
 
 unsigned pitch(const std::vector<float> &audio, CorrelationVars vars){

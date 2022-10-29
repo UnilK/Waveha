@@ -82,12 +82,15 @@ int ticker::tick(){
 }
 
 ChangerVars defaultVars {
+    .p_low = 60.0f,
+    .p_high = 900.0f,
     .c_quiet_limit = 1e-5f,
     .p_rate = 5000,
-    .p_cutoff = 0.15,
-    .p_decay = 0.001f,
-    .c_decay = 0.0005f,
-    .r_decay = 0.002f,
+    .p_cutoff = 0.15f,
+    .p_decay = 0.003f,
+    .pm_decay = 0.1f,
+    .c_decay = 0.001f,
+    .r_decay = 0.01f,
     .rp_decay = 0.05f,
     .p_voiced = 0.6f,
     .p_pid_p = 0.05f,
@@ -98,24 +101,24 @@ ChangerVars defaultVars {
     .r_freqs = 64,
 };
 
-Changer::Changer(float rate, float low, float high, ChangerVars setup) :
+Changer::Changer(float rate, ChangerVars setup) :
     var(setup)
 {
     {   // parse input parameters
 
-        assert(rate >= 2.0f && low > 0.0f && high > 0.0f);
-        assert(low <= high);
-        assert(rate / low < 1e9);
-        high = std::min(high, rate / 2);
+        assert(rate >= 2.0f && var.p_low > 0.0f && var.p_high > 0.0f);
+        assert(var.p_low <= var.p_high);
+        assert(rate / var.p_low < 1e9);
+        var.p_high = std::min(var.p_high, rate / 2);
         var.r_cutoff = std::min(var.r_cutoff, rate / 2);
         var.c_cutoff = std::min(var.c_cutoff, rate / 2);
     }
 
-    {   // apply basic input parameters
+    {   // set basic parameters
         
         c_rate = rate;
-        p_low = low;
-        p_high = high;
+        p_low = var.p_low;
+        p_high = var.p_high;
     }
     
     {   // calculate integer period lengths for pitch search range.
@@ -141,12 +144,13 @@ Changer::Changer(float rate, float low, float high, ChangerVars setup) :
         p_mse1.resize(p_max + 1, 0.0);
         p_mse2.resize(p_max + 1, 0.0);
         p_nmse.resize(p_max + 1, 0.0f);
-        p_momentum.resize(p_max + 1, 0.0f);
+        p_momentum.resize(p_max + 1, 1.1f);
 
-        p_decay = std::pow(0.5f, 1.0f / (var.p_decay * c_rate));
+        p_decay = std::pow(0.5f, 1.0f / (var.p_decay * c_rate / p_norm_t.period));
+        pm_decay = std::pow(0.5f, 1.0f / (var.pm_decay * c_rate));
 
-        p_pitch = mp_pitch = t_pitch = 120;
-        p_period = t_period = c_rate / p_pitch;
+        p_pitch = pm_pitch = t_pitch = 120;
+        p_period = pm_period = t_period = c_rate / p_pitch;
         p_block = t_block = std::round(t_period);
 
         p_pid = PID(var.p_pid_p, var.p_pid_i, var.p_pid_d, 1.0f / c_rate);
@@ -186,6 +190,25 @@ Changer::Changer(float rate, float low, float high, ChangerVars setup) :
 
         x_inv.resize(c_size + 1, 0.0f);
         for(int i=1; i<=c_size; i++) x_inv[i] = 1.0 / i;
+
+        xz = 1024;
+        x_et.resize(xz, 0.0f);
+        s_et.resize(xz, 0.0f);
+        y_et.resize(xz, 0.0f);
+        x_mom.resize(xz, 0.0f);
+        x_dec.resize(xz, r_decay);
+
+        float s = var.c_cutoff / xz;
+        for(int i=0; i<xz; i++){
+            x_et[i] = std::polar(1.0, 2 * M_PI * i * s / c_rate);
+        }
+       
+        /*
+        for(int i=1; i<xz; i++){
+            float f = i * s;
+            x_dec[i] = std::pow(0.5f, 1.0f / (3 * c_rate / f));
+        }
+        */
     }
 }
 
@@ -194,18 +217,39 @@ float Changer::process(float sample){
     sample = cut16(sample);
 
     c_raw.push(sample);
-    c_out.push(0.0f);
 
+    for(int i=0; i<xz; i++){
+        s_et[i] = s_et[i] * x_et[i] * x_dec[i] + sample * (1.0f - x_dec[i]);
+    }
+
+    for(int i=0; i<xz; i++){
+        y_et[i] = y_et[i] * x_et[i] * c_decay + s_et[i] * (1.0f - c_decay);
+    }
+
+    // float k = 1.0f / xz / (1.0f - x_dec[1]);
+    
+    float s = 0.0f;
+    // for(int i=0; i<10; i++) y_et[i] = 0.0f;
+    for(auto i : y_et) s += i.real();
+
+    s *= 50;
+
+    c_out.push(s);
+    
+    /*
     update_mse();
    
     if(p_norm_t.tick() == 0) update_pitch();
 
     move_pitch();
+    */
 
+    /*
     update_noise();
     update_voice();
 
     reconstruct();
+    */
 
     return c_out[right(0)];
 }
@@ -222,9 +266,8 @@ bool Changer::is_voiced() const {
 }
 
 std::vector<float> Changer::debug_mse(){
-    std::vector<float> x(r_freqs);
-    for(int i=0; i<r_freqs; i++) x[i] = std::arg(r_psum[i]);
-    return x;
+    for(int i=0; i<xz; i++) x_mom[i] = std::abs(y_et[i]);
+    return x_mom;
 }
 
 void Changer::update_mse(){
@@ -279,24 +322,54 @@ void Changer::update_pitch(){
 
     for(int i=0; i<=p_max; i++){
         p_momentum[i] = p_momentum[i] * p_decay + p_nmse[i] * (1.0f - p_decay);
-    }
+    } p_momentum[0] = 1.1f;
 
-    {   // pick a peak. todo: improve.
+    {   // pick the best peak.
 
         float best = 1e9;
-        int n_block = p_max;
 
         int left = std::max(p_min, 2);
         int right = p_max - 2;
+
+        std::vector<int> cand(3, 0);
+
         for(int i=left; i<=right && best > var.p_cutoff; i++){
             if(     p_momentum[i-1] > p_momentum[i] &&
-                    best > p_momentum[i] &&
                     p_momentum[i+1] > p_momentum[i] &&
                     p_momentum[i+2] > p_momentum[i] &&
                     p_momentum[i-2] > p_momentum[i]){
-                best = p_momentum[i];
-                n_block = i;
+                int j = i;
+                if(p_momentum[cand[0]] > p_momentum[j]) std::swap(cand[0], j);
+                if(p_momentum[cand[1]] > p_momentum[j]) std::swap(cand[1], j);
+                if(p_momentum[cand[2]] > p_momentum[j]) std::swap(cand[2], j);
+                best = std::min(best, p_momentum[i]);
             }
+        }
+
+        int n_block = cand[0];
+
+        if(best > var.p_cutoff){
+            
+            std::vector<float> merit(3, 0);
+            for(int i=0; i<3; i++) merit[i] = -std::log(p_momentum[cand[i]]);
+            
+            if(is_voiced()){
+                for(int i=0; i<3; i++){
+                    merit[i] *= std::max(0.2f, 1.0f
+                            - 3.0f * std::abs(p_period - cand[i]) / (p_period + cand[i]));
+                }
+            } else {
+                for(int i=0; i<3; i++){
+                    merit[i] *= std::max(0.2f, 1.0f
+                            - 3.0f * std::abs(pm_period - cand[i]) / (pm_period + cand[i]));
+                }
+            }
+
+            int bp = 0;
+            for(int i=0; i<3; i++) if(merit[i] > merit[bp]) bp = i;
+
+            n_block = cand[bp];
+            best = p_momentum[n_block];
         }
 
         if(best < var.p_voiced){
@@ -340,8 +413,9 @@ void Changer::refine_pitch(int block){
         }
     }
 
-    mp_pitch = mp_pitch * p_decay + p_pitch * (1.0f - p_decay);
+    pm_pitch = pm_pitch * pm_decay + p_pitch * (1.0f - pm_decay);
     p_period = c_rate / p_pitch;
+    pm_period = c_rate / pm_pitch;
     p_block = std::round(p_period);
 }
 
@@ -359,7 +433,7 @@ void Changer::update_noise(){
 void Changer::update_voice(){
 
     {
-        float p = r_phase[right(0)] + mp_pitch / c_rate;
+        float p = r_phase[right(0)] + pm_pitch / c_rate;
         if(is_voiced()) p = r_phase[right(0)] + p_pitch / c_rate;
         if(p > 1) p -= 2.0f;
         r_phase.push(p);

@@ -8,10 +8,13 @@
 namespace change {
 
 struct ChangerVars {
+    float p_low;
+    float p_high;
     float c_quiet_limit;
     float p_rate;       // pitch update rate, Hz
     float p_cutoff;     // minimum limit for forced pitch catch
     float p_decay;      // pitch detection momentum decay
+    float pm_decay;     // pitch average decay rate.
     float c_decay;      // noise amplitude distribution decay.
     float r_decay;      // voice amplitude distribution decay.
     float rp_decay;     // voice phase distribution decay.
@@ -76,8 +79,6 @@ public:
     
     Changer(
             float rate = 44100,                 // audio rate sample rate.
-            float low = 60,                     // pitch search range lower bound, Hz.
-            float high = 900,                   // pitch search range upper bound, Hz.
             ChangerVars setup = defaultVars);   // variables
 
     // c_size = 2 * ceil(framerate / low)
@@ -148,13 +149,13 @@ private:
     float p_high, p_low;
 
     int t_block, p_block;                   // period integer part (samples)
-    float t_period, p_period;               // accurate period (samples)
-    float t_pitch, p_pitch, mp_pitch;       // accurate pitch (Hz)
+    float t_period, p_period, pm_period;    // accurate period (samples)
+    float t_pitch, p_pitch, pm_pitch;       // accurate pitch (Hz)
     float p_confidence;                     // confidence in classification. (0.0 - 1.0)
     float v_confidence;                     // voiced confidence
     float n_confidence;                     // noise confidence
-    float p_decay, r_decay;                 // decay rates
-    float rp_decay, c_decay;
+    float r_decay, rp_decay, c_decay;       // decay rates
+    float p_decay, pm_decay;
 
     // pitch PID controller
     PID p_pid, m_pid;
@@ -168,6 +169,11 @@ private:
 
     // precalculated tables
     std::vector<float> x_inv;
+
+    int xz;
+    std::vector<float> x_dec, x_mom;
+    std::vector<cfloat> x_et, s_et, y_et;
+
 };
 
 }

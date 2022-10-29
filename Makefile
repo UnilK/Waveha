@@ -106,6 +106,7 @@ build/wave/source.o: include/wave/source.h
 build/wave/sound.o: include/wave/sound.h include/wave/buffer.h
 build/wave/sound.o: include/wave/source.h include/wave/util.h
 build/wave/util.o: include/wave/util.h
+build/change/changer2.o: include/change/changer2.h include/math/constants.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
 build/change/detector.o: include/change/detector.h include/math/fft.h
 build/change/detector.o: include/math/ft.h
@@ -114,6 +115,7 @@ build/change/pitch.o: include/math/ft.h include/math/constants.h
 build/change/pitch.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
 build/change/pitch.o: include/ml/util.h include/ml/judge.h include/ml/db.h
 build/change/pitch.o: include/change/detector.h include/change/changer.h
+build/change/pitch.o: include/change/changer2.h
 build/change/changer.o: include/change/changer.h include/math/ft.h
 build/change/changer.o: include/math/constants.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
@@ -294,6 +296,7 @@ build/tools/analyzer.o: include/app/creations.h include/math/fft.h
 build/tools/analyzer.o: include/math/ft.h include/change/detector.h
 build/tools/analyzer.o: include/ml/waves.h include/ml/db.h
 build/tools/analyzer.o: include/math/constants.h include/change/changer.h
+build/tools/analyzer.o: include/change/changer2.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h
