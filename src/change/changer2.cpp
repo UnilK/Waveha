@@ -213,7 +213,6 @@ void Changer2::update_reco(){
     int zz = fgroup.size();
     for(int i=zz-1; i>=0; i--){
         for(int j=i+1; j<zz; j++){
-            if(i == j) continue;
             if( int_error(fgroup[j]/fgroup[i]) < 0.1f &&
                 mgroup[i] > mgroup[j] * 0.5f){
                 mgroup[j] = 0.0f;
@@ -237,7 +236,6 @@ void Changer2::update_reco(){
         float f = fgroup[order[0]];
         f_pitch_estimate = 0.9f * f_pitch_estimate + 0.1f * f;
     }
-
 
 
 }

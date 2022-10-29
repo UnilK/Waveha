@@ -34,5 +34,10 @@ if !isdirectory(undo_path)
 endif
 let &undodir = undo_path
 
+set undofile
 autocmd BufEnter * set undofile
+autocmd BufAdd * set undofile
+autocmd BufNew * set undofile
+autocmd BufRead * set undofile
+autocmd BufWinEnter * set undofile
 
