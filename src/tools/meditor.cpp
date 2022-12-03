@@ -186,10 +186,7 @@ void Meditor::update_output(){
         const int N = 64;
 
         auto freq = math::ft(data, N);
-
-        auto abso = change::translate(freq, pitch);
-
-        for(int i=0; i<N; i++) freq[i] = std::polar(abso[i], -1.0f);
+        freq = change::translate(freq, pitch);
 
         data = math::ift(freq, (unsigned)std::round(data.size() / pitch));
 
@@ -200,6 +197,8 @@ void Meditor::update_output(){
         data.resize(N);
         for(int i=0; i<N; i++) data[i] = (-100.0f * (N - i) + 0.0f * i) / N;
         for(float &i : data) i = std::pow(2.0f, i);
+
+    } else if(mode == 7){
 
     }
     

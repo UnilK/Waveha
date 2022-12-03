@@ -8,8 +8,9 @@
 #include "change/detector.h"
 #include "ml/waves.h"
 #include "math/constants.h"
-#include "change/changer.h"
+#include "change/changer1.h"
 #include "change/changer2.h"
+#include "change/changer3.h"
 
 #include <algorithm>
 #include <cmath>
@@ -403,6 +404,7 @@ Analyzer::Analyzer(App *a) :
     terminal.put_function("cfeed", [&](ui::Command c){ config_feedback(c); });
     terminal.put_function("ppitch", [&](ui::Command c){ process_pitch(c); });
     terminal.put_function("translate", [&](ui::Command c){ translate_pitch(c); });
+    terminal.put_function("inter", [&](ui::Command c){ set_interpolate(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("check", [&](ui::Command c){ check_ml_data(c); });
@@ -422,6 +424,7 @@ Analyzer::Analyzer(App *a) :
     terminal.document("cfeed", "[delay] [magnitude] add reverb feedback");
     terminal.document("ppitch", "[audio] [output] get pitch envelopoe of audio");
     terminal.document("traslate", "[audio] [output] [factor] translate the pitch of audio");
+    terminal.document("inter", "interpolate edges when clipping");
     terminal.document("*hotkeys",
             "use W and S to control interval length shown on graph\n"
             "A and D control interval position. shift and ctrl are speed modifiers\n"
@@ -524,9 +527,9 @@ void Analyzer::update_data(){
         
     } else if(dataMode == peakMode){
 
-        // graph.set_data(change::phase_graph(link.get_loop(link.size(), position), link.size()));
+        graph.set_data(change::phase_graph(link.get_loop(link.size(), position), link.size()));
         
-        graph.set_data(change::phase_graph(link.get_loop(length, position), link.size()));
+        // graph.set_data(change::phase_graph(link.get_loop(length, position), link.size()));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
@@ -554,11 +557,58 @@ void Analyzer::save_clip(){
 
         int length = clipEnd - clipBegin + 1;
         
+        auto data = link.get(length, clipBegin);
+
+        if(interpolate && data.size() > 20){
+            
+            int n = data.size();
+            int d = n * 0.1;
+
+            std::vector<float> v, l, m, r;
+            for(int i=-d+1; i<0; i++) v.push_back(data[n+i]-data[n+i-1]);
+            v.push_back(data[0]-data[n-1]);
+            for(int i=1; i<d; i++) v.push_back(data[i]-data[i-1]);
+
+            int z = v.size();
+            l.resize(z, 0.0f);
+            m.resize(z, 0.0f);
+            r.resize(z, 0.0f);
+
+            float a = 0.33f, b = std::pow(1e-2f, 1.0f / (d-1));
+
+            l[d-1] = r[d-1] = a;
+            m[d-1] = 1.0f - 2 * a;
+            for(int i=1; i<d; i++){
+                r[d-1-i] = l[d-1+i] = l[d-i];
+                l[d-1-i] = r[d-1+i] = b * r[d-1-i];
+                m[d-1-i] = m[d-1+i] = 1.0f - l[d-i-1] - r[d-i-1];
+            }
+            m[0] = m[z-1] = m[0] - l[0];
+            l[0] = r[z-1] = 0.0f;
+
+            int cnt = 0;
+            for(int i=0; i<10; i++){
+                std::vector<float> w(z, 0.0f);
+                for(int i=1; i+1<z; i++){
+                    w[i] = v[i] * m[i] + v[i-1] * r[i-1] + v[i+1] * l[i+1];
+                }
+                w[0] = v[0] * m[0] + v[1] * l[1];
+                w[z-1] = v[z-1] * m[z-1] + v[z-2] * r[z-2];
+                v = w;
+                cnt++;
+            }
+
+            for(int i=-d+1; i<0; i++) data[n+i] = data[n+i-1] + v[d-1+i];
+            data[0] = data[n-1] + v[d-1];
+            for(int i=1; i<d; i++) data[i] = data[i-1] + v[d-1+i];
+
+        }
+
         wave::Audio *audio = new wave::Audio();
         audio->name = clipName;
         audio->channels = link.channels;
         audio->frameRate = link.frameRate;
-        audio->data = link.get(length, clipBegin);
+        audio->data = data;
 
         app.audio.add_cache(audio);
     
@@ -938,6 +988,11 @@ void Analyzer::translate_pitch(ui::Command c){
         }
     }
     */
+}
+    
+void Analyzer::set_interpolate(ui::Command c){
+    interpolate ^= 1;
+    update_data();
 }
 
 }

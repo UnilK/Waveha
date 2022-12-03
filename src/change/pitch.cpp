@@ -4,8 +4,9 @@
 #include "math/constants.h"
 #include "ml/stack.h"
 #include "change/detector.h"
-#include "change/changer.h"
+#include "change/changer1.h"
 #include "change/changer2.h"
+#include "change/changer3.h"
 
 #include <math.h>
 #include <algorithm>
@@ -23,6 +24,7 @@ Changer2 _changer;
 
 std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period){
 
+    /*
     using std::vector;
     typedef std::complex<float> C;
 
@@ -66,11 +68,12 @@ std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period)
     }
 
     return norm;
+    */
 
-    /*
     if(audio.size() > 1000) return {0.0f, 0.0f};
 
-    auto freq = math::ft(audio, (period+1)/2, 1);
+    auto freq = math::ft(audio, (period+1)/2);
+    /*
     std::vector<float> args(freq.size());
     for(unsigned i=0; i<freq.size(); i++) args[i] = std::arg(freq[i]);
 
@@ -78,19 +81,26 @@ std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period)
 
     for(int i=2; i<n; i++){
         float d = args[i-1]-args[i];
-        while(d < 0) d += 2*M_PI;
-        while(d > 2*M_PI) d -= 2*M_PI;
+        d -= std::floor((d - M_PI) / (2 * M_PI)) * 2 * M_PI;
         args[i-1] += d * (i-1);
         args[i-1] -= std::floor(args[i-1]/(2*M_PI))*2*M_PI;
     }
+    */
     
-    for(int i=n-1; i>=1; i--){
-        args[i] -= args[1];
-        while(args[i] < 0) args[i] += 2*M_PI;
+    std::vector<float> args(freq.size());
+    int n = args.size();
+
+    int d = std::max(1, (int)std::floor(450.0f / (44100.0/period)));
+
+    for(int i=0; i<n; i++){
+        std::complex<float> sum = 0.0f;
+        for(int j=std::max(1, i-d); j<std::min(n, i+d+1); j++){
+            sum += freq[j]*std::conj(freq[j-1]);
+        }
+        if(std::abs(sum) != 0.0f) args[i] = std::arg(sum);
     }
 
     return args;
-    */
 
     /*
     auto rot = [&](float d){   
@@ -547,30 +557,62 @@ std::vector<float> pitch_translate(float pitch){
     return graph;
 }
 
-std::vector<float> translate(
-        const std::vector<std::complex<float> > &frequencies,
+std::vector<std::complex<float> > translate(
+        const std::vector<std::complex<float> > &f,
         float pitch){
     
-    int n = frequencies.size();
+    using std::vector;
+    using std::complex;
 
-    auto sinc = [&](float x) -> float {
-        if(std::abs(x) < 1e-8) return 1.0f;
-        return std::sin(x*PIF)/(x*PIF);
-    };
-    
-    std::vector<float> leni(n, 0.0f);
-    std::vector<float> leno(n, 0.0f);
+    int n = f.size();
 
-    for(int i=0; i<n; i++) leni[i] = std::abs(frequencies[i]);
+    vector<float> leni(n, 0.0f);
+    vector<float> leno(n, 0.0f);
 
     for(int i=0; i<n; i++){
-        for(int j=0; j<n; j++){
-            float y = sinc(i-j*pitch);
-            leno[j] += leni[i] * y*y;
+        leni[i] = f[i].real()*f[i].real()+f[i].imag()*f[i].imag();
+    }
+
+    if(pitch >= 1.0f){
+        for(int i=0, j=0; i<n; i++){
+            if((j+1)*pitch < i+1) j++;
+            if(j == 0){
+                leno[j] += leni[i];
+            } else {
+                float d = ((j+1)*pitch - (i+1)) / pitch;
+                leno[j-1] += leni[i] * d;
+                leno[j] += leni[i] * (1.0f - d);
+            }
+        }
+    } else {
+        vector<float> lens(n, 0.0f);
+        for(int i=0, j=0; j<n; j++){
+            if((j+1)*pitch > i+1) i++;
+            if(i == 0) lens[i] += 1;
+            else {
+                float d = (i+1) - (j+1)*pitch;
+                lens[i-1] += d;
+                lens[i] += (1.0f - d);
+            }
+        }
+        for(int i=0; i<n; i++) if(lens[i] != 0.0f) leni[i] /= lens[i];
+        for(int i=0, j=0; i<n; j++){
+            if((j+1)*pitch > i+1) i++;
+            if(i == 0) leno[j] = leni[i];
+            else {
+                float d = (i+1) - (j+1)*pitch;
+                leno[j] = leni[i] * (1.0f - d) + leni[i-1] * d;
+            }
         }
     }
 
-    return leno;
+    vector<complex<float> > out(n, 0.0f);
+
+    for(int i=0; i<n; i++){
+        if(std::abs(f[i]) > 1e-9f) out[i] = std::sqrt(leno[i]) * f[i] / std::abs(f[i]);
+    }
+
+    return out;
 }
 
 }

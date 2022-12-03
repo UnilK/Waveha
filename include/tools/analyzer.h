@@ -99,6 +99,7 @@ private:
     void config_feedback(ui::Command);
     void process_pitch(ui::Command);
     void translate_pitch(ui::Command);
+    void set_interpolate(ui::Command);
     void info(ui::Command);
 
     AudioLink link;
@@ -125,6 +126,7 @@ private:
     ui::Button switchRegular, switchFrequency, switchPeak, switchCorrelation;
 
     bool playing = 0;
+    bool interpolate = 0;
 
     change::PeakMatchVars peakVars;
     change::CorrelationVars corrVars;
