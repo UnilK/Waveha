@@ -496,6 +496,8 @@ void Analyzer::load(ui::Loader &loader){
     slider.set_target_size(0, loader.read_float());
     
     graph.load(loader);
+    
+    terminal.clear({terminal, {}});
 
     update_data();
     graph.set_view(dataMode);

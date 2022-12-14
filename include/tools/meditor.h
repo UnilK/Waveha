@@ -23,6 +23,8 @@ public:
     void save(ui::Saver&);
     void load(ui::Loader&);
 
+    Capture on_event(sf::Event event, int priority);
+    
     void on_tick();
 
     std::string content_type();
@@ -44,13 +46,15 @@ public:
 
     void set_slant(ui::Command);
     void set_pitch(ui::Command);
+    void clink_audio(ui::Command);
+    void set_cpitch(ui::Command);
     void remember(ui::Command);
 
 private:
 
     App &app;
 
-    AudioLink link;
+    AudioLink link, lphase, gphase, amplitude;
 
     change::Matrix matrix;
 
@@ -64,7 +68,7 @@ private:
 
     // temporary experiments
 
-    float slantIn = 1, slantOut = 1, pitch = 1;
+    float slantIn = 1, slantOut = 1, pitch = 1, cpitch = 120.0f;
     std::vector<float> rmags;
 
 };

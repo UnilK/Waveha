@@ -31,11 +31,12 @@ public:
 private:
 
     CanvasTool &tool;
-    sf::VertexArray upLine, downLine;
-    sf::Text brushT, brushS, brushM;
+    sf::VertexArray upLine, downLine, sideLine;
+    sf::Text brushT, brushS, brushM, cursorX, cursorY;
 
     bool brushing = 0;
     float xPos = 0, yPos = 0;
+    double upHeight = 1, downHeight = 1;
 
 };
 
@@ -55,6 +56,9 @@ public:
     void set_size(ui::Command);
     void config_brush(ui::Command);
     void nil_data(ui::Command);
+    void switch_cyclic(ui::Command);
+    void config_lines(ui::Command);
+    void preset(ui::Command);
     void info(ui::Command);
 
     void draw(double x, double y);
@@ -72,15 +76,16 @@ private:
 
     std::string output = "untitled";
 
-    std::vector<std::string> brushes = {"packet", "damp"};
+    std::vector<std::string> brushes = {"packet", "damp", "avg"};
     std::string brush = "packet";
 
     unsigned frequency = 0;
     float phase = 0, brushSize = 16, magnitude = 0.01;
 
     const unsigned MIN_SIZE = 16;
-    const unsigned HISTORY_SIZE = 1<<10;
+    const unsigned HISTORY_SIZE = 1<<7;
 
+    bool cyclic = 1;
     int position = 0, length = 1<<10;
     std::vector<float> data;
     std::vector<std::vector<float> > undoh, redoh;

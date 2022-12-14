@@ -17,6 +17,9 @@ Meditor::Meditor(App *a) :
     Content(a),
     app(*a),
     link(*a),
+    lphase(*a),
+    gphase(*a),
+    amplitude(*a),
     terminal(a, {.look = "baseterminal", .border = {0, 0, 0, 0}})
 {
     matrix.resize(64);
@@ -44,6 +47,8 @@ Meditor::Meditor(App *a) :
     terminal.put_function("auto", [&](ui::Command c){ set_auto(c); });
     terminal.put_function("slant", [&](ui::Command c){ set_slant(c); });
     terminal.put_function("pitch", [&](ui::Command c){ set_pitch(c); });
+    terminal.put_function("clink", [&](ui::Command c){ clink_audio(c); });
+    terminal.put_function("cpitch", [&](ui::Command c){ set_cpitch(c); });
     terminal.put_function("reme", [&](ui::Command c){ remember(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
 
@@ -61,6 +66,8 @@ Meditor::Meditor(App *a) :
     terminal.document("auto", "switch auto auto");
     terminal.document("slant", "[in] [out] multiply wave by a linear function");
     terminal.document("pitch", "[factor] multiply wavelength by factor");
+    terminal.document("clink", "[l/g/a] [name] link input to wave constuctor.");
+    terminal.document("cpitch", "[frequency] set construction frequency");
     terminal.document("reme", "remember magnitudes from current input");
     terminal.document("info", "list configuration.");
 }
@@ -73,6 +80,13 @@ void Meditor::save(ui::Saver &saver){
     saver.write_string(stack);
     saver.write_int(mode);
     saver.write_string(outputName);
+
+    saver.write_string(lphase.source());
+    saver.write_string(gphase.source());
+    saver.write_string(amplitude.source());
+
+    saver.write_float(pitch);
+    saver.write_float(cpitch);
 
     saver.write_unsigned(matrix.size());
     
@@ -90,8 +104,19 @@ void Meditor::load(ui::Loader &loader){
     mode = loader.read_int();
     outputName = loader.read_string();
     
-    link_audio({terminal, {sourceName}});
+    std::string lname = loader.read_string();
+    std::string gname = loader.read_string();
+    std::string aname = loader.read_string();
     
+    link_audio({terminal, {sourceName}});
+
+    clink_audio({terminal, {"l", lname}});
+    clink_audio({terminal, {"g", gname}});
+    clink_audio({terminal, {"a", aname}});
+    
+    pitch = loader.read_float();
+    cpitch = loader.read_float();
+
     matrix.resize(loader.read_unsigned());
 
     for(unsigned i=0; i<matrix.size(); i++){
@@ -99,6 +124,8 @@ void Meditor::load(ui::Loader &loader){
             matrix.set(i, j, loader.read_complex());
         }
     }
+    
+    terminal.clear({terminal, {}});
 
     update_output();
 }
@@ -106,8 +133,34 @@ void Meditor::load(ui::Loader &loader){
 namespace Factory { extern std::string meditor; }
 std::string Meditor::content_type(){ return Factory::meditor; }
 
+ui::Frame::Capture Meditor::on_event(sf::Event event, int priority){
+   
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
+            && event.key.code == sf::Keyboard::W){
+        
+        cpitch *= 1.01f;
+        update_output();
+
+        return Capture::capture;
+    } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
+            && event.key.code == sf::Keyboard::W){
+        
+        cpitch /= 1.01f;
+        update_output();
+
+        return Capture::capture;
+    }
+
+    return Capture::pass;
+}
+
 void Meditor::on_tick(){
-    if(link.pop_update() || autoRefresh) update_output();
+    if( (mode != 7 && link.pop_update()) ||
+        autoRefresh ||
+        (mode == 7 && (lphase.pop_update() || gphase.pop_update() || amplitude.pop_update())))
+    {
+        update_output();
+    }
 }
 
 void Meditor::update_output(){
@@ -199,7 +252,32 @@ void Meditor::update_output(){
         for(float &i : data) i = std::pow(2.0f, i);
 
     } else if(mode == 7){
+        
+        if(lphase.size() == gphase.size() && lphase.size() == amplitude.size() &&
+                lphase.size() != 0){
+            
+            std::vector<float> lv = lphase.get(lphase.size(), 0);
+            std::vector<float> gv = gphase.get(gphase.size(), 0);
+            std::vector<float> av = amplitude.get(amplitude.size(), 0);
 
+            int n = matrix.size(), m = lv.size();
+            std::vector<std::complex<float> > freq(n);
+
+            auto getp = [&](int y, std::vector<float> &v) -> float {
+                float x = cpitch * y;
+                int z = std::min(std::max(0, (int)std::round(x)), m-1);
+                return v[z];
+            };
+
+            for(int i=1; i<=n; i++){
+                freq[i-1] = std::polar(getp(i, av), getp(i, lv) + i * getp(i, gv));
+            }
+            
+            data = math::ift(freq, (unsigned)std::round(44100.0f / cpitch));
+
+        } else {
+            data = std::vector<float>(1<<7, 0.123f);
+        }
     }
     
     wave::Audio *audio = new wave::Audio();
@@ -356,7 +434,11 @@ void Meditor::info(ui::Command c){
         + "size: " + std::to_string(matrix.size()) + "\n"
         + "out: " + outputName + "\n"
         + "stack: " + stack + "\n"
-        + "mode: " + std::to_string(mode);
+        + "mode: " + std::to_string(mode) + "\n"
+        + "l g a: \"" + lphase.source() + "\" \"" 
+        + gphase.source() + "\" \"" + amplitude.source() + "\"\n"
+        + "c size: " + std::to_string(lphase.size()) + "\n"
+        + "c pitch: " + std::to_string(cpitch);
     c.source.push_output(message);
 }
 
@@ -381,6 +463,58 @@ void Meditor::set_pitch(ui::Command c){
     }
 }
 
+void Meditor::clink_audio(ui::Command c){
+
+    std::string type = c.pop();
+    std::string newName = c.pop();
+
+    if(type.empty()){
+        c.source.push_error("empty type");
+        return;
+    }
+    
+    if(type != "l" && type != "g" && type != "a"){
+        c.source.push_error("type not in [l, g, a]");
+        return;
+    }
+
+    if(newName.empty()){
+        c.source.push_error("give a name");
+    }
+    if(type == "l"){
+        bool found = lphase.open(newName);
+        if(!found) c.source.push_error("source not found: " + newName);
+    } else if(type == "g"){
+        bool found = gphase.open(newName);
+        if(!found) c.source.push_error("source not found: " + newName);
+    } else {
+        bool found = amplitude.open(newName);
+        if(!found) c.source.push_error("source not found: " + newName);
+    }
+
+    if(lphase.size() == gphase.size() && lphase.size() == amplitude.size()){
+        c.source.push_output("aligned construction inputs. size "
+                + std::to_string(lphase.size()) + ".");
+    } else {
+        c.source.push_output("unaligned: "
+                + std::to_string(lphase.size()) + " "
+                + std::to_string(gphase.size()) + " "
+                + std::to_string(amplitude.size()));
+    }
+
+    update_output();
+}
+
+void Meditor::set_cpitch(ui::Command c){
+    try {
+        cpitch = std::stof(c.pop());
+        update_output();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
+}
+
 void Meditor::remember(ui::Command c){
     
     auto data = link.get(link.size(), 0);
@@ -389,7 +523,6 @@ void Meditor::remember(ui::Command c){
 
     rmags.resize(matrix.size());
     for(unsigned i=0; i<matrix.size(); i++) rmags[i] = std::abs(freq[i]);
-
 }
 
 void Meditor::set_auto(ui::Command c){

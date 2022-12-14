@@ -107,6 +107,10 @@ public:
     void push_error(std::string);
     void push_command(std::string);
 
+    void cd(Command);
+    void pwd(Command);
+    void clear(Command);
+
 protected:
 
     struct Line { std::string text, color; };
@@ -139,10 +143,6 @@ private:
     // text and it's placement on the screen
     sf::Text text;
     float offsetX = 0, offsetY = 0;
-
-    void cd(Command);
-    void pwd(Command);
-    void clear(Command);
 
 };
 

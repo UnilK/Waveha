@@ -180,7 +180,11 @@ Frame::Capture Terminal::on_event(sf::Event event, int priority){
     if(event.type == sf::Event::TextEntered){
         
         if(priority >= 0) return Capture::pass;
-        
+       
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)){
+            return Capture::pass;
+        }
+
         if(std::isprint(event.text.unicode)){
             edits[editY].insert(editX, 1, static_cast<char>(event.text.unicode));
             edited.insert(editY);
