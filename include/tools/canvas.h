@@ -76,7 +76,7 @@ private:
 
     std::string output = "untitled";
 
-    std::vector<std::string> brushes = {"packet", "damp", "avg"};
+    std::vector<std::string> brushes = {"packet", "block", "damp", "avg"};
     std::string brush = "packet";
 
     unsigned frequency = 0;

@@ -17,8 +17,8 @@
 namespace change {
 
 ChangerVars2 defaultVars2 {
-    .f_freqs = 2048,
-    .f_cutoff = 8192.0f,
+    .f_freqs = 1024,
+    .f_cutoff = 4096.0f,
     .f_decay = 0.01f,
     .m_decay = 0.002f,
     .f_min = 60.0f,
@@ -26,7 +26,6 @@ ChangerVars2 defaultVars2 {
     .f_reco = 64,
     .r_rate = 2000.0f,
     .r_window = 0.01f,
-    .v_track = 10,
 };
 
 Changer2::Changer2(float rate, ChangerVars2 var){
@@ -78,18 +77,13 @@ Changer2::Changer2(float rate, ChangerVars2 var){
     while(p_size < 2 * r_delay) p_size *= 2;
     p_momentum.resize(p_size, 0.0f);
 
-    v_pitch = f_pitch = f_min;
-    v_size = var.v_track;
-    v_phase.resize(2 * v_size + 1, 0.0);
 }
 
 float Changer2::process(float sample){
-    
+   
+    float nsample = 2 * sample * (1.0f - f_decay);
     for(int i=0; i<f_freqs; i++){
-        echo[i] = echo[i] * root[i] * f_decay + sample;
-    }
-    
-    for(int i=0; i<f_freqs; i++){
+        echo[i] = echo[i] * root[i] * f_decay + nsample;
         momentum[i] = momentum[i] * m_decay + std::norm(echo[i]) * (1.0f - m_decay);
     }
     
@@ -221,6 +215,64 @@ void Changer2::update_reco(){
         }
         
         f_pitch = std::max(f_min, std::min(f_max, pitch));
+    }
+
+    bool voiced = 1;
+
+    {
+        // voicedness detection here
+    }
+
+    if(voiced){
+
+        int len = std::round(c_rate / f_pitch);
+
+        std::vector<float> wave(len);
+        for(int i=0; i<len; i++) wave[i] = in[i];
+        smooth_clip(wave);
+
+        {
+            int F = 96;
+            F = std::min(F, len/2);
+            auto freq = math::ft(wave, F);
+            freq = translate(freq, 0.8f);
+            wave = math::ift(freq, (int)std::round(len/0.6f));
+            len = wave.size();
+        }
+
+        int offset = 0;
+        float maxp = -1e9f;
+
+        auto cor = math::correlation(p_momentum, wave);
+
+        for(int i=0; i<len; i++){
+            if(maxp < cor[i]){
+                offset = i;
+                maxp = cor[i];
+            }
+        }
+
+        offset = (len - offset) % len;
+
+        // dbg = cor;
+
+        for(int i=0; i<p_size; i++){
+            p_momentum[i] = wave[(i+offset+r_period)%len];
+        }
+
+        for(int i=0; i<r_size; i++){
+            out[i] += r_window[i] * wave[(i+offset)%len];
+        }
+    
+    } else {
+
+        for(int i=0; i<p_size; i++){
+            p_momentum[i] = in[i%r_delay];
+        }
+        
+        for(int i=0; i<r_size; i++){
+            out[i] += r_window[i] * in[i%r_delay];
+        }
     }
 
     dbg = momentum;

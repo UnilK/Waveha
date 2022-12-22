@@ -487,6 +487,28 @@ void CanvasTool::draw(double x, double y){
             }
         }
     }
+    if(brush == "block"){
+        
+        double l = x - brushSize;
+        double r = x + brushSize;
+
+        int left = std::ceil(l);
+        int right = std::floor(r);
+
+        int size = data.size();
+
+        if(cyclic){
+            for(int i=left, j=(left%size+size)%size; i<=right; i++, j=(j+1)%size){
+                data[j] += magnitude * y;
+            }
+        } else {
+            left = std::max(0, left);
+            right = std::min((int)data.size()-1, right);
+            for(int i=left; i<=right; i++){
+                data[i] += magnitude * y;
+            }
+        }
+    }
     else if(brush == "damp"){
 
         double l = x - brushSize;

@@ -11,6 +11,7 @@
 #include <math.h>
 #include <algorithm>
 #include <iostream>
+#include <cassert>
 
 namespace change {
 
@@ -87,8 +88,15 @@ std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period)
     }
     */
     
-    std::vector<float> args(freq.size());
+    std::vector<float> args(freq.size(), 0.0f);
     int n = args.size();
+
+    /*
+    for(int i=1; i<n; i++){
+        auto c = freq[i]*std::conj(freq[i-1]);
+        if(c != 0.0f) args[i] = std::arg(c);
+    }
+    */
 
     int d = std::max(1, (int)std::floor(450.0f / (44100.0/period)));
 
@@ -565,54 +573,95 @@ std::vector<std::complex<float> > translate(
     using std::complex;
 
     int n = f.size();
+    int m = std::max(1, (int)std::floor(pitch * n));
 
     vector<float> leni(n, 0.0f);
-    vector<float> leno(n, 0.0f);
+    vector<float> leno(m, 0.0f);
 
-    for(int i=0; i<n; i++){
-        leni[i] = f[i].real()*f[i].real()+f[i].imag()*f[i].imag();
+    for(int i=0; i<n; i++) leni[i] = std::norm(f[i]);
+
+    vector<complex<float> > argi(n, 1.0f);
+    vector<complex<float> > argo(m, 0.0f);
+
+    for(int i=1; i<n; i++){
+        argi[i] = f[i] * std::conj(f[i-1]);
+    } if(n > 1) argi[0] = argi[1];
+
+    {
+        auto tmp = argi;
+        for(int i=0; i<n; i++){
+            argi[i] = 0.0f;
+            int cnt = 0;
+            for(int j=-4; j<=4; j++){
+                if(i+j >= 0 && i+j < n){
+                    argi[i] += tmp[i+j];
+                    cnt++;
+                }
+            }
+            argi[i] /= cnt;
+        }
     }
 
     if(pitch >= 1.0f){
+
         for(int i=0, j=0; i<n; i++){
             if((j+1)*pitch < i+1) j++;
             if(j == 0){
                 leno[j] += leni[i];
-            } else {
+                argo[j] += argi[i];
+            } else if(j<m){
                 float d = ((j+1)*pitch - (i+1)) / pitch;
                 leno[j-1] += leni[i] * d;
                 leno[j] += leni[i] * (1.0f - d);
+                argo[j-1] += argi[i] * d;
+                argo[j] += argi[i] * (1.0f - d);
             }
         }
+
     } else {
+
         vector<float> lens(n, 0.0f);
-        for(int i=0, j=0; j<n; j++){
+        
+        for(int i=0, j=0; j<m; j++){
             if((j+1)*pitch > i+1) i++;
             if(i == 0) lens[i] += 1;
-            else {
+            else if(i<n){
                 float d = (i+1) - (j+1)*pitch;
                 lens[i-1] += d;
                 lens[i] += (1.0f - d);
             }
         }
+        
         for(int i=0; i<n; i++) if(lens[i] != 0.0f) leni[i] /= lens[i];
+        
         for(int i=0, j=0; i<n; j++){
             if((j+1)*pitch > i+1) i++;
-            if(i == 0) leno[j] = leni[i];
-            else {
+            if(i == 0){
+                leno[j] = leni[i];
+                argo[j] = argi[i];
+            }
+            else if(j<m){
                 float d = (i+1) - (j+1)*pitch;
                 leno[j] = leni[i] * (1.0f - d) + leni[i-1] * d;
+                argo[j] = argi[i] * (1.0f - d) + argi[i-1] * d;
             }
         }
+
     }
 
-    vector<complex<float> > out(n, 0.0f);
-
-    for(int i=0; i<n; i++){
-        if(std::abs(f[i]) > 1e-9f) out[i] = std::sqrt(leno[i]) * f[i] / std::abs(f[i]);
+    for(int i=0; i<m; i++){
+        float d = std::abs(argo[i]);
+        if(d == 0.0f) argo[i] = 1.0f;
+        else argo[i] /= d;
+        argo[i] = std::pow(argo[i], -i-1);
+        d = std::abs(argo[i]);
+        if(d == 0.0f) argo[i] = 1.0f;
+        else argo[i] /= d;
     }
 
-    return out;
+    for(int i=0; i<m; i++) argo[i] *= std::sqrt(leno[i]);
+
+    return argo;
 }
 
 }

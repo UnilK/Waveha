@@ -143,7 +143,7 @@ ui::Frame::Capture Meditor::on_event(sf::Event event, int priority){
 
         return Capture::capture;
     } else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)
-            && event.key.code == sf::Keyboard::W){
+            && event.key.code == sf::Keyboard::S){
         
         cpitch /= 1.01f;
         update_output();
@@ -263,8 +263,8 @@ void Meditor::update_output(){
             int n = matrix.size(), m = lv.size();
             std::vector<std::complex<float> > freq(n);
 
-            auto getp = [&](int y, std::vector<float> &v) -> float {
-                float x = cpitch * y;
+            auto getp = [&](int y, std::vector<float> &v) -> double {
+                double x = (double)cpitch * y;
                 int z = std::min(std::max(0, (int)std::round(x)), m-1);
                 return v[z];
             };

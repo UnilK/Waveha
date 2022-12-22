@@ -29,6 +29,8 @@ void Window::event_update(){
             
             destroyed = 1;
 
+            break;
+
         } else if(event.type == sf::Event::Resized){
                 
             float width = event.size.width;
@@ -82,7 +84,6 @@ void Window::event_update(){
             captured = std::max(captured, frame->on_event(event, priority));
             priority--;
         }
-    
     }
 }
 

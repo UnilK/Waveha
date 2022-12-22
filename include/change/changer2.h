@@ -20,7 +20,6 @@ struct ChangerVars2 {
     int f_reco;         // maximum amount of voice reconstruction frequencies
     float r_rate;       // reconstruction rate (Hz)
     float r_window;     // reconstruction input window length (seconds)
-    int v_track;        // number of harmonics that are tracked.
 };
 
 extern ChangerVars2 defaultVars2;
@@ -62,10 +61,6 @@ private:
 
     int r_size, r_delay, p_size;
     std::vector<float> r_window, p_momentum;
-
-    int v_size;
-    float v_pitch;
-    std::vector<double> v_phase;
 
 };
 
