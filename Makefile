@@ -106,18 +106,19 @@ build/wave/source.o: include/wave/source.h
 build/wave/sound.o: include/wave/sound.h include/wave/buffer.h
 build/wave/sound.o: include/wave/source.h include/wave/util.h
 build/wave/util.o: include/wave/util.h
+build/change/pitcher.o: include/change/pitcher.h include/math/sinc.h
 build/change/changer2.o: include/change/changer2.h include/change/util.h
 build/change/changer2.o: include/change/pitch.h include/math/constants.h
 build/change/changer2.o: include/math/fft.h include/math/ft.h
-build/change/changer3.o: include/change/changer3.h include/change/util.h
-build/change/changer3.o: include/change/pitch.h include/math/constants.h
-build/change/changer3.o: include/math/fft.h include/math/ft.h
+build/change/changer3.o: include/change/changer3.h include/math/constants.h
+build/change/changer3.o: include/math/fft.h
 build/change/util.o: include/change/util.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
 build/change/detector.o: include/change/detector.h include/math/fft.h
 build/change/detector.o: include/math/ft.h
 build/change/changer1.o: include/change/changer1.h include/change/util.h
 build/change/changer1.o: include/math/ft.h include/math/constants.h
+build/change/phaser.o: include/change/phaser.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -125,7 +126,7 @@ build/change/pitch.o: include/ml/layer.h include/ui/fileio.h include/ml/util.h
 build/change/pitch.o: include/ml/judge.h include/ml/db.h
 build/change/pitch.o: include/change/detector.h include/change/changer1.h
 build/change/pitch.o: include/change/util.h include/change/changer2.h
-build/change/pitch.o: include/change/changer3.h
+build/change/pitch.o: include/change/changer3.h include/change/pitcher.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
 build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h

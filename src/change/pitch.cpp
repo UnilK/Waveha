@@ -8,6 +8,7 @@
 #include "change/changer1.h"
 #include "change/changer2.h"
 #include "change/changer3.h"
+#include "change/pitcher.h"
 
 #include <math.h>
 #include <algorithm>
@@ -236,6 +237,15 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
 
 std::vector<float> random_experiment(const std::vector<float> &audio){
 
+    Pitcher p(2.5, 32);
+
+    std::vector<float> out;
+    for(float i : audio){
+        auto j = p.process(i);
+        for(float k : j) out.push_back(k);
+    }
+
+    /*
     int n = audio.size();
     std::vector<float> out(n, 0.0f);
 
@@ -305,6 +315,7 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     } else {
         out = filtered;
     }
+    */
    
     /*
     filtered = out;

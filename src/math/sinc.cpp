@@ -53,12 +53,6 @@ std::vector<float> color_shift(
         window[i] = (1.0 - x*x*x) * 0.5;
     }
 
-    auto stretch = [&](int i) -> void {
-
-    };
-
-    int mid = n / 2;
-
     return in;
 }
 
