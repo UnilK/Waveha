@@ -1,6 +1,7 @@
 #include "change/pitch.h"
 #include "math/fft.h"
 #include "math/ft.h"
+#include "math/sinc.h"
 #include "math/constants.h"
 #include "ml/stack.h"
 #include "change/detector.h"
@@ -231,6 +232,131 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
 
     // return plot;
 
+}
+
+std::vector<float> random_experiment(const std::vector<float> &audio){
+
+    int n = audio.size();
+    std::vector<float> out(n, 0.0f);
+
+    {
+        const int N = 256, M = 4;
+
+        std::vector<float> window(N), fwindow(N, 0.0f);
+        for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / M * 4 / sqrt(3);
+
+        float reso = 44100.0f / N;
+        float low = 300.0f, high = 1500.0f;
+        for(int i=0; i<=N-i; i++){
+            float l = i * reso - reso / 2, r = i * reso + reso / 2;
+            
+            l = std::max(l, low);
+            r = std::min(r, high);
+
+            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
+        }
+
+        for(int i=0; i+N<=n; i+=N/M){
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+            auto freq = math::fft(bit);
+            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
+            bit = math::inverse_fft(freq);
+            for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
+        }
+    }
+    
+    auto filtered = out;
+    for(float &i : out) i = 0.0f;
+
+    if(rand()&1){
+
+        const int N = 256, M = 8;
+
+        std::vector<float> window(N);
+        for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / M * 4 / sqrt(3);
+
+        for(int i=0; i+N<=n; i+=N/M){
+            
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = filtered[i+j] * window[j];
+            
+            auto freq = math::fft(bit);
+
+            std::vector<float> a(N, 0.0f), b(N, 0.0f);
+            for(int j=0; j<N; j++) a[j] = std::norm(freq[j]);
+
+            for(int j=0; j<=N-j; j++){
+                if(j&1){
+                    b[j/2] += a[j]/2;
+                    b[j/2+1] += a[j]/2;
+                } else {
+                    b[j/2] += a[j];
+                }
+            }
+
+            for(int j=0; j<N; j++) if(std::abs(freq[j]) != 0.0f) freq[j] /= std::abs(freq[j]);
+            for(int j=0; j<N; j++) freq[j] *= std::sqrt(b[j]);
+            for(int j=1; j<N-j; j++) freq[N-j] = std::conj(freq[j]);
+
+            bit = math::inverse_fft(freq);
+            for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
+        }
+    } else {
+        out = filtered;
+    }
+   
+    /*
+    filtered = out;
+    for(float &i : out) i = 0.0f;
+    
+    {
+        const int N = 256, M = 4;
+
+        std::vector<float> window(N), fwindow(N, 0.0f);
+        for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / M * 4 / sqrt(3);
+
+        float reso = 44100.0f / N;
+        float low = 700.0f, high = 2500.0f;
+        for(int i=0; i<=N-i; i++){
+            float l = i * reso - reso / 2, r = i * reso + reso / 2;
+            
+            l = std::max(l, low);
+            r = std::min(r, high);
+
+            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
+        }
+
+        for(int i=0; i+N<=n; i+=N/M){
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = filtered[i+j] * window[j];
+            auto freq = math::fft(bit);
+            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
+            bit = math::inverse_fft(freq);
+            for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
+        }
+    }
+    */
+
+    return out;
+}
+
+std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio){
+
+    auto filtered = random_experiment(audio);
+
+    int n = audio.size()/2;
+    const int N = 32;
+    
+    std::vector<float> bit(N), window(N);
+    for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) * 0.5;
+
+    for(int i=0; i<N; i++) bit[i] = filtered[n+i] * window[i];
+
+    auto out = math::fft(bit);
+    out.resize(N/2);
+
+    return out;
 }
 
 std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){
@@ -632,8 +758,13 @@ std::vector<std::complex<float> > translate(
             }
         }
         
-        for(int i=0; i<n; i++) if(lens[i] != 0.0f) leni[i] /= lens[i];
-        
+        for(int i=0; i<n; i++){
+            if(lens[i] != 0.0f){
+                leni[i] /= lens[i];
+                argi[i] /= lens[i];
+            }
+        }
+
         for(int i=0, j=0; i<n; j++){
             if((j+1)*pitch > i+1) i++;
             if(i == 0){

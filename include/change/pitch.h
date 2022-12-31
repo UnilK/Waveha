@@ -23,6 +23,10 @@ std::vector<float> phase_graph(
         const std::vector<float> &audio,
         unsigned period);
 
+std::vector<float> random_experiment(const std::vector<float> &audio);
+
+std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio);
+
 struct CorrelationVars {
     float exponent = 3;
     bool sign = 1;
@@ -53,7 +57,7 @@ std::vector<float> pitch_changer(std::vector<float> audio, float pitch);
 
 std::vector<std::complex<float> > translate(
         const std::vector<std::complex<float> > &frequencies,
-        float pitch);
+        float pitch_shift);
 
 
 }

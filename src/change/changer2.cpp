@@ -17,8 +17,8 @@
 namespace change {
 
 ChangerVars2 defaultVars2 {
-    .f_freqs = 1024,
-    .f_cutoff = 4096.0f,
+    .f_freqs = 2048,
+    .f_cutoff = 8192.0f,
     .f_decay = 0.01f,
     .m_decay = 0.002f,
     .f_min = 60.0f,
@@ -217,14 +217,7 @@ void Changer2::update_reco(){
         f_pitch = std::max(f_min, std::min(f_max, pitch));
     }
 
-    bool voiced = 1;
-
     {
-        // voicedness detection here
-    }
-
-    if(voiced){
-
         int len = std::round(c_rate / f_pitch);
 
         std::vector<float> wave(len);
@@ -232,13 +225,15 @@ void Changer2::update_reco(){
         smooth_clip(wave);
 
         {
-            int F = 96;
-            F = std::min(F, len/2);
+            int F = std::round(10000.0f * len / c_rate);
             auto freq = math::ft(wave, F);
-            freq = translate(freq, 0.8f);
-            wave = math::ift(freq, (int)std::round(len/0.6f));
+            freq = translate(freq, 1.8f);
+            wave = math::ift(freq, (int)std::round(len/2.0f));
             len = wave.size();
         }
+
+        float ssum = 0.0f;
+        for(float i : wave) ssum += i*i;
 
         int offset = 0;
         float maxp = -1e9f;
@@ -259,19 +254,17 @@ void Changer2::update_reco(){
         for(int i=0; i<p_size; i++){
             p_momentum[i] = wave[(i+offset+r_period)%len];
         }
-
-        for(int i=0; i<r_size; i++){
-            out[i] += r_window[i] * wave[(i+offset)%len];
-        }
-    
-    } else {
-
-        for(int i=0; i<p_size; i++){
-            p_momentum[i] = in[i%r_delay];
-        }
         
-        for(int i=0; i<r_size; i++){
-            out[i] += r_window[i] * in[i%r_delay];
+        bool voiced = (maxp / ssum) > 0.7f;
+
+        if(voiced){
+            for(int i=0; i<r_size; i++){
+                out[i] += r_window[i] * wave[(i+offset)%len];
+            }
+        } else {
+            for(int i=0; i<r_size; i++){
+                out[i] += r_window[i] * in[i%r_delay];
+            }
         }
     }
 

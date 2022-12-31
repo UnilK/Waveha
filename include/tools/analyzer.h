@@ -22,6 +22,8 @@ enum Mode {
     frequencyMode,
     peakMode,
     correlationMode,
+    randMode,
+    candMode,
     last
 };
 
@@ -124,6 +126,7 @@ private:
     ui::Frame buttons;
     ui::Text sourceNameBox;
     ui::Button switchRegular, switchFrequency, switchPeak, switchCorrelation;
+    ui::Button switchRand, switchCand;
 
     bool playing = 0;
     bool interpolate = 0;

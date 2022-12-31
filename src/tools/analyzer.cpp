@@ -307,6 +307,9 @@ void AnalyzerGraph::set_view(Mode mode){
     } else if(mode == correlationMode){
         set_unit_x("");
         set_unit_y("");
+    } else {
+        set_unit_x("");
+        set_unit_y("");
     }
 
     View view = views[mode];
@@ -354,6 +357,18 @@ Analyzer::Analyzer(App *a) :
             a,
             [&](){ switch_mode(correlationMode); },
             "corr",
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
+    
+    switchRand(
+            a,
+            [&](){ switch_mode(randMode); },
+            "rand",
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
+    
+    switchCand(
+            a,
+            [&](){ switch_mode(candMode); },
+            "cand",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}})
 {
 
@@ -383,6 +398,8 @@ Analyzer::Analyzer(App *a) :
     buttons.put(0, 1, &switchFrequency);
     buttons.put(0, 2, &switchPeak);
     buttons.put(0, 3, &switchCorrelation);
+    buttons.put(0, 4, &switchRand);
+    buttons.put(0, 5, &switchCand);
 
     buttons.put(0, 9, &sourceNameBox);
     sourceNameBox.text_stick(ui::Text::left);
@@ -520,7 +537,7 @@ void Analyzer::update_data(){
     
     } else if(dataMode == frequencyMode){
         
-        auto data = math::fft(link.get_loop(length, position));
+        auto data = math::fft(change::random_experiment(link.get_loop(length, position)));
         data.resize(data.size()/2 + 1);
 
         graph.set_data(data);
@@ -548,6 +565,17 @@ void Analyzer::update_data(){
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
+    } else if(dataMode == randMode){
+
+        graph.set_data(change::random_experiment(link.get_loop(length, position)));
+        graph.set_offset_x(0);
+        graph.set_scalar_x(1);
+    
+    } else if(dataMode == candMode){
+
+        graph.set_data(change::candom_experiment(link.get_loop(length, position)));
+        graph.set_offset_x(0);
+        graph.set_scalar_x(1);
     }
     
     graph.set_reconfig();
@@ -948,48 +976,6 @@ void Analyzer::translate_pitch(ui::Command c){
     out->name = output;
     out->data = result;
     app.audio.add_cache(out);
-
-    /*
-    const int N = 100;
-    const int n = 128;
-    auto freq = math::ft(src.get(src.size(), 0), n);
-    int m = N * src.size();
-
-    std::mt19937 rgen;
-    rgen.seed(0);
-
-    std::normal_distribution<float> distr(0.0f, 0.7f);
-
-    auto rnd = [&]() -> float { return std::uniform_real_distribution<float>(0, 1)(rgen); };
-    auto norm = [&]() -> float { return distr(rgen); };
-
-    std::vector<double> phase(n, 0.0f), abs(n, 0.0f), spd(n, 0.0f), anchor(n, 0.0f);
-    std::vector<float> result(m, 0.0f);
-
-    float fact = 2.0f * M_PI / src.size();
-    
-    for(int i=0; i<n; i++){
-        abs[i] = std::abs(freq[i]);
-        if(abs[i] != 0.0f) phase[i] = std::arg(freq[i]);
-        anchor[i] = spd[i] = fact * (i+1);
-        phase[i] = 2.0f * M_PI * rnd();
-    }
-    
-    for(int i=0; i<100; i++){
-        for(int j=0; j<n; j++){
-            spd[j] += fact * (norm() + (anchor[j] - spd[j]) * 0.8f);
-        }
-    }
-    
-    for(int i=0; i<m; i++){
-        for(int j=0; j<n; j++){
-            result[i] += std::polar(abs[j], phase[j]).real();
-            phase[j] += spd[j];
-            spd[j] += fact * ((rnd() - 0.5f) + (anchor[j] - spd[j]) * 0.8f);
-            if(phase[j] > M_PI) phase[j] -= 2 * M_PI;
-        }
-    }
-    */
 }
     
 void Analyzer::set_interpolate(ui::Command c){

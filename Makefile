@@ -109,7 +109,9 @@ build/wave/util.o: include/wave/util.h
 build/change/changer2.o: include/change/changer2.h include/change/util.h
 build/change/changer2.o: include/change/pitch.h include/math/constants.h
 build/change/changer2.o: include/math/fft.h include/math/ft.h
-build/change/changer3.o: include/change/changer3.h include/math/constants.h
+build/change/changer3.o: include/change/changer3.h include/change/util.h
+build/change/changer3.o: include/change/pitch.h include/math/constants.h
+build/change/changer3.o: include/math/fft.h include/math/ft.h
 build/change/util.o: include/change/util.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
 build/change/detector.o: include/change/detector.h include/math/fft.h
@@ -117,9 +119,10 @@ build/change/detector.o: include/math/ft.h
 build/change/changer1.o: include/change/changer1.h include/change/util.h
 build/change/changer1.o: include/math/ft.h include/math/constants.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
-build/change/pitch.o: include/math/ft.h include/math/constants.h
-build/change/pitch.o: include/ml/stack.h include/ml/layer.h include/ui/fileio.h
-build/change/pitch.o: include/ml/util.h include/ml/judge.h include/ml/db.h
+build/change/pitch.o: include/math/ft.h include/math/sinc.h
+build/change/pitch.o: include/math/constants.h include/ml/stack.h
+build/change/pitch.o: include/ml/layer.h include/ui/fileio.h include/ml/util.h
+build/change/pitch.o: include/ml/judge.h include/ml/db.h
 build/change/pitch.o: include/change/detector.h include/change/changer1.h
 build/change/pitch.o: include/change/util.h include/change/changer2.h
 build/change/pitch.o: include/change/changer3.h
@@ -243,6 +246,7 @@ build/ml/stack.o: include/ml/factory.h
 build/ml/db.o: include/ml/db.h include/ml/util.h
 build/ml/reblock.o: include/ml/reblock.h include/ml/layer.h include/ui/fileio.h
 build/ml/reblock.o: include/ml/util.h
+build/math/sinc.o: include/math/sinc.h include/math/constants.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
 build/math/fft.o: include/math/fft.h include/math/constants.h
 build/tools/recorder.o: include/tools/recorder.h include/app/content.h

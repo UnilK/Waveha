@@ -152,6 +152,8 @@ complex<float> cexp(double radians){
 
 DFTPrecalc::DFTPrecalc(){
     
+    exp.resize(N+1);
+
     double b15 = 1<<15, i15 = 1.0f / (1<<15);
 
     for(unsigned i=0; i<N; i++){

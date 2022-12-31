@@ -47,7 +47,7 @@ struct DFTPrecalc {
     DFTPrecalc();
     static const unsigned N = 1<<18;
     static constexpr double dN = N;
-    std::complex<float> exp[N+1];
+    std::vector<std::complex<float> > exp;
 };
 
 extern DFTPrecalc dftPrecalc;
