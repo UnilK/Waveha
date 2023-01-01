@@ -118,7 +118,7 @@ build/change/detector.o: include/change/detector.h include/math/fft.h
 build/change/detector.o: include/math/ft.h
 build/change/changer1.o: include/change/changer1.h include/change/util.h
 build/change/changer1.o: include/math/ft.h include/math/constants.h
-build/change/phaser.o: include/change/phaser.h
+build/change/phaser.o: include/change/phaser.h include/math/fft.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -307,7 +307,8 @@ build/tools/analyzer.o: include/math/ft.h include/change/detector.h
 build/tools/analyzer.o: include/ml/waves.h include/ml/db.h
 build/tools/analyzer.o: include/math/constants.h include/change/changer1.h
 build/tools/analyzer.o: include/change/util.h include/change/changer2.h
-build/tools/analyzer.o: include/change/changer3.h
+build/tools/analyzer.o: include/change/changer3.h include/change/pitcher.h
+build/tools/analyzer.o: include/change/phaser.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h

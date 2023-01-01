@@ -38,24 +38,6 @@ std::vector<float> resample(
     return out;
 }
 
-std::vector<float> color_shift(
-        const std::vector<float> &in,
-        double factor, double interval,
-        int zeros){
-    
-    int n = in.size();
-    int m = std::ceil(interval * 2);
-
-    std::vector<float> out(n), window(m);
-
-    for(int i=0; i<m; i++){
-        double x = std::cos(PI*i/m);
-        window[i] = (1.0 - x*x*x) * 0.5;
-    }
-
-    return in;
-}
-
 SINCPrecalc::SINCPrecalc(){
    
     fsinc.resize(ZN+1);

@@ -18,8 +18,8 @@ public:
 
 private:
 
-    double shift, in, wsize, step, istep;
-    int zeros, bsize, wisize, out;
+    double shift, in, step, istep;
+    int zeros, bsize, out;
     std::vector<float> buffer;
 
 };

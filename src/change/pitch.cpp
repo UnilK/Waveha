@@ -237,13 +237,46 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
 
 std::vector<float> random_experiment(const std::vector<float> &audio){
 
-    Pitcher p(2.5, 32);
+    Pitcher p(0.8, 32);
 
     std::vector<float> out;
     for(float i : audio){
         auto j = p.process(i);
         for(float k : j) out.push_back(k);
     }
+    
+    int n = out.size();
+    auto filtered = out;
+    for(float &i : out) i = 0.0f;
+
+    {
+        const int N = 32, M = 4;
+
+        std::vector<float> window(N), fwindow(N, 0.0f);
+        for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / M * 4 / sqrt(3);
+
+        float reso = 44100.0f / N;
+        float low = -reso / 2, high = 8000.0f;
+        for(int i=0; i<=N-i; i++){
+            float l = i * reso - reso / 2, r = i * reso + reso / 2;
+            
+            l = std::max(l, low);
+            r = std::min(r, high);
+
+            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
+        }
+
+        for(int i=0; i+N<=n; i+=N/M){
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = filtered[i+j] * window[j];
+            auto freq = math::fft(bit);
+            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
+            bit = math::inverse_fft(freq);
+            for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
+        }
+    }
+
+    for(int i=0; i<n; i++) out[i] *= (1.0f - std::cos(2*PI*i/n)) * 0.5f;
 
     /*
     int n = audio.size();

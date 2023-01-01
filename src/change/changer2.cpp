@@ -17,8 +17,8 @@
 namespace change {
 
 ChangerVars2 defaultVars2 {
-    .f_freqs = 2048,
-    .f_cutoff = 8192.0f,
+    .f_freqs = 1024,
+    .f_cutoff = 4096.0f,
     .f_decay = 0.01f,
     .m_decay = 0.002f,
     .f_min = 60.0f,
@@ -227,8 +227,8 @@ void Changer2::update_reco(){
         {
             int F = std::round(10000.0f * len / c_rate);
             auto freq = math::ft(wave, F);
-            freq = translate(freq, 1.8f);
-            wave = math::ift(freq, (int)std::round(len/2.0f));
+            freq = translate(freq, 0.8f);
+            wave = math::ift(freq, (int)std::round(len/0.7f));
             len = wave.size();
         }
 

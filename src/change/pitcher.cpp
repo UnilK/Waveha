@@ -13,10 +13,8 @@ Pitcher::Pitcher(double shift_, int zeros_){
 
     step = 1.0 / shift;
     istep = shift;
-    wsize = zeros * step;
-    wisize = std::ceil(wsize);
-    bsize = wisize * 8;
-    in = wisize;
+    bsize = zeros * 8;
+    in = zeros;
     out = 0;
 
     buffer.resize(bsize, 0.0f);
@@ -24,7 +22,7 @@ Pitcher::Pitcher(double shift_, int zeros_){
 
 std::vector<float> Pitcher::process(float sample){
     
-    if(in + wisize >= bsize){
+    if(in + zeros >= bsize){
         
         int move = out;
         
@@ -42,18 +40,18 @@ std::vector<float> Pitcher::process(float sample){
 
     double ll = (in-l)*istep, rr = (r-in)*istep;
 
-    for(;l >= 0 && ll <= wsize; l--, ll+=istep) buffer[l] += sample * math::sinc(ll);
-    for(;r < bsize && rr <= wsize; r++, rr+=istep) buffer[r] += sample * math::sinc(rr);
+    for(;l >= 0 && ll <= zeros; l--, ll+=istep) buffer[l] += sample * math::sinc(ll);
+    for(;r < bsize && rr <= zeros; r++, rr+=istep) buffer[r] += sample * math::sinc(rr);
 
     std::vector<float> complete;
-    while(out <= in - wsize) complete.push_back(buffer[out++]);
+    while(out <= in - zeros) complete.push_back(buffer[out++]);
 
     in += step;
 
     return complete;
 }
 
-int Pitcher::delay(){ return wisize; }
+int Pitcher::delay(){ return zeros; }
 
 }
 

@@ -11,6 +11,8 @@
 #include "change/changer1.h"
 #include "change/changer2.h"
 #include "change/changer3.h"
+#include "change/pitcher.h"
+#include "change/phaser.h"
 
 #include <algorithm>
 #include <cmath>
@@ -537,7 +539,13 @@ void Analyzer::update_data(){
     
     } else if(dataMode == frequencyMode){
         
+        /*
+        auto audio = link.get_loop(length, position);
+        for(int i=0; i<length; i++) audio[i] *= (1.0f - std::cos(2*PI*i/length)) * 0.5f;
+        auto data = math::fft(audio);
+        */
         auto data = math::fft(change::random_experiment(link.get_loop(length, position)));
+
         data.resize(data.size()/2 + 1);
 
         graph.set_data(data);
@@ -961,15 +969,54 @@ void Analyzer::translate_pitch(ui::Command c){
     AudioLink src(app);
     src.open(input);
 
-    change::Changer2 changer;
-    
+    // change::Changer2 changer;
+    change::Pitcher a(0.8, 32);
+    change::Phaser b(44100, 70.0f, 300.0f);
+
     const int N = 32;
 
     std::vector<float> result, tmp;
 
     while(src.good){
         src.pull(N, tmp);
-        for(float i : tmp) result.push_back(changer.process(i));
+        // for(float i : tmp) result.push_back(changer.process(i));
+        for(float i : tmp){
+            auto j = a.process(i);
+            // for(float k : j) result.push_back(k);
+            for(float k : j) b.push(k);
+            result.push_back(b.pull());
+        }
+    }
+    
+    int n = result.size();
+    auto filtered = result;
+    for(float &i : result) i = 0.0f;
+
+    {
+        const int N = 128, M = 4;
+
+        std::vector<float> window(N), fwindow(N, 0.0f);
+        for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / M * 4 / sqrt(3);
+
+        float reso = 44100.0f / N;
+        float low = -reso / 2, high = 8000.0f;
+        for(int i=0; i<=N-i; i++){
+            float l = i * reso - reso / 2, r = i * reso + reso / 2;
+            
+            l = std::max(l, low);
+            r = std::min(r, high);
+
+            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
+        }
+
+        for(int i=0; i+N<=n; i+=N/M){
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = filtered[i+j] * window[j];
+            auto freq = math::fft(bit);
+            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
+            bit = math::inverse_fft(freq);
+            for(int j=0; j<N; j++) result[i+j] += window[j] * bit[j];
+        }
     }
 
     wave::Audio *out = new wave::Audio();

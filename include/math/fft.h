@@ -27,7 +27,24 @@ std::vector<std::complex<float> > convolution(
         std::vector<std::complex<float> > b,
         unsigned size = 0);
 
-std::vector<float> correlation(std::vector<float> a, std::vector<float> b, unsigned size = 0);
+// correlation[i] = elementwise sum of matching a * (b shifted to the right by i).
+std::vector<float> correlation(
+        const std::vector<float> &a,
+        const std::vector<float> &b,
+        unsigned size = 0);
+
+// vector a is packed to real axis, b to imaginary axis.
+void in_place_correlation(std::vector<std::complex<float> > &v);
+
+// mse[i] = sum of elementwise matching squared deviations of a and (b shifted to the right by i).
+std::vector<float> mse(
+        const std::vector<float> &a,
+        const std::vector<float> &b);
+
+// cumulative sum normalized mse
+std::vector<float> nmse(
+        const std::vector<float> &a,
+        const std::vector<float> &b);
 
 // implementation that utilizes fft's bandwidth of 2 vectors. The second vector is optional.
 std::array<std::vector<float>, 2> autocorrelation(std::vector<float> a, std::vector<float> b = {});

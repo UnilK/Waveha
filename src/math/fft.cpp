@@ -2,6 +2,7 @@
 #include "math/constants.h"
 
 #include <algorithm>
+#include <cassert>
 
 namespace math {
 
@@ -171,20 +172,85 @@ vector<complex<float> > convolution(
     return a;
 }
 
-vector<float> correlation(vector<float> a, vector<float> b, unsigned size){
+vector<float> correlation(const vector<float> &a, const vector<float> &b, unsigned size){
 
     unsigned n = size;
     if(!n) n = a.size() + b.size() - 1;
+    else assert(n >= a.size() && n >= b.size());
 
     unsigned z = 1;
     while(z < n) z *= 2;
 
-    a.resize(z, 0.0f);
-    b.resize(z, 0.0f);
+    vector<complex<float> > c(z, 0.0f);
+    for(unsigned i=0; i<a.size(); i++) c[i].real(a[i]);
+    for(unsigned i=0; i<b.size(); i++) c[i].imag(b[i]);
 
-    std::reverse(b.begin() + 1, b.end());
+    in_place_correlation(c);
 
-    return convolution(a, b, z);
+    vector<float> realc(n);
+    for(unsigned i=0; i<n; i++) realc[i] = c[i].real();
+
+    return realc;
+}
+
+vector<float> mse(const vector<float> &a, const vector<float> &b){
+
+    assert(a.size() == b.size());
+   
+    int n = a.size();
+    auto c = correlation(a, b, 2*n);
+    c.resize(n+1);
+
+    double asum = 0, bsum = 0;
+    for(float i : a) asum += i*i;
+    for(float i : b) bsum += i*i;
+
+    for(int i=0; i<n; i++){
+        c[i] = asum + bsum - 2.0f * c[i];
+        asum -= a[i]*a[i];
+        bsum -= b[n-i-1]*b[n-i-1];
+    }
+
+    return c;
+}
+
+vector<float> nmse(const vector<float> &a, const vector<float> &b){
+    
+    auto c = mse(a, b);
+    int n = c.size();
+    
+    double sum = 1e-9;
+    for(int i=n-1; i>=0; i--){
+        sum += c[i];
+        c[i] /= sum;
+    };
+   
+    return c;
+}
+
+void in_place_correlation(vector<complex<float> > &v){
+    
+    int n = v.size();
+    assert((n&-n) == n);
+    if(n < 2) return;
+
+    for(int i=1, j=n-1; i<j; i++, j--){
+        float tmp = v[i].imag();
+        v[i].imag(v[j].imag());
+        v[j].imag(tmp);
+    }
+
+    in_place_fft(v);
+
+    v[0] = v[0].real()*v[0].imag();
+    v[n/2] = v[n/2].real()*v[n/2].imag();
+    for(int i=1, j=n-1; i<j; i++, j--){
+        v[i] = (v[i]-conj(v[j]))*(v[i]+conj(v[j]));
+        v[i] = {v[i].imag()*0.25f, -0.25f*v[i].real()};
+        v[j] = conj(v[i]);
+    }
+
+    in_place_fft(v, 1);
 }
 
 std::array<vector<float>, 2> autocorrelation(vector<float> a, vector<float> b){
