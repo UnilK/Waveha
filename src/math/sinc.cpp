@@ -1,5 +1,3 @@
-#pragma GCC target("avx2")
-#pragma GCC optimize("O3")
 #include "math/sinc.h"
 #include "math/constants.h"
 

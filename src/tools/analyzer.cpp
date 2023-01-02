@@ -4,6 +4,7 @@
 #include "app/creations.h"
 #include "math/fft.h"
 #include "math/ft.h"
+#include "math/sinc.h"
 #include "wstream/wstream.h"
 #include "change/detector.h"
 #include "ml/waves.h"
@@ -12,6 +13,7 @@
 #include "change/changer2.h"
 #include "change/changer3.h"
 #include "change/pitcher.h"
+#include "change/pitcher2.h"
 #include "change/phaser.h"
 
 #include <algorithm>
@@ -539,12 +541,9 @@ void Analyzer::update_data(){
     
     } else if(dataMode == frequencyMode){
         
-        /*
         auto audio = link.get_loop(length, position);
         for(int i=0; i<length; i++) audio[i] *= (1.0f - std::cos(2*PI*i/length)) * 0.5f;
         auto data = math::fft(audio);
-        */
-        auto data = math::fft(change::random_experiment(link.get_loop(length, position)));
 
         data.resize(data.size()/2 + 1);
 
@@ -970,7 +969,7 @@ void Analyzer::translate_pitch(ui::Command c){
     src.open(input);
 
     // change::Changer2 changer;
-    change::Pitcher a(0.8, 32);
+    change::Pitcher2 a(0.8, 16);
     change::Phaser b(44100, 70.0f, 300.0f);
 
     const int N = 32;
@@ -979,15 +978,17 @@ void Analyzer::translate_pitch(ui::Command c){
 
     while(src.good){
         src.pull(N, tmp);
+        // for(float i : tmp) result.push_back(i);
         // for(float i : tmp) result.push_back(changer.process(i));
         for(float i : tmp){
             auto j = a.process(i);
-            // for(float k : j) result.push_back(k);
-            for(float k : j) b.push(k);
-            result.push_back(b.pull());
+            // for(float k : j) b.push(k);
+            // result.push_back(b.pull());
+            for(float k : j) result.push_back(k);
         }
     }
-    
+
+    /*
     int n = result.size();
     auto filtered = result;
     for(float &i : result) i = 0.0f;
@@ -1018,6 +1019,7 @@ void Analyzer::translate_pitch(ui::Command c){
             for(int j=0; j<N; j++) result[i+j] += window[j] * bit[j];
         }
     }
+    */
 
     wave::Audio *out = new wave::Audio();
     out->name = output;

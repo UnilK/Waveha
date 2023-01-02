@@ -7,7 +7,7 @@ namespace math {
 std::vector<float> resample(
         const std::vector<float> &in,
         double factor,
-        int zeros = 16);
+        int zeros = 48);
 
 struct SINCPrecalc {
     SINCPrecalc();
