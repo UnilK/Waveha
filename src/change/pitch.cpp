@@ -4,12 +4,14 @@
 #include "math/sinc.h"
 #include "math/constants.h"
 #include "ml/stack.h"
-#include "change/detector.h"
+#include "change/detector2.h"
 #include "change/changer1.h"
 #include "change/changer2.h"
 #include "change/changer3.h"
 #include "change/pitcher.h"
 #include "change/pitcher2.h"
+#include "change/phaser2.h"
+#include "change/resample.h"
 
 #include <math.h>
 #include <algorithm>
@@ -23,7 +25,8 @@ CorrelationVars defaultCorrelationVars;
 
 float sign(float x){ return (int)(x > 0) - (x < 0); }
 
-Detector _detector;
+Phaser2 _phaser(44100, 80.0f, 300.0f);
+Detector2 _detector(44100, 80.0f);
 Changer2 _changer;
 
 std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period){
@@ -142,8 +145,7 @@ std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period)
 
 std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
    
-    return {(float)_detector.quiet*100, (float)_detector.voiced*100,
-        _detector.confidence*100, _detector.pitch};
+    return {0.0f, 0.0f};
 
     /*
     auto plot = audio;
@@ -238,6 +240,9 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
 
 std::vector<float> random_experiment(const std::vector<float> &audio){
 
+    auto out = resample(audio, 0.8);
+
+    /*
     Pitcher2 p(1.0, 32);
 
     std::vector<float> out;
@@ -245,6 +250,7 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
         auto j = p.process(i);
         for(float k : j) out.push_back(k);
     }
+    */
    
     /*
     int n = out.size();
@@ -550,9 +556,19 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     a.resize(a.size()/2);
     */
 
-    for(float i : audio) _changer.process(i);
+    /*
+    for(float i : audio) _detector.push(i);
+    std::cerr << _detector.pitch() << '\n';
 
-    return _changer.debug();
+    return _detector.debug();
+    */
+    
+    for(float i : audio){
+        _phaser.push(i);
+        _phaser.pull();
+    }
+
+    return _phaser.debug();
 }
 
 unsigned pitch(const std::vector<float> &audio, CorrelationVars vars){

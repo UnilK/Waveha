@@ -110,12 +110,19 @@ build/change/pitcher.o: include/change/pitcher.h include/math/sinc.h
 build/change/changer2.o: include/change/changer2.h include/change/util.h
 build/change/changer2.o: include/change/pitch.h include/math/constants.h
 build/change/changer2.o: include/math/fft.h include/math/ft.h
+build/change/phaser3.o: include/change/phaser3.h include/math/constants.h
+build/change/phaser3.o: include/math/fft.h
+build/change/pitcher2.o: include/change/pitcher2.h include/math/constants.h
 build/change/changer3.o: include/change/changer3.h include/math/constants.h
 build/change/changer3.o: include/math/fft.h
 build/change/util.o: include/change/util.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
+build/change/phaser2.o: include/change/phaser2.h include/math/constants.h
+build/change/phaser2.o: include/math/fft.h
+build/change/detector2.o: include/change/detector2.h include/math/constants.h
 build/change/detector.o: include/change/detector.h include/math/fft.h
 build/change/detector.o: include/math/ft.h
+build/change/resample.o: include/change/resample.h include/math/constants.h
 build/change/changer1.o: include/change/changer1.h include/change/util.h
 build/change/changer1.o: include/math/ft.h include/math/constants.h
 build/change/phaser.o: include/change/phaser.h include/math/fft.h
@@ -124,9 +131,11 @@ build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
 build/change/pitch.o: include/ml/layer.h include/ui/fileio.h include/ml/util.h
 build/change/pitch.o: include/ml/judge.h include/ml/db.h
-build/change/pitch.o: include/change/detector.h include/change/changer1.h
+build/change/pitch.o: include/change/detector2.h include/change/changer1.h
 build/change/pitch.o: include/change/util.h include/change/changer2.h
 build/change/pitch.o: include/change/changer3.h include/change/pitcher.h
+build/change/pitch.o: include/change/pitcher2.h include/change/phaser2.h
+build/change/pitch.o: include/change/resample.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
 build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
@@ -250,6 +259,7 @@ build/ml/reblock.o: include/ml/util.h
 build/math/sinc.o: include/math/sinc.h include/math/constants.h
 build/math/ft.o: include/math/ft.h include/math/constants.h
 build/math/fft.o: include/math/fft.h include/math/constants.h
+build/math/windows.o: include/math/windows.h include/math/constants.h
 build/tools/recorder.o: include/tools/recorder.h include/app/content.h
 build/tools/recorder.o: include/ui/frame.h include/ui/borders.h
 build/tools/recorder.o: include/ui/style.h include/ui/window.h
@@ -303,12 +313,13 @@ build/tools/analyzer.o: include/tools/graph.h include/wave/sound.h
 build/tools/analyzer.o: include/wave/buffer.h include/change/pitch.h
 build/tools/analyzer.o: include/app/app.h include/ui/box.h include/app/tools.h
 build/tools/analyzer.o: include/app/creations.h include/math/fft.h
-build/tools/analyzer.o: include/math/ft.h include/change/detector.h
-build/tools/analyzer.o: include/ml/waves.h include/ml/db.h
-build/tools/analyzer.o: include/math/constants.h include/change/changer1.h
-build/tools/analyzer.o: include/change/util.h include/change/changer2.h
-build/tools/analyzer.o: include/change/changer3.h include/change/pitcher.h
-build/tools/analyzer.o: include/change/phaser.h
+build/tools/analyzer.o: include/math/ft.h include/math/sinc.h
+build/tools/analyzer.o: include/change/detector2.h include/ml/waves.h
+build/tools/analyzer.o: include/ml/db.h include/math/constants.h
+build/tools/analyzer.o: include/change/changer2.h include/change/util.h
+build/tools/analyzer.o: include/change/changer3.h include/change/pitcher2.h
+build/tools/analyzer.o: include/change/phaser.h include/change/phaser2.h
+build/tools/analyzer.o: include/change/phaser3.h include/change/resample.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h

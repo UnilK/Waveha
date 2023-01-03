@@ -23,8 +23,8 @@ Pitcher2::Pitcher2(double shift_, int size_){
     isize = 8 * size;
     osize = 8 * ssize;
 
-    ibuff.resize(isize);
-    obuff.resize(osize);
+    ibuff.resize(isize, 0.0f);
+    obuff.resize(osize, 0.0f);
     window.resize(size);
 
     for(int i=0; i<size; i++) window[i] = (1.0 - std::cos(2.0 * PI * i / size)) / std::sqrt(6);

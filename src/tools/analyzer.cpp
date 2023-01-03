@@ -6,15 +6,16 @@
 #include "math/ft.h"
 #include "math/sinc.h"
 #include "wstream/wstream.h"
-#include "change/detector.h"
+#include "change/detector2.h"
 #include "ml/waves.h"
 #include "math/constants.h"
-#include "change/changer1.h"
 #include "change/changer2.h"
 #include "change/changer3.h"
-#include "change/pitcher.h"
 #include "change/pitcher2.h"
 #include "change/phaser.h"
+#include "change/phaser2.h"
+#include "change/phaser3.h"
+#include "change/resample.h"
 
 #include <algorithm>
 #include <cmath>
@@ -925,8 +926,7 @@ void Analyzer::process_pitch(ui::Command c){
     AudioLink src(app);
     src.open(input);
 
-    // change::Detector detector;
-    change::Changer2 detector;
+    change::Detector2 detector(44100, 90.0f);
     
     std::vector<float> pitch, temp;
 
@@ -936,18 +936,10 @@ void Analyzer::process_pitch(ui::Command c){
 
     while(src.good){
 
-        /*
         src.pull(window, temp);
-        detector.feed(temp);
-
-        if(detector.voiced) pitch.push_back(detector.pitch);
-        else pitch.push_back(0.0f);
-        */
+        for(float i : temp) detector.push(i);
         
-        src.pull(window, temp);
-        for(float i : temp) detector.process(i);
-        
-        pitch.push_back(detector.get_pitch());
+        pitch.push_back(detector.pitch());
     }
 
     wave::Audio *out = new wave::Audio();
@@ -957,7 +949,9 @@ void Analyzer::process_pitch(ui::Command c){
 }
 
 void Analyzer::translate_pitch(ui::Command c){
-  
+ 
+
+
     std::string input = c.pop(), output = c.pop();
 
     if(input.empty() || output.empty()){
@@ -968,9 +962,13 @@ void Analyzer::translate_pitch(ui::Command c){
     AudioLink src(app);
     src.open(input);
 
+    auto audio = src.get(src.size(), 0);
+    auto result = change::resample(audio, 0.55, 32);
+
+    /*
     // change::Changer2 changer;
-    change::Pitcher2 a(0.8, 16);
-    change::Phaser b(44100, 70.0f, 300.0f);
+    change::Pitcher2 a(0.8, 32);
+    change::Phaser2 b(44100, 60.0f, 400.0f);
 
     const int N = 32;
 
@@ -982,11 +980,12 @@ void Analyzer::translate_pitch(ui::Command c){
         // for(float i : tmp) result.push_back(changer.process(i));
         for(float i : tmp){
             auto j = a.process(i);
-            // for(float k : j) b.push(k);
-            // result.push_back(b.pull());
-            for(float k : j) result.push_back(k);
+            for(float k : j) b.push(k);
+            result.push_back(b.pull());
+            // for(float k : j) result.push_back(k);
         }
     }
+    */
 
     /*
     int n = result.size();
