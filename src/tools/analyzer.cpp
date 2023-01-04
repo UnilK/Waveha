@@ -970,13 +970,15 @@ void Analyzer::translate_pitch(ui::Command c){
     */
 
     // change::Changer2 changer;
-    change::Pitcher2 a(1.3, 32);
-    change::Phaser b(44100, 90.0f, 500.0f);
+    change::Pitcher2 a(1.6, 32);
+    change::Phaser4 b(44100, 120.0f, 500.0f);
     // change::Pitcher3 changer(1.2, 44100, 100.0f);
+
 
     auto audio = src.get(src.size(), 0);
     std::vector<float> result;
 
+    /*
     result.resize(audio.size(), 0.0f);
     {
 
@@ -1016,6 +1018,7 @@ void Analyzer::translate_pitch(ui::Command c){
 
     audio = result;
     result.clear();
+    */
 
     for(float i : audio){
         auto j = a.process(i);

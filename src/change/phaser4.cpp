@@ -70,15 +70,15 @@ float Phaser4::pull(){
     wo = wo * decay;
 
     int z = buffer.size();
-    float vl = wl * std::min(z - left, std::max(0, left-(z-max-min)));
-    float vr = wr * std::min(z - right, std::max(0, right-(z-max-min)));
-    float vo = wo * std::min(z - old, std::max(0, old-(z-max-min)));
+    float vl = wl * std::min(z - left, std::max(0, left-(z-2*max)));
+    float vr = wr * std::min(z - right, std::max(0, right-(z-2*max)));
+    float vo = wo * std::min(z - old, std::max(0, old-(z-2*max)));
 
-    vl *= vl;
-    vr *= vr;
-    vo *= vo;
-
-    return (buffer[left++] * vl + buffer[right++] * vr + buffer[old++] * vo) / (vl + vr + vo);
+    vl *= vl * vl;
+    vr *= vr * vr;
+    vo *= vo * vo;
+    
+    return (buffer[left++] * vl + buffer[right++] * vr + buffer[old++] * vo) / (vl + vr + vo + 1e-9);
 }
 
 int Phaser4::period(){
