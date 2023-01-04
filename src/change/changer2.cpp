@@ -21,8 +21,8 @@ ChangerVars2 defaultVars2 {
     .f_cutoff = 4096.0f,
     .f_decay = 0.01f,
     .m_decay = 0.002f,
-    .f_min = 60.0f,
-    .f_max = 900.0f,
+    .f_min = 80.0f,
+    .f_max = 400.0f,
     .f_reco = 64,
     .r_rate = 2000.0f,
     .r_window = 0.01f,
@@ -224,6 +224,7 @@ void Changer2::update_reco(){
         for(int i=0; i<len; i++) wave[i] = in[i];
         smooth_clip(wave);
 
+        /*
         {
             int F = std::round(10000.0f * len / c_rate);
             auto freq = math::ft(wave, F);
@@ -231,6 +232,10 @@ void Changer2::update_reco(){
             wave = math::ift(freq, (int)std::round(len/0.7f));
             len = wave.size();
         }
+        */
+        for(int i=0; 2*i<len; i++) wave[i] = wave[2*i];
+        len /= 2;
+        wave.resize(len);
 
         float ssum = 0.0f;
         for(float i : wave) ssum += i*i;
@@ -255,16 +260,8 @@ void Changer2::update_reco(){
             p_momentum[i] = wave[(i+offset+r_period)%len];
         }
         
-        bool voiced = (maxp / ssum) > 0.7f;
-
-        if(voiced){
-            for(int i=0; i<r_size; i++){
-                out[i] += r_window[i] * wave[(i+offset)%len];
-            }
-        } else {
-            for(int i=0; i<r_size; i++){
-                out[i] += r_window[i] * in[i%r_delay];
-            }
+        for(int i=0; i<r_size; i++){
+            out[i] += r_window[i] * wave[(i+offset)%len];
         }
     }
 

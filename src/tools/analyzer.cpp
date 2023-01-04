@@ -12,6 +12,7 @@
 #include "change/changer2.h"
 #include "change/changer3.h"
 #include "change/pitcher2.h"
+#include "change/pitcher3.h"
 #include "change/phaser.h"
 #include "change/phaser2.h"
 #include "change/phaser3.h"
@@ -962,16 +963,69 @@ void Analyzer::translate_pitch(ui::Command c){
     AudioLink src(app);
     src.open(input);
 
+    /*
     auto audio = src.get(src.size(), 0);
     auto result = change::resample(audio, 0.55, 32);
+    */
+
+    // change::Changer2 changer;
+    change::Pitcher2 a(1.8, 32);
+    change::Phaser b(44100, 130.0f, 500.0f);
+    // change::Pitcher3 changer(1.2, 44100, 100.0f);
+
+    auto audio = src.get(src.size(), 0);
+    std::vector<float> result;
+
+    result.resize(audio.size(), 0.0f);
+    {
+
+        int n = audio.size();
+        const int N = 64, M = 4;
+
+        std::vector<float> window(N);
+        for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / M * 4 / sqrt(3);
+
+        for(int i=0; i+N<=n; i+=N/M){
+            
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+            
+            auto freq = math::fft(bit);
+
+            std::vector<float> a(N, 0.0f), b(N, 0.0f);
+            for(int j=0; j<N; j++) a[j] = std::norm(freq[j]);
+
+            for(int j=0; j<=N-j; j++){
+                if(j&1){
+                    b[j/2] += a[j]/2;
+                    b[j/2+1] += a[j]/2;
+                } else {
+                    b[j/2] += a[j];
+                }
+            }
+
+            for(int j=0; j<N; j++) if(std::abs(freq[j]) != 0.0f) freq[j] /= std::abs(freq[j]);
+            for(int j=0; j<N; j++) freq[j] *= std::sqrt(b[j]);
+            for(int j=1; j<N-j; j++) freq[N-j] = std::conj(freq[j]);
+
+            bit = math::inverse_fft(freq);
+            for(int j=0; j<N; j++) result[i+j] += window[j] * bit[j];
+        }
+    }
 
     /*
-    // change::Changer2 changer;
-    change::Pitcher2 a(0.8, 32);
-    change::Phaser2 b(44100, 60.0f, 400.0f);
+    audio = result;
+    result.clear();
+    for(float i : audio){
+        auto j = a.process(i);
+        for(float k : j) b.push(k);
+        result.push_back(b.pull());
+    }
+    */
 
+
+    /*
     const int N = 32;
-
     std::vector<float> result, tmp;
 
     while(src.good){

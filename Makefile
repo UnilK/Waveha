@@ -136,6 +136,8 @@ build/change/pitch.o: include/change/util.h include/change/changer2.h
 build/change/pitch.o: include/change/changer3.h include/change/pitcher.h
 build/change/pitch.o: include/change/pitcher2.h include/change/phaser2.h
 build/change/pitch.o: include/change/resample.h
+build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
+build/change/pitcher3.o: include/math/fft.h include/change/resample.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
 build/app/audio.o: include/wave/cache.h include/wave/audio.h
 build/app/audio.o: include/wave/file.h lib/Wstream/include/wstream/wstream.h
@@ -318,8 +320,9 @@ build/tools/analyzer.o: include/change/detector2.h include/ml/waves.h
 build/tools/analyzer.o: include/ml/db.h include/math/constants.h
 build/tools/analyzer.o: include/change/changer2.h include/change/util.h
 build/tools/analyzer.o: include/change/changer3.h include/change/pitcher2.h
-build/tools/analyzer.o: include/change/phaser.h include/change/phaser2.h
-build/tools/analyzer.o: include/change/phaser3.h include/change/resample.h
+build/tools/analyzer.o: include/change/pitcher3.h include/change/phaser.h
+build/tools/analyzer.o: include/change/phaser2.h include/change/phaser3.h
+build/tools/analyzer.o: include/change/resample.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h

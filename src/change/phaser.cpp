@@ -1,5 +1,6 @@
 #include "change/phaser.h"
 #include "math/fft.h"
+#include "math/constants.h"
 
 #include <cmath>
 #include <complex>
@@ -19,81 +20,81 @@ Phaser::Phaser(int rate, float low, float high){
     while(size < max) size *= 2;
 
     right = 4 * size - min;
-    left = 4 * size - max;
-    old = 4 * size - max;
+    left = 4 * size - max - min;
+    dist = right - left;
+    out = 0;
+    state = max;
 
-    decay = std::pow(1e-9, 1.0 / size);
-    wl = wr = wo = 0.0f;
-
-    buffer.resize(4 * size + 32, 0.0f);
+    ibuff.resize(4 * size, 0.0f);
+    obuff.resize(4 * size, 0.0f);
     inv.resize(max+1, 0.0f);
 
-    for(int i=1; i<=max; i++) inv[i] = 1.0f / i;
+    for(int i=1; i<=max; i++) inv[i] = 1.0f / std::pow(i, 0.5);
+
+    window.resize(dist, 0.0f);
 }
 
-void Phaser::push(float sample){ buffer.push_back(sample); }
+void Phaser::push(float sample){ ibuff.push_back(sample); }
 
 float Phaser::pull(){
     
-    if(left > (int)buffer.size() / 2
-        && old > (int)buffer.size() / 2
-        && 8 * size < (int)buffer.size()
-        && left > 3 * max
-        && old > 3 * max){
-        
-        int move = std::min(left, old) - 2 * max;
-        for(int i=0; i+move<(int)buffer.size(); i++) buffer[i] = buffer[i+move];
-
-        buffer.resize(buffer.size() - move);
-
+    if(left > 4 * size && left > (int)ibuff.size() / 2){
+        int move = left - 2 * max;
+        for(int i=0; i+move<(int)ibuff.size(); i++) ibuff[i] = ibuff[i+move];
+        ibuff.resize(ibuff.size() - move);
         left -= move;
         right -= move;
-        old -= move;
     }
 
-    if(right == (int)buffer.size()){
-        
-        old = left; wo = 0.0f;
-        right = left; wr = wl;
-        left -= period(); wl = 0.0f;
-
-    } else if((int)buffer.size()-right > size + 32){
-
-        old = left; wo = wl;
-        left = right; wl = wr;
-        right += period(); wr = 0.0f;
-    
+    if(out + dist > 4 * size){
+        for(int i=0; i<4*size; i++){
+            if(i+out < 4*size) obuff[i] = obuff[i+out];
+            else obuff[i] = 0.0f;
+        }
+        out = 0;
     }
 
-    wl = wl * decay + (1.0f - decay);
-    wr = wr * decay + (1.0f - decay);
-    wo = wo * decay;
+    if(right == (int)ibuff.size()){
+        right = left;
+        left -= period();
+    } else if((int)ibuff.size()-right > max + 32){
+        left = right;
+        right += period();
+    }
 
-    float vl = wl * (buffer.size() - left);
-    float vr = wr * (buffer.size() - right);
-    float vo = wo * (buffer.size() - old);
+    if(state >= dist / 4){
+        for(int i=0; i<dist; i++) obuff[out+i] += window[i] * ibuff[left+i];
+        state = 0;
+    } else state++;
 
-    vl *= vl;
-    vr *= vr;
-    vo *= vo;
-
-    return (buffer[left++] * vl + buffer[right++] * vr + buffer[old++] * vo) / (vl + vr + vo);
+    left++; right++;
+    return obuff[out++];
 }
 
 int Phaser::period(){
 
     std::vector<float> a(max), b(max);
-    for(int i=0, z=buffer.size(); i<max; i++){
-        a[i] = buffer[z+i-2*max];
-        b[i] = buffer[z+i-max];
+    for(int i=0; i<max; i++){
+        a[i] = ibuff[right+i-2*max];
+        b[i] = ibuff[right+i-max];
     }
 
-    auto c = math::nmse(a, b);
+    auto c = math::correlation(a, b);
 
-    int best = max;
-    for(int i=min; i<=max; i++) if(c[max-i] < c[max-best]) best = i;
+    int best = -1; float top = -1e9;
+    for(int i=min; i<=max; i++) c[max-i] *= inv[i];
+    for(int i=min+1, j=max-min-1; i+1<=max; i++, j--){
+        if(c[j] > top && c[j] > c[j-1] && c[j] > c[j+1]){ best = i; top = c[j]; }
+    } if(best == -1) best = max;
 
-    return best;
+    dist = best;
+    window.resize(dist);
+    for(int i=0; i<dist; i++) window[i] = (1.0f - std::cos(2 * PIF * i / dist));
+    for(float &i : window) i /= 4;
+
+    std::cerr << dist << '\n';
+
+    return dist;
 }
 
 }

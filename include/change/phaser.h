@@ -17,9 +17,8 @@ private:
 
     int period();
 
-    float wl, wr, wo, decay;
-    int min, max, size, left, right, old;
-    std::vector<float> buffer, inv;
+    int min, max, size, left, dist, right, out, state;
+    std::vector<float> ibuff, obuff, inv, window;
 
 };
 
