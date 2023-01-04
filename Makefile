@@ -126,6 +126,7 @@ build/change/resample.o: include/change/resample.h include/math/constants.h
 build/change/changer1.o: include/change/changer1.h include/change/util.h
 build/change/changer1.o: include/math/ft.h include/math/constants.h
 build/change/phaser.o: include/change/phaser.h include/math/fft.h
+build/change/phaser.o: include/math/constants.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -136,6 +137,7 @@ build/change/pitch.o: include/change/util.h include/change/changer2.h
 build/change/pitch.o: include/change/changer3.h include/change/pitcher.h
 build/change/pitch.o: include/change/pitcher2.h include/change/phaser2.h
 build/change/pitch.o: include/change/resample.h
+build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
 build/change/pitcher3.o: include/math/fft.h include/change/resample.h
 build/app/audio.o: include/app/audio.h include/wave/source.h
@@ -322,7 +324,7 @@ build/tools/analyzer.o: include/change/changer2.h include/change/util.h
 build/tools/analyzer.o: include/change/changer3.h include/change/pitcher2.h
 build/tools/analyzer.o: include/change/pitcher3.h include/change/phaser.h
 build/tools/analyzer.o: include/change/phaser2.h include/change/phaser3.h
-build/tools/analyzer.o: include/change/resample.h
+build/tools/analyzer.o: include/change/phaser4.h include/change/resample.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h

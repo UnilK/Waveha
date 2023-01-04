@@ -16,6 +16,7 @@
 #include "change/phaser.h"
 #include "change/phaser2.h"
 #include "change/phaser3.h"
+#include "change/phaser4.h"
 #include "change/resample.h"
 
 #include <algorithm>
@@ -969,8 +970,8 @@ void Analyzer::translate_pitch(ui::Command c){
     */
 
     // change::Changer2 changer;
-    change::Pitcher2 a(1.8, 32);
-    change::Phaser b(44100, 130.0f, 500.0f);
+    change::Pitcher2 a(1.3, 32);
+    change::Phaser b(44100, 90.0f, 500.0f);
     // change::Pitcher3 changer(1.2, 44100, 100.0f);
 
     auto audio = src.get(src.size(), 0);
@@ -1013,15 +1014,14 @@ void Analyzer::translate_pitch(ui::Command c){
         }
     }
 
-    /*
     audio = result;
     result.clear();
+
     for(float i : audio){
         auto j = a.process(i);
         for(float k : j) b.push(k);
         result.push_back(b.pull());
     }
-    */
 
 
     /*

@@ -82,7 +82,7 @@ int Phaser::period(){
     auto c = math::correlation(a, b);
 
     int best = -1; float top = -1e9;
-    for(int i=min; i<=max; i++) c[max-i] *= inv[i];
+    // for(int i=min; i<=max; i++) c[max-i] *= inv[i];
     for(int i=min+1, j=max-min-1; i+1<=max; i++, j--){
         if(c[j] > top && c[j] > c[j-1] && c[j] > c[j+1]){ best = i; top = c[j]; }
     } if(best == -1) best = max;
@@ -91,8 +91,6 @@ int Phaser::period(){
     window.resize(dist);
     for(int i=0; i<dist; i++) window[i] = (1.0f - std::cos(2 * PIF * i / dist));
     for(float &i : window) i /= 4;
-
-    std::cerr << dist << '\n';
 
     return dist;
 }
