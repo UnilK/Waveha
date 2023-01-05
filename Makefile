@@ -119,7 +119,9 @@ build/change/util.o: include/change/util.h
 build/change/matrix.o: include/change/matrix.h include/math/constants.h
 build/change/phaser2.o: include/change/phaser2.h include/math/constants.h
 build/change/phaser2.o: include/math/fft.h
-build/change/detector2.o: include/change/detector2.h include/math/constants.h
+build/change/detector2.o: include/change/detector2.h include/change/pitch.h
+build/change/detector2.o: include/math/constants.h include/math/fft.h
+build/change/detector2.o: include/math/ft.h
 build/change/detector.o: include/change/detector.h include/math/fft.h
 build/change/detector.o: include/math/ft.h
 build/change/resample.o: include/change/resample.h include/math/constants.h
@@ -127,6 +129,12 @@ build/change/changer1.o: include/change/changer1.h include/change/util.h
 build/change/changer1.o: include/math/ft.h include/math/constants.h
 build/change/phaser.o: include/change/phaser.h include/math/fft.h
 build/change/phaser.o: include/math/constants.h
+build/change/tests.o: include/change/tests.h include/change/changer2.h
+build/change/tests.o: include/change/util.h include/change/changer3.h
+build/change/tests.o: include/change/pitcher2.h include/change/pitcher3.h
+build/change/tests.o: include/change/phaser.h include/change/phaser2.h
+build/change/tests.o: include/change/phaser3.h include/change/phaser4.h
+build/change/tests.o: include/change/resample.h include/change/detector2.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -318,13 +326,8 @@ build/tools/analyzer.o: include/wave/buffer.h include/change/pitch.h
 build/tools/analyzer.o: include/app/app.h include/ui/box.h include/app/tools.h
 build/tools/analyzer.o: include/app/creations.h include/math/fft.h
 build/tools/analyzer.o: include/math/ft.h include/math/sinc.h
-build/tools/analyzer.o: include/change/detector2.h include/ml/waves.h
-build/tools/analyzer.o: include/ml/db.h include/math/constants.h
-build/tools/analyzer.o: include/change/changer2.h include/change/util.h
-build/tools/analyzer.o: include/change/changer3.h include/change/pitcher2.h
-build/tools/analyzer.o: include/change/pitcher3.h include/change/phaser.h
-build/tools/analyzer.o: include/change/phaser2.h include/change/phaser3.h
-build/tools/analyzer.o: include/change/phaser4.h include/change/resample.h
+build/tools/analyzer.o: include/ml/waves.h include/ml/db.h
+build/tools/analyzer.o: include/math/constants.h include/change/tests.h
 build/tools/graph.o: include/tools/graph.h include/ui/frame.h
 build/tools/graph.o: include/ui/borders.h include/ui/style.h
 build/tools/graph.o: include/ui/window.h include/app/session.h

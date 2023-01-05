@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cassert>
+#include <random>
 
 namespace change {
 
@@ -26,8 +27,10 @@ CorrelationVars defaultCorrelationVars;
 float sign(float x){ return (int)(x > 0) - (x < 0); }
 
 Phaser2 _phaser(44100, 80.0f, 300.0f);
-Detector2 _detector(44100, 80.0f);
 Changer2 _changer;
+
+std::mt19937 rng32;
+double rnd(){ return std::uniform_real_distribution<double>(0, 1)(rng32); }
 
 std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period){
 
@@ -238,9 +241,7 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
 
 }
 
-std::vector<float> random_experiment(const std::vector<float> &audio){
-
-    auto out = resample(audio, 0.8);
+std::vector<float> random_experiment(const std::vector<float> &audiox){
 
     /*
     Pitcher2 p(1.0, 32);
@@ -251,7 +252,45 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
         for(float k : j) out.push_back(k);
     }
     */
-   
+
+    std::vector<float> audio = audiox;
+
+    int n = audio.size();
+    std::vector<float> out(n);
+
+    for(float &i : audio) i = 2 * rnd() - 1;
+
+    if(rand()&1){
+        std::vector<std::vector<std::complex<float> > > w;
+        for(int i=1; 44100.0f/(4*i)>90.0f; i++){
+            int m = i * 4;
+            std::vector<std::complex<float> > v(m);
+            for(int j=0; j<m; j++){
+                v[j] = (1.0 - std::cos(2 * PI * j / m)) / std::sqrt(6*m) / 3;
+                v[j] *= std::polar(1.0, 4 * PI * j / m);
+            }
+            w.push_back(v);
+        }
+
+        w.push_back(w.back());
+        for(auto &i : w.back()) i = std::abs(i);
+
+        std::cerr << w.size() << '\n';
+
+        for(int i=0; i<n; i++){
+            for(auto v : w){
+                int m = v.size();
+                if(i%(m/4) == 0 && i+m < n){
+                    std::complex<float> sum = 0.0f;
+                    for(int j=0; j<m; j++) sum += audio[i+j] * v[j];
+                    for(int j=0; j<m; j++) out[i+j] += (sum * std::conj(v[j])).real();
+                }
+            }
+        }
+    } else out = audio;
+
+    for(int i=0; i<n; i++) out[i] *= (1.0f - std::cos(2*PI*i/n)) * 0.5f;
+
     /*
     int n = out.size();
     auto filtered = out;
@@ -359,38 +398,6 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     }
     */
    
-    /*
-    filtered = out;
-    for(float &i : out) i = 0.0f;
-    
-    {
-        const int N = 256, M = 4;
-
-        std::vector<float> window(N), fwindow(N, 0.0f);
-        for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / M * 4 / sqrt(3);
-
-        float reso = 44100.0f / N;
-        float low = 700.0f, high = 2500.0f;
-        for(int i=0; i<=N-i; i++){
-            float l = i * reso - reso / 2, r = i * reso + reso / 2;
-            
-            l = std::max(l, low);
-            r = std::min(r, high);
-
-            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
-        }
-
-        for(int i=0; i+N<=n; i+=N/M){
-            std::vector<float> bit(N);
-            for(int j=0; j<N; j++) bit[j] = filtered[i+j] * window[j];
-            auto freq = math::fft(bit);
-            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
-            bit = math::inverse_fft(freq);
-            for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
-        }
-    }
-    */
-
     return out;
 }
 

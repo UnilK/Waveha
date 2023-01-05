@@ -20,9 +20,9 @@ Phaser4::Phaser4(int rate, float low, float high){
 
     right = 4 * size - min;
     left = 4 * size - max;
-    old = 4 * size - max;
+    old = 1;
 
-    decay = std::pow(1e-9, 1.0 / size);
+    decay = std::pow(1e-9, 1.0 / max);
     wl = wr = wo = 0.0f;
 
     buffer.resize(4 * size + 32, 0.0f);
@@ -35,50 +35,37 @@ void Phaser4::push(float sample){ buffer.push_back(sample); }
 
 float Phaser4::pull(){
     
-    if(left > (int)buffer.size() / 2
-        && old > (int)buffer.size() / 2
-        && 8 * size < (int)buffer.size()
-        && left > 3 * max
-        && old > 3 * max){
-        
-        int move = std::min(left, old) - 2 * max;
+    if(left > (int)buffer.size() / 2 && left > 3 * max){
+        int move = left - 2 * max;
         for(int i=0; i+move<(int)buffer.size(); i++) buffer[i] = buffer[i+move];
-
         buffer.resize(buffer.size() - move);
-
         left -= move;
         right -= move;
-        old -= move;
     }
 
     if(right == (int)buffer.size()){
-        
-        old = left; wo = 0.0f;
+        old = 2;
         right = left; wr = wl;
         left -= period(); wl = 0.0f;
 
     } else if((int)buffer.size()-right > size + 32){
-
-        old = left; wo = wl;
+        old = 1;
         left = right; wl = wr;
         right += period(); wr = 0.0f;
-    
     }
 
-    wl = wl * decay + (1.0f - decay);
-    wr = wr * decay + (1.0f - decay);
-    wo = wo * decay;
+    if(old == 1){
+        wl = wl * decay;
+        wr = wr * decay + (1.0f - decay);
+    } else {
+        wr = wr * decay;
+        wl = wl * decay + (1.0f - decay);
+    }
 
-    int z = buffer.size();
-    float vl = wl * std::min(z - left, std::max(0, left-(z-2*max)));
-    float vr = wr * std::min(z - right, std::max(0, right-(z-2*max)));
-    float vo = wo * std::min(z - old, std::max(0, old-(z-2*max)));
-
-    vl *= vl * vl;
-    vr *= vr * vr;
-    vo *= vo * vo;
-    
-    return (buffer[left++] * vl + buffer[right++] * vr + buffer[old++] * vo) / (vl + vr + vo + 1e-9);
+    float vl = wl * wl;
+    float vr = wr * wr;
+   
+    return (buffer[left++] * vl + buffer[right++] * vr) / (vl + vr + 1e-9);
 }
 
 int Phaser4::period(){

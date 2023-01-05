@@ -1,5 +1,3 @@
-#pragma GCC target("avx2")
-#pragma GCC optimize("O3")
 #include "change/changer3.h"
 #include "math/constants.h"
 #include "math/fft.h"
