@@ -1,6 +1,11 @@
 #pragma once
 
+#include <random>
+
 namespace change {
+
+extern std::mt19937 rng32;
+double rnd();
 
 struct PID {
 

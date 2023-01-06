@@ -12,6 +12,8 @@
 #include "change/pitcher2.h"
 #include "change/phaser2.h"
 #include "change/resample.h"
+#include "change/util.h"
+#include "change/tests.h"
 
 #include <math.h>
 #include <algorithm>
@@ -28,9 +30,6 @@ float sign(float x){ return (int)(x > 0) - (x < 0); }
 
 Phaser2 _phaser(44100, 80.0f, 300.0f);
 Changer2 _changer;
-
-std::mt19937 rng32;
-double rnd(){ return std::uniform_real_distribution<double>(0, 1)(rng32); }
 
 std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period){
 
@@ -253,6 +252,7 @@ std::vector<float> random_experiment(const std::vector<float> &audiox){
     }
     */
 
+    /*
     std::vector<float> audio = audiox;
 
     int n = audio.size();
@@ -290,6 +290,7 @@ std::vector<float> random_experiment(const std::vector<float> &audiox){
     } else out = audio;
 
     for(int i=0; i<n; i++) out[i] *= (1.0f - std::cos(2*PI*i/n)) * 0.5f;
+    */
 
     /*
     int n = out.size();
@@ -398,7 +399,8 @@ std::vector<float> random_experiment(const std::vector<float> &audiox){
     }
     */
    
-    return out;
+    // return out;
+    return hodgefilter(audiox);
 }
 
 std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio){

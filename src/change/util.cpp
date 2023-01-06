@@ -5,6 +5,9 @@
 
 namespace change {
 
+std::mt19937 rng32;
+double rnd(){ return std::uniform_real_distribution<double>(0, 1)(rng32); }
+
 PID::PID(float p_, float i_, float d_, float dt_) : p(p_), i(i_), d(d_) {
     dt = dt_;
     y = 0.0f;

@@ -135,6 +135,7 @@ build/change/tests.o: include/change/pitcher2.h include/change/pitcher3.h
 build/change/tests.o: include/change/phaser.h include/change/phaser2.h
 build/change/tests.o: include/change/phaser3.h include/change/phaser4.h
 build/change/tests.o: include/change/resample.h include/change/detector2.h
+build/change/tests.o: include/math/fft.h include/math/constants.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -144,7 +145,7 @@ build/change/pitch.o: include/change/detector2.h include/change/changer1.h
 build/change/pitch.o: include/change/util.h include/change/changer2.h
 build/change/pitch.o: include/change/changer3.h include/change/pitcher.h
 build/change/pitch.o: include/change/pitcher2.h include/change/phaser2.h
-build/change/pitch.o: include/change/resample.h
+build/change/pitch.o: include/change/resample.h include/change/tests.h
 build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
 build/change/pitcher3.o: include/math/fft.h include/change/resample.h
