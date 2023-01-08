@@ -18,17 +18,19 @@
 #include <complex>
 #include <random>
 #include <iostream>
+#include <cassert>
 
 namespace change {
 
 std::vector<float> translate(const std::vector<float> &audio){
     
     change::Pitcher2 a(2.1, 32);
-    change::Phaser4 b(44100, 100.0f, 400.0f);
+    change::Phaser4 b(44100, 150.0f, 500.0f);
 
+    std::vector<float> filtered = energytranslate(audio);
     std::vector<float> result;
 
-    for(float i : audio){
+    for(float i : filtered){
         auto j = a.process(i);
         for(float k : j) b.push(k);
         result.push_back(b.pull());
@@ -163,6 +165,126 @@ std::vector<float> frequencywindow(){
     f = (f+1)%(wavelets.size()+1);
     
     return enve;
+}
+
+std::vector<float> energytranslate(const std::vector<float> &audio){
+
+    using std::vector;
+    using std::tuple;
+    using std::complex;
+
+    int n = audio.size();
+    const int N = 256;
+    const int H = N/2 + 1;
+
+    vector<float> output(n, 0.0f);
+    vector<vector<float> > iband(H, vector<float>(n, 0.0f));
+    vector<vector<float> > oband(H, vector<float>(n, 0.0f));
+
+    {
+        vector<float> window(N);
+        for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * PIF * i / N)) / sqrt(6);
+
+        vector<vector<complex<float> > > waves(H, vector<complex<float> >(N));
+        for(int i=0; i<H; i++){
+            for(int j=0; j<N; j++) waves[i][j] = std::polar(window[j] / N, 2 * PIF * j * i / N);
+        }
+        for(auto &i : waves[0]) i /= 2;
+        for(auto &i : waves[H-1]) i /= 2;
+
+        for(int i=0; i+N<n; i+=N/4){
+            vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+            auto freq = math::fft(bit);
+            for(int h=0; h<H; h++){
+                for(int j=0; j<N; j++) iband[h][i+j] += 2 * (waves[h][j] * freq[h]).real();
+            }
+        }
+    }
+
+    const float shift = 0.7;
+    const float reso = 44100.0 / N;
+
+    vector<float> f(H);
+    vector<int> length(H);
+    vector<vector<tuple<int, float> > > g(H);
+    vector<vector<float> > window(H);
+
+    for(int h=0; h<H; h++) f[h] = reso * h;
+
+    for(int h=1; h<H; h++){
+        length[h] = std::ceil(2.0 * N / h);
+        length[h] = (length[h] + 3) / 4 * 4;
+    } length[0] = length[1];
+
+    for(int h=0; h<H; h++){
+        float s = f[h] * shift;
+        int l = std::floor(s / reso), r = std::ceil(s / reso);
+        if(l == r) r++;
+        if(l >= 0 && r < H){
+            float d = (s - f[l]) / reso;
+            g[l].push_back({h, 1.0f - d});
+            g[r].push_back({h, d});
+        } else if(r >= 0 && r < H){
+            g[r].push_back({h, 1.0f});
+        } else if(l >= 0 && l < H){
+            g[l].push_back({h, 1.0f});
+        }
+    }
+
+    for(int h=0; h<H; h++){
+        window[h].resize(length[h]);
+        for(int i=0; i<length[h]; i++){
+            window[h][i] = (1.0f - std::cos(2 * PIF * i / length[h])) / sqrt(6);
+        }
+    }
+
+    /*
+    std::cerr << "\nf:\n";
+    for(float i : f) std::cerr << i << ' ';
+    std::cerr << "\nlength:\n";
+    for(int i : length) std::cerr << i << ' ';
+    std::cerr << "\ng:\n";
+    for(int h=0; h<H; h++){
+        std::cerr << h << ": ";
+        for(auto [x, y] : g[h]) std::cerr << "(" << x << ", " << y << "), ";
+        std::cerr << '\n';
+    }
+    for(auto i : window) for(float &j : i) assert(-0.001f <= j && j <= 1.0f);
+    */
+
+    for(int h=0; h<H; h++){
+        for(int i=0; i+length[h]<n; i+=length[h]/4){
+            
+            float isum = 0.0f, osum = 0.0f;
+            
+            for(int j=0; j<length[h]; j++){
+                const float s = window[h][j] * iband[h][i+j];
+                isum += s*s;
+            }
+            
+            for(auto [k, d] : g[h]){
+                float sum = 0.0f;
+                for(int j=0; j<length[h]; j++){
+                    const float s = window[h][j] * iband[k][i+j];
+                    sum += s*s;
+                }
+                osum += d * sum;
+            }
+            
+            float coef = isum == 0.0f ? 0.0f : std::sqrt(osum / isum);
+
+            for(int j=0; j<length[h]; j++){
+                oband[h][i+j] += window[h][j] * iband[h][i+j] * coef;
+            }
+        }
+    }
+    
+    for(int h=0; h<H; h++){
+        for(int i=0; i<n; i++) output[i] += oband[h][i];
+    }
+
+    return output;
 }
 
 std::vector<float> hodgefilter(const std::vector<float> &audio){

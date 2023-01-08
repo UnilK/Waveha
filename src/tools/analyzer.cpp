@@ -537,6 +537,7 @@ void Analyzer::update_data(){
         
         auto audio = link.get_loop(length, position);
         //for(int i=0; i<length; i++) audio[i] *= (1.0f - std::cos(2*PI*i/length)) * 0.5f;
+        if(rand()&1) audio = change::energytranslate(audio);
         auto data = math::fft(audio);
 
         data.resize(data.size()/2 + 1);
@@ -941,7 +942,7 @@ void Analyzer::translate_pitch(ui::Command c){
     src.open(input);
     auto audio = src.get(src.size(), 0);
 
-    auto result = change::translate(change::hodgefilter(audio));
+    auto result = change::translate(audio);
 
     wave::Audio *out = new wave::Audio();
     out->name = output;

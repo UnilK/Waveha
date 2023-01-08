@@ -400,7 +400,7 @@ std::vector<float> random_experiment(const std::vector<float> &audiox){
     */
    
     // return out;
-    return hodgefilter(audiox);
+    return energytranslate(audiox);
 }
 
 std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio){
