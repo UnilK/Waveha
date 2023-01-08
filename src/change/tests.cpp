@@ -23,8 +23,8 @@ namespace change {
 
 std::vector<float> translate(const std::vector<float> &audio){
     
-    change::Pitcher2 a(4.1, 32);
-    change::Phaser4 b(44100, 300.0f, 1200.0f);
+    change::Pitcher2 a(2.1, 32);
+    change::Phaser4 b(44100, 100.0f, 400.0f);
 
     std::vector<float> result;
 
@@ -177,7 +177,7 @@ std::vector<float> hodgefilter(const std::vector<float> &audio){
         double freq = 160.0;
         double len = 44100.0 / 80.0;
         double fmul = 1.15;
-        double lmul = 1.0 / 1.105;
+        double lmul = 1.0 / 1.15;
 
         {
             int n = std::round(len/4)*4;
@@ -188,7 +188,7 @@ std::vector<float> hodgefilter(const std::vector<float> &audio){
             wavelets.push_back({n, 140/44100.0*n, 1.05*std::log(140)});
         }
 
-        while(freq < 6000.0){
+        while(freq < 16000.0){
             int n = std::round(len/4)*4;
             wavelets.push_back({n, freq/44100.0*n, std::log(freq)});
             freq *= fmul;
@@ -225,7 +225,7 @@ std::vector<float> hodgefilter(const std::vector<float> &audio){
 
     for(int i=0; i<z; i++){
         
-        double shift = 1.5;
+        double shift = 2.1;
         int j = 0;
 
         while(j+1 < z && req[j+1] < req[i]*shift) j++;
@@ -242,9 +242,11 @@ std::vector<float> hodgefilter(const std::vector<float> &audio){
         }
     }
 
+    /*
     for(auto [x, y, xx, yy] : shifted){
         std::cerr << x << ' ' << y << ' ' << xx << ' ' << yy << '\n';
     }
+    */
 
     for(int i=0; i<n; i++){
         
@@ -275,7 +277,7 @@ std::vector<float> hodgefilter(const std::vector<float> &audio){
 
     for(float &i : result) i *= 1.0 / 59.81;
 
-    if(rand()&1) return audio;
+    // if(rand()&1) return audio;
     return result;
 }
 
