@@ -24,10 +24,10 @@ namespace change {
 
 std::vector<float> translate(const std::vector<float> &audio){
     
-    change::Pitcher2 a(2.1, 32);
-    change::Phaser4 b(44100, 150.0f, 500.0f);
+    change::Pitcher2 a(1.6, 32);
+    change::Phaser4 b(44100, 90.0f, 900.0f);
 
-    std::vector<float> filtered = energytranslate(audio);
+    std::vector<float> filtered = audio;
     std::vector<float> result;
 
     for(float i : filtered){
@@ -35,6 +35,8 @@ std::vector<float> translate(const std::vector<float> &audio){
         for(float k : j) b.push(k);
         result.push_back(b.pull());
     }
+
+    result = energytranslate(result);
 
     /*
     const int N = 256;
@@ -202,7 +204,7 @@ std::vector<float> energytranslate(const std::vector<float> &audio){
         }
     }
 
-    const float shift = 0.7;
+    const float shift = 0.8;
     const float reso = 44100.0 / N;
 
     vector<float> f(H);
@@ -213,7 +215,7 @@ std::vector<float> energytranslate(const std::vector<float> &audio){
     for(int h=0; h<H; h++) f[h] = reso * h;
 
     for(int h=1; h<H; h++){
-        length[h] = std::ceil(2.0 * N / h);
+        length[h] = std::ceil(4.0 * N / h);
         length[h] = (length[h] + 3) / 4 * 4;
     } length[0] = length[1];
 
@@ -235,23 +237,9 @@ std::vector<float> energytranslate(const std::vector<float> &audio){
     for(int h=0; h<H; h++){
         window[h].resize(length[h]);
         for(int i=0; i<length[h]; i++){
-            window[h][i] = (1.0f - std::cos(2 * PIF * i / length[h])) / sqrt(6);
+            window[h][i] = (1.0f - std::cos(2 * PIF * i / length[h])) / 4;
         }
     }
-
-    /*
-    std::cerr << "\nf:\n";
-    for(float i : f) std::cerr << i << ' ';
-    std::cerr << "\nlength:\n";
-    for(int i : length) std::cerr << i << ' ';
-    std::cerr << "\ng:\n";
-    for(int h=0; h<H; h++){
-        std::cerr << h << ": ";
-        for(auto [x, y] : g[h]) std::cerr << "(" << x << ", " << y << "), ";
-        std::cerr << '\n';
-    }
-    for(auto i : window) for(float &j : i) assert(-0.001f <= j && j <= 1.0f);
-    */
 
     for(int h=0; h<H; h++){
         for(int i=0; i+length[h]<n; i+=length[h]/4){

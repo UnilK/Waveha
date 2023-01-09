@@ -536,8 +536,8 @@ void Analyzer::update_data(){
     } else if(dataMode == frequencyMode){
         
         auto audio = link.get_loop(length, position);
-        //for(int i=0; i<length; i++) audio[i] *= (1.0f - std::cos(2*PI*i/length)) * 0.5f;
         if(rand()&1) audio = change::energytranslate(audio);
+        for(int i=0; i<length; i++) audio[i] *= (1.0f - std::cos(2*PI*i/length)) * 0.5f;
         auto data = math::fft(audio);
 
         data.resize(data.size()/2 + 1);
