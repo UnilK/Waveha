@@ -24,10 +24,10 @@ namespace change {
 
 std::vector<float> translate(const std::vector<float> &audio){
     
-    change::Pitcher2 a(1.6, 32);
-    change::Phaser4 b(44100, 90.0f, 900.0f);
+    change::Pitcher2 a(3.35, 32);
+    change::Phaser4 b(44100, 240.0f, 900.0f);
 
-    std::vector<float> filtered = audio;
+    std::vector<float> filtered = energytranslate2(audio);
     std::vector<float> result;
 
     for(float i : filtered){
@@ -35,8 +35,6 @@ std::vector<float> translate(const std::vector<float> &audio){
         for(float k : j) b.push(k);
         result.push_back(b.pull());
     }
-
-    result = energytranslate(result);
 
     /*
     const int N = 256;
@@ -88,60 +86,56 @@ std::vector<float> frequencywindow(){
     using std::complex;
 
     static unsigned f = 0;
-    vector<tuple<int, float, float> > wavelets;
+    vector<vector<complex<float> > > windows;
+    vector<tuple<int, float> > params;
 
+    const double F = 44100.0;
     {
-        double freq = 160.0;
-        double len = 44100.0 / 80.0;
-        double fmul = 1.15;
-        double lmul = 1.0 / 1.105;
+        double len = 160.0;
+        double freq = 0;
+        double fmul = 1.1;
 
-        {
-            int n = std::round(len/4)*4;
-            wavelets.push_back({n, 0/44100.0*n, 1.2*std::log(10.0)});
-            wavelets.push_back({n, 40/44100.0*n, 1.55*std::log(40)});
-            wavelets.push_back({n, 80/44100.0*n, 1.77*std::log(80)});
-            wavelets.push_back({n, 120/44100.0*n, 1.1*std::log(120)});
-            wavelets.push_back({n, 140/44100.0*n, 1.05*std::log(140)});
+        while(freq < 6000.0f){
+            
+            int m = std::round((2*F/len)/4)*4;
+            vector<complex<float> > window(m);
+            params.push_back({m, freq});
+
+            double turn = 2 * PI * freq / F;
+            for(int i=0; i<m; i++){
+                float len = 0.5f-0.5f*std::cos(2*PIF*i/m);
+                window[i] = std::polar<float>(len, -turn*i);
+            }
+
+            freq += len/4;
+            len *= fmul;
+
+            windows.push_back(window);
         }
 
-        while(freq < 6000.0){
-            int n = std::round(len/4)*4;
-            wavelets.push_back({n, freq/44100.0*n, std::log(freq)});
-            freq *= fmul;
-            len *= lmul;
-        }
+        for(auto &i : windows[0]) i /= sqrt(2);
     }
 
     const int n = 1<<12;
     const int N = 1<<10;
 
     static vector<vector<float> > sums;
-    sums.resize(wavelets.size());
+    sums.resize(windows.size());
     for(auto &i : sums) i.resize(n, 0.0f);
     
     vector<float> enve(n, 0.0f), audio(n);
 
-    if(f == wavelets.size()){
+    if(f == windows.size()){
         for(auto i : sums){
             for(int j=0; j<n; j++) enve[j] += i[j];
         }
     } else {
-        auto [m, d, h] = wavelets[f];
-        vector<complex<float> > window(m);
-        for(int i=0; i<m; i++){
-            float len = 1.0f-std::cos(2*PIF*i/m);
-            window[i] = std::polar(len, -2*PIF*i*d/m);
-        }
+        
+        auto &window = windows[f];
+        auto [m, ff] = params[f];
 
-        {
-            float sum = 0.0f;
-            for(auto i : window) sum += std::norm(i);
-            sum = std::sqrt(sum);
-            for(auto &i : window) i /= sum;
-        }
-
-        std::cerr << m << ' ' << d << ' ' << h << " -> ";
+        float fff = F/m*2; 
+        std::cerr << m << ' ' << ff << ' ' << fff << ' ' << ff/fff << " -> ";
 
         for(int x=0; x<N; x++){
             for(float &i : audio) i = 2.0 * rnd() - 1.0;
@@ -149,22 +143,23 @@ std::vector<float> frequencywindow(){
             for(int i=0; i+m<n; i+=m/4){
                 complex<float> sum = 0.0f;
                 for(int j=0; j<m; j++) sum += audio[i+j] * window[j];
-                sum *= h * 2;
+                sum *= 2.0/m;
                 for(int j=0; j<m; j++) result[i+j] += (sum*std::conj(window[j])).real();
             }
             for(int i=0; i<n; i++) result[i] *= (1.0f - std::cos(2 * PIF * i / n)) * 0.5f;
+            for(int i=0; i<n; i++) result[i] /= 6;
             auto freq = math::fft(result);
-            for(int i=0; i<n; i++) enve[i] += std::norm(freq[i]);
+            for(int i=0; i<n; i++) enve[i] += std::abs(freq[i]);
         }
 
         std::cerr << "done\n";
 
-        for(float &i : enve) i /= N * n;
+        for(float &i : enve) i /= N;
 
         sums[f] = enve;
     }
 
-    f = (f+1)%(wavelets.size()+1);
+    f = (f+1)%(windows.size()+1);
     
     return enve;
 }
@@ -174,6 +169,8 @@ std::vector<float> energytranslate(const std::vector<float> &audio){
     using std::vector;
     using std::tuple;
     using std::complex;
+
+    static int ff = 0;
 
     int n = audio.size();
     const int N = 256;
@@ -204,41 +201,56 @@ std::vector<float> energytranslate(const std::vector<float> &audio){
         }
     }
 
-    const float shift = 0.8;
+    const float shift = 0.4;
     const float reso = 44100.0 / N;
 
     vector<float> f(H);
     vector<int> length(H);
-    vector<vector<tuple<int, float> > > g(H);
     vector<vector<float> > window(H);
 
     for(int h=0; h<H; h++) f[h] = reso * h;
 
     for(int h=1; h<H; h++){
-        length[h] = std::ceil(4.0 * N / h);
+        length[h] = std::ceil(N / sqrt(h));
         length[h] = (length[h] + 3) / 4 * 4;
     } length[0] = length[1];
-
-    for(int h=0; h<H; h++){
-        float s = f[h] * shift;
-        int l = std::floor(s / reso), r = std::ceil(s / reso);
-        if(l == r) r++;
-        if(l >= 0 && r < H){
-            float d = (s - f[l]) / reso;
-            g[l].push_back({h, 1.0f - d});
-            g[r].push_back({h, d});
-        } else if(r >= 0 && r < H){
-            g[r].push_back({h, 1.0f});
-        } else if(l >= 0 && l < H){
-            g[l].push_back({h, 1.0f});
-        }
-    }
 
     for(int h=0; h<H; h++){
         window[h].resize(length[h]);
         for(int i=0; i<length[h]; i++){
             window[h][i] = (1.0f - std::cos(2 * PIF * i / length[h])) / 4;
         }
+    }
+    
+    auto genshift = [&](vector<float> fre, vector<float> shift){
+
+        vector<vector<tuple<int, float> > > g(H);
+
+        for(int i=0; i<H; i++){
+
+            int j=0;
+            while(j+1 < H && fre[j+1] < fre[i]*shift[i]) j++;
+            
+            if(j+1 == H) continue;
+            
+            float d = (fre[i]*shift[i]-fre[j]) / (fre[j+1] - fre[j]);
+
+            g[j].push_back({i, 1.0f - d});
+            g[j+1].push_back({i, d});
+        }
+
+        return g;
+    };
+
+    vector<vector<tuple<int, float> > > g;
+    {
+        vector<float> fre, shi(H, shift);
+        for(int i=0; i<H; i++) fre.push_back(i*reso);
+        shi[0] = 1.0f;
+        shi[1] = 0.75f + 0.25f * shi[1];
+        shi[2] = 0.50f + 0.50f * shi[2];
+        shi[3] = 0.25f + 0.75f * shi[3];
+        g = genshift(fre, shi);
     }
 
     for(int h=0; h<H; h++){
@@ -272,7 +284,165 @@ std::vector<float> energytranslate(const std::vector<float> &audio){
         for(int i=0; i<n; i++) output[i] += oband[h][i];
     }
 
+    ff = (ff+1)%(window.size());
     return output;
+}
+
+std::vector<float> energytranslate2(const std::vector<float> &audio){
+
+    using std::vector;
+    using std::tuple;
+    using std::complex;
+
+    int n = audio.size();
+
+    vector<vector<complex<float> > > windows;
+    vector<tuple<int, float, float> > params;
+
+    const double F = 44100.0;
+    {
+        double len = 160.0;
+        double freq = 0;
+        double fmul = 1.1;
+
+        while(freq < 6000.0f){
+            
+            int m = std::round((2*F/len)/4)*4;
+            vector<complex<float> > window(m);
+
+            double turn = 2 * PI * freq / F;
+            for(int i=0; i<m; i++){
+                float len = 0.5f-0.5f*std::cos(2*PIF*i/m);
+                window[i] = std::polar<float>(len, -turn*i);
+            }
+
+            params.push_back({m, freq, (sqrt(6)/8)});
+            windows.push_back(window);
+            
+            freq += len * 0.25f;
+            len *= fmul;
+        }
+
+        { auto &[xx, yy, zz] = params[0]; zz *= 0.5f; }
+
+    }
+
+    int z = windows.size();
+
+    auto calcband = [&](int w) -> vector<complex<float> > {
+       
+        vector<complex<float> > out(n, 0.0f);
+        
+        auto &window = windows[w];
+        auto [m, fre, mul] = params[w];
+
+        for(int i=0; i+m<=n; i+=m/4){
+            complex<float> sum = 0.0f;
+            for(int j=0; j<m; j++) sum += conj(window[j])*audio[i+j];
+            sum *= mul * 2 / m;
+            for(int j=0; j<m; j++) out[i+j] += window[j]*sum;
+        }
+
+
+        return out;
+    };
+    
+    auto cabs = [&](const vector<complex<float> > &v) -> vector<float > {
+        vector<float> abs(n);
+        for(int i=0; i<n; i++) abs[i] = std::abs(v[i]);
+        return abs;
+    };
+    
+    auto creal = [&](const vector<complex<float> > &v) -> vector<float > {
+        vector<float> rea(n);
+        for(int i=0; i<n; i++) rea[i] = v[i].real();
+        return rea;
+    };
+    
+    auto cnorm = [&](const vector<complex<float> > &v) -> vector<float > {
+        vector<float> nor(n);
+        for(int i=0; i<n; i++) nor[i] = std::norm(v[i]);
+        return nor;
+    };
+
+    auto genshift = [&](vector<float> fre, vector<float> shift){
+
+        vector<vector<tuple<int, float> > > g(z);
+
+        for(int i=0; i<z; i++){
+
+            int j=0;
+            while(j+1 < z && fre[j+1] < fre[i]*shift[i]) j++;
+            
+            if(j+1 == z) continue;
+            
+            float d = (fre[i]*shift[i]-fre[j]) / (fre[j+1] - fre[j]);
+
+            g[j].push_back({i, 1.0f - d});
+            g[j+1].push_back({i, d});
+        }
+
+        return g;
+    };
+
+    vector<vector<tuple<int, float> > > g;
+    {
+        float s = 0.4f;
+        vector<float> fre, shift(z, s);
+        for(auto [xx, yy, zz] : params) fre.push_back(yy);
+        shift[0] = 1.0f;
+        shift[1] = 0.75f + 0.25f * shift[1];
+        shift[2] = 0.50f + 0.50f * shift[2];
+        shift[3] = 0.25f + 0.75f * shift[3];
+        g = genshift(fre, shift);
+    }
+
+    vector<vector<complex<float> > > iband(z);
+    vector<vector<float> > norms, oband(z, vector<float>(n, 0.0f));
+
+    for(int i=0; i<z; i++) iband[i] = calcband(i);
+    for(auto &i : iband) norms.push_back(cnorm(i));
+
+    for(int h=0; h<z; h++){
+        if(g[h].empty()) continue;
+        auto [m, fre, mul] = params[h];
+        vector<float> window(m);
+        for(int i=0; i<m; i++) window[i] = 0.25f - 0.25f * std::cos(2*PIF*i/m);
+        for(int i=0; i+m<=n; i+=m/4){
+            float sumi = 0.0f, sumo = 0.0f;
+            for(auto [j, d] : g[h]){
+                for(int k=0; k<m; k++) sumo += window[k] * norms[j][i+k] * d;
+            }
+            for(int k=0; k<m; k++) sumi += window[k] * norms[h][i+k];
+            sumi /= m;
+            sumo /= m * g[h].size();
+            if(sumi == 0.0f) continue;
+            float fact = sqrt(sumo / sumi);
+            for(int j=0; j<m; j++) oband[h][i+j] += iband[h][i+j].real() * window[j] * fact;
+        }
+    }
+
+    vector<float> out(n, 0.0f);
+    for(auto &i : oband) for(int j=0; j<n; j++) out[j] += i[j];
+
+    return out;
+
+    /*
+    static unsigned f = 0;
+    int pf = f;
+    f = (f+1)%(windows.size()+1);
+
+    if(pf == (int)windows.size()){
+        vector<float> sum(n, 0.0f);
+        for(int i=0; i<pf; i++){
+            auto band = creal(calcband(i));
+            for(int j=0; j<n; j++) sum[j] += band[j];
+        }
+        return sum;
+    } else {
+        return cabs(calcband(pf));
+    }
+    */
 }
 
 std::vector<float> hodgefilter(const std::vector<float> &audio){
