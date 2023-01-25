@@ -9,7 +9,7 @@ namespace change {
 Pitcher::Pitcher(double shift_, int zeros_){
 
     shift = std::min(100.0, std::max(0.01, shift_));
-    zeros = std::min(128, std::max(1, zeros_));
+    zeros = std::min(32, std::max(1, zeros_));
 
     step = 1.0 / shift;
     istep = shift;

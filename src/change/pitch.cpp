@@ -145,134 +145,184 @@ std::vector<float> phase_graph(const std::vector<float> &audio, unsigned period)
     */
 }
 
-std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
-   
-    return {0.0f, 0.0f};
+std::vector<std::complex<float> > peak_match_graph(const std::vector<float> &audio, PeakMatchVars vars){
 
+    using std::vector;
+    using std::complex;
+
+    int n = audio.size();
+    
+    vector<float> windowed(n), window(n);
+    for(int i=0; i<n; i++) window[i] = std::sin(PIF * i / n);
+    for(float &i : window) i = std::pow(i, vars.exponent) * std::sqrt(vars.exponent);
+    for(int i=0; i<n; i++) windowed[i] = audio[i] * window[i];
+    
     /*
-    auto plot = audio;
-    auto freq = math::fft(plot);
-    auto nfreq = freq;
-    for(auto &i : nfreq) i = 0.0f;
+    const int N = 2048;
+    constexpr float reso = 8000.0f / N;
+    constexpr float w = 2 * M_PI * reso / 44100.0f;
+    constexpr float decay = 1.0f;
+    vector<complex<float> > root(N, 0.0f), echo(N, 0.0f);
 
-    unsigned low = 60 * audio.size() / 44100;
-    unsigned high = 1000 * audio.size() / 44100;
+    for(int i=0; i<N; i++) root[i] = std::polar(decay, -i*w);
 
-    unsigned n = freq.size();
-    for(unsigned i=low; i<=high; i++){
-        nfreq[i] = freq[i];
-        nfreq[(n-i)%n] = std::conj(freq[i]);
+    for(int i=0; i<n; i++){
+        for(int j=0; j<N; j++) echo[j] = echo[j] * root[j] + windowed[i];
     }
     
-    plot = math::inverse_fft(nfreq);
+    vector<float> energy(N, 0.0f);
+    for(int i=0; i<N; i++) energy[i] = std::abs(echo[i]);
     */
 
-    /*
-    std::vector<float> plot(audio.size(), 0.0f);
-    for(unsigned i=1; i+1<audio.size(); i++){
-        plot[i] = std::abs(audio[i-1]+audio[i+1]-2*audio[i]) + plot[i-1];
-    }
+    auto freq = math::fft(windowed);
+    freq.resize(n/2+1);
 
-    float sum = 0.0f, avg = 0.0f;
-    for(float i : audio) avg += i;
-    avg /= audio.size();
-
-    for(unsigned i=1; i+1<audio.size(); i++){
-        sum += (audio[i]-avg)*(audio[i]-avg);
-        if(sum != 0.0f) plot[i] /= sum;
-    }
-    */
-
-    /*
-    auto plot = audio;
-
-    for(float &i : plot) i = i*i*i;
-
-    float max = 0.0f;
-    for(float i : plot) max = std::max(max, std::abs(i));
-    if(max != 0.0f) for(float &i : plot) i /= max;
-    */
-
-    /*
-    auto plot = audio;
-    
-    for(float &i : plot) i = i*i*i*i;
-
-    auto freq = math::fft(plot);
-    unsigned f = 1000 * audio.size() / 44100;
-    for(unsigned i=f; i+f<=freq.size(); i++) freq[i] = 0.0f;
-    plot = math::inverse_fft(freq);
-    
-    for(float &i : plot) i = sign(i)*std::pow(std::abs(i), 0.5f);
-
-    float sum = 0.0f;
-    for(float i : audio) sum += i*i;
-    sum /= audio.size();
-
-    if(sum != 0.0f) for(float &i : plot) i /= sum;
-    */
-
-    /*
-    auto spectrum = math::fft(audio);
-
-    std::vector<float> plot(audio.size(), 0.0f);
-
-    for(unsigned i = 2 * vars.peaks; i * 2 < plot.size(); i++){
-        
-        float fundamental = (float)plot.size() / i;
-
-        for(int j = 1; j <= vars.peaks; j++){
-            
-            float frequency = fundamental * j;
-            int k = std::floor(frequency);
-            float d  = frequency - k;
-
-            if(k+1 > (int)audio.size() / 2) break;
-
-            // there's a phase flip on the peak so use - instead of +.
-            plot[i] += std::pow(std::abs(spectrum[k] * (1 - d) - spectrum[k+1] * d), vars.exponent);
-
-        }
-    }
-    */
-
-    // return plot;
-
+    return freq;
 }
 
 std::vector<float> random_experiment(const std::vector<float> &audio){
 
     /*
-    Pitcher2 p(1.0, 32);
+    Pitcher p(1.345, 16);
 
     std::vector<float> out;
     for(float i : audio){
         auto j = p.process(i);
         for(float k : j) out.push_back(k);
     }
+
+    return out;
     */
 
-    // return out;
+    using std::vector;
+    using std::complex;
+    using std::tuple;
+
+    int n = audio.size();
+    int m = n / 2;
+    int low = std::ceil(2000.0 / (44100.0 / n));
+    int wlen = std::ceil(200.0 / (44100.0 / n));
+
+    vector<float> norm(m), windowed(n), window(m);
+    for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
+    
+    for(int i=0; i<m; i++){
+        if(i>low+wlen) window[i] = 0.0f;
+        else if(i<low-wlen) window[i] = 1.0f;
+        else window[i] = 0.5f - 0.5f * std::sin(PIF*(i-low)/(2*wlen+1));
+    }
+
+    auto freq = math::fft(windowed);
+    for(int i=0; i<m; i++) freq[i] = std::pow(std::norm(freq[i]), 1.0f/3.0f) * window[i];
+    freq.resize(m);
+    norm = math::inverse_fft(freq);
+    norm.resize(m/2);
+
+    return norm;
+
     // return frequencywindow();
-    return energytranslate(audio);
+}
+
+std::vector<float> random_experiment2(const std::vector<float> &audio, float low, float high){
+
+    using std::vector;
+    using std::complex;
+    using std::pair;
+
+    int n = audio.size();
+
+    vector<float> result(n, 0.0f), filtered(n, 0.0f);
+
+    {
+        const int N = 256;
+
+        vector<complex<float> > cres(n, 0.0f);
+        vector<float> window(N), fwindow(N);
+        for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * PIF * i / N)) / sqrt(6);
+        
+        float reso = 44100.0f / N;
+        
+        low -= reso / 2;
+        high += reso / 2;
+        
+        for(int i=0; i<=N-i; i++){
+            float l = i * reso - reso / 2, r = i * reso + reso / 2;
+            l = std::max(l, low);
+            r = std::min(r, high);
+            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
+        }
+
+        for(int i=0; i+N<=n; i+=N/4){
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+            auto freq = math::fft(bit);
+            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
+            
+            for(int j=N/2; j<N; j++) freq[j] = 0.0f;
+            math::in_place_fft(freq, 1);
+            for(int j=0; j<N; j++) cres[i+j] += window[j] * freq[j];
+            
+            // bit = math::inverse_fft(freq);
+            // for(int j=0; j<N; j++) result[i+j] += window[j] * bit[j];
+        }
+
+        for(int i=0; i<n; i++) result[i] = std::abs(cres[i]);
+        for(int i=0; i<n; i++) filtered[i] = cres[i].real();
+    }
+
+    /*
+    if(rand()&1){
+        const int N = 48;
+
+        auto orig = result;
+        for(float &i : result) i = std::sqrt(i);
+
+        vector<float> window(N), out(n, 0.0f);
+        for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * PIF * i / N)) / sqrt(6);
+        
+        for(int i=0; i+N<=n; i+=N/4){
+            float sum = 0.0f;
+            for(int j=0; j<N; j++) sum += window[j]*result[i+j];
+            sum /= N;
+            for(int j=0; j<N; j++) out[i+j] += window[j]*sum;
+        }
+
+        for(float &i : out) i = i*i*i;
+
+        double sumi = 0.0f, sumo = 0.0f;
+        for(float &i : orig) sumi += i*i;
+        for(float &i : out) sumo += i*i;
+
+        float coef = sumo == 0.0f ? 0.0f : sumi / sumo;
+        coef = std::sqrt(coef);
+
+        for(float &i : out) i = i * coef + 1e-9f;
+
+        for(float &i : result) i = 0.0f;
+
+        const int M = 128;
+        for(int i=M; i+M<n; i++){
+            result[i] = filtered[i] * out[i+M] / out[i];
+        }
+
+    } else {
+        result = filtered;
+    }
+    */
+
+    return filtered;
 }
 
 std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio){
 
-    auto filtered = random_experiment(audio);
-
-    int n = audio.size()/2;
-    const int N = 32;
+    auto filtered = random_experiment2(audio, 1500.0f, 6000.0f);
     
-    std::vector<float> bit(N), window(N);
-    for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) * 0.5;
+    int n = filtered.size();
 
-    for(int i=0; i<N; i++) bit[i] = filtered[n+i] * window[i];
+    std::vector<float> w(n);
+    for(int i=0; i<n; i++) w[i] = filtered[i] * (1.0f - std::cos(2 * PIF * i / n));
 
-    auto out = math::fft(bit);
-    out.resize(N/2);
-
-    return out;
+    return math::fft(w);
 }
 
 std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){

@@ -22,7 +22,7 @@ Phaser4::Phaser4(int rate, float low, float high){
     left = 4 * size - max;
     old = 1;
 
-    decay = std::pow(1e-6, 1.0 / max);
+    decay = std::pow(1e-5, 1.0 / max);
     wl = wr = wo = 0.0f;
 
     buffer.resize(4 * size + 32, 0.0f);
@@ -48,11 +48,13 @@ float Phaser4::pull(){
         right = left;
         left -= period();
         std::swap(wl, wr);
+        wl = 0.0f;
     } else if((int)buffer.size()-right > size + 32){
         old = 1;
         left = right;
         right += period();
         std::swap(wl, wr);
+        wr = 0.0f;
     }
 
     if(old == 1){

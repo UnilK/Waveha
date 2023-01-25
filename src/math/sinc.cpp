@@ -44,6 +44,7 @@ SINCPrecalc::SINCPrecalc(){
     fsinc[ZN] = 0.0f;
 
     for(unsigned i=1; i<ZN; i++) fsinc[i] = std::sin(PI*i/N) / (PI*i/N);
+    for(unsigned i=1; i<ZN; i++) fsinc[i] *= 0.5f + 0.5f * std::cos(PI*i/ZN);
 }
 
 float sinc(float x){

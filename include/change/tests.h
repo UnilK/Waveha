@@ -14,6 +14,8 @@ std::vector<float> energytranslate(const std::vector<float> &audio);
 
 std::vector<float> energytranslate2(const std::vector<float> &audio);
 
+std::vector<float> energytranslate3(const std::vector<float> &audio);
+
 std::vector<float> hodgefilter(const std::vector<float> &audio);
 
 }

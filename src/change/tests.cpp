@@ -3,8 +3,8 @@
 #include "change/tests.h"
 #include "change/changer2.h"
 #include "change/changer3.h"
+#include "change/pitcher.h"
 #include "change/pitcher2.h"
-#include "change/pitcher3.h"
 #include "change/phaser.h"
 #include "change/phaser2.h"
 #include "change/phaser3.h"
@@ -23,18 +23,58 @@
 namespace change {
 
 std::vector<float> translate(const std::vector<float> &audio){
-    
-    change::Pitcher2 a(3.35, 32);
-    change::Phaser4 b(44100, 240.0f, 900.0f);
+   
+    /*
+    change::Phaser4 phaser(44100, 100.0f, 900.0f);
+    double step = 4.0, point = 0.0;
 
-    std::vector<float> filtered = energytranslate2(audio);
+    std::vector<float> result;
+    for(float i : audio){
+        point += step;
+        phaser.push(i);
+        while(point > 1.0){
+            result.push_back(phaser.pull());
+            point -= 1.0;
+        }
+    }
+
+    using std::vector;
+
+    auto tmp = result;
+    for(float &i : result) i = 0.0f;
+    int n = result.size();
+
+    const int N = 512;
+    const int H = N / 2 + 1;
+    constexpr int high = std::ceil(5000.0 / (44100.0 / N));
+
+        
+    vector<float> window(N);
+    for(int i=0; i<N; i++) window[i] = (1.0f - 1.0f * std::cos(2 * PIF * i / N)) / std::sqrt(6);
+
+    for(int i=0; i+N<=n; i+=N/4){
+        vector<float> bit(N);
+        for(int j=0; j<N; j++) bit[j] = tmp[i+j] * window[j];
+        auto freq = math::fft(bit);
+        for(int j=high; j<H; j++) freq[j] *= std::polar<float>(1.0f, 2 * PI * rnd());
+        for(int j=1; j<H; j++) freq[N-j] = std::conj(freq[j]);
+        bit = math::inverse_fft(freq);
+        for(int j=0; j<N; j++) result[i+j] += bit[j] * window[j];
+    }
+    */
+
+    change::Pitcher2 a(0.587, 32);
+    // change::Phaser4 b(44100, 180.0f, 700.0f);
+
     std::vector<float> result;
 
-    for(float i : filtered){
+    for(float i : audio){
         auto j = a.process(i);
-        for(float k : j) b.push(k);
-        result.push_back(b.pull());
+        for(float k : j) result.push_back(k); // b.push(k);
+        // result.push_back(b.pull());
     }
+    
+    // result = energytranslate3(result);
 
     /*
     const int N = 256;
@@ -443,6 +483,57 @@ std::vector<float> energytranslate2(const std::vector<float> &audio){
         return cabs(calcband(pf));
     }
     */
+}
+
+std::vector<float> energytranslate3(const std::vector<float> &audio){
+    
+    using std::vector;
+    using std::tuple;
+    using std::complex;
+
+    int n = audio.size();
+    const int N = 1<<11;
+    float M = 500.0f;
+    int m = std::ceil(M / (44100.0f / N));
+    const int H = N/2+1;
+    const float shift = 0.5f;
+
+    vector<float> window(N), fwindow(2*m), out(n, 0.0f);
+    for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * PIF * i / N)) / sqrt(6);
+    for(int i=0; i<2*m; i++) fwindow[i] = (1.0f - std::cos(PIF * i / m));
+
+    for(int i=0; i+N<=n; i+=N/4){
+        vector<float> bit(N);
+        for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+        auto freq = math::fft(bit);
+        vector<float> inorm(H), onorm(H, 0.0f);
+        for(int j=0; j<H; j++) inorm[j] = 2.0f * std::norm(freq[j]);
+        inorm[0] *= 0.5f;
+        for(int j=0; j<H; j++){
+            int kb = std::round(j * shift - m);
+            float fsum = 0.0f;
+            for(int k=0, kk=kb; k<2*m; k++, kk++){
+                if(kk >= 0 && kk < H) fsum += fwindow[k] * inorm[kk];
+            }
+            if(fsum != 0.0f) fsum = 1.0f / fsum;
+            for(int k=0, kk=kb; k<2*m; k++, kk++){
+                if(kk >= 0 && kk < H) onorm[kk] += fwindow[k] * inorm[kk] * fsum * inorm[j];
+            }
+        }
+        for(int j=0; j<H; j++){
+            float d = std::abs(freq[j]);
+            if(d != 0.0f){
+                freq[j] /= d;
+                freq[j] *= std::sqrt(onorm[j] * 0.5f);
+                if(j) freq[N-j] = std::conj(freq[j]);
+                else freq[j] *= sqrt(2.0f);
+            }
+        }
+        bit = math::inverse_fft(freq);
+        for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
+    }
+
+    return out;
 }
 
 std::vector<float> hodgefilter(const std::vector<float> &audio){

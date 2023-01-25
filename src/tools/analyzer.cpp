@@ -363,6 +363,12 @@ Analyzer::Analyzer(App *a) :
             "rand",
             {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
     
+    switchRand2(
+            a,
+            [&](){ switch_mode(rand2Mode); },
+            "rand2",
+            {.look = "basebutton", .width = 50, .border = {0, 1, 0, 1}}),
+    
     switchCand(
             a,
             [&](){ switch_mode(candMode); },
@@ -397,7 +403,8 @@ Analyzer::Analyzer(App *a) :
     buttons.put(0, 2, &switchPeak);
     buttons.put(0, 3, &switchCorrelation);
     buttons.put(0, 4, &switchRand);
-    buttons.put(0, 5, &switchCand);
+    buttons.put(0, 5, &switchRand2);
+    buttons.put(0, 6, &switchCand);
 
     buttons.put(0, 9, &sourceNameBox);
     sourceNameBox.text_stick(ui::Text::left);
@@ -420,6 +427,7 @@ Analyzer::Analyzer(App *a) :
     terminal.put_function("ppitch", [&](ui::Command c){ process_pitch(c); });
     terminal.put_function("translate", [&](ui::Command c){ translate_pitch(c); });
     terminal.put_function("inter", [&](ui::Command c){ set_interpolate(c); });
+    terminal.put_function("freq", [&](ui::Command c){ set_freq(c); });
     terminal.put_function("info", [&](ui::Command c){ info(c); });
     
     terminal.put_function("check", [&](ui::Command c){ check_ml_data(c); });
@@ -440,6 +448,7 @@ Analyzer::Analyzer(App *a) :
     terminal.document("ppitch", "[audio] [output] get pitch envelopoe of audio");
     terminal.document("traslate", "[audio] [output] [factor] translate the pitch of audio");
     terminal.document("inter", "interpolate edges when clipping");
+    terminal.document("freq", "[low] [high] set filter range");
     terminal.document("*hotkeys",
             "use W and S to control interval length shown on graph\n"
             "A and D control interval position. shift and ctrl are speed modifiers\n"
@@ -536,8 +545,11 @@ void Analyzer::update_data(){
     } else if(dataMode == frequencyMode){
         
         auto audio = link.get_loop(length, position);
-        if(rand()&1) audio = change::energytranslate(audio);
-        for(int i=0; i<length; i++) audio[i] *= (1.0f - std::cos(2*PI*i/length)) * 0.5f;
+        // if(rand()&1) audio = change::random_experiment(audio);
+        for(int i=0; i<length; i++){
+            float d = (1.0f - std::cos(2*PI*i/length)) * 0.5f;
+            audio[i] *= d;
+        }
         auto data = math::fft(audio);
 
         data.resize(data.size()/2 + 1);
@@ -548,7 +560,7 @@ void Analyzer::update_data(){
         
     } else if(dataMode == peakMode){
 
-        graph.set_data(change::phase_graph(link.get_loop(link.size(), position), link.size()));
+        graph.set_data(change::peak_match_graph(link.get_loop(length, position), peakVars));
         
         // graph.set_data(change::phase_graph(link.get_loop(length, position), link.size()));
         graph.set_offset_x(0);
@@ -570,6 +582,12 @@ void Analyzer::update_data(){
     } else if(dataMode == randMode){
 
         graph.set_data(change::random_experiment(link.get_loop(length, position)));
+        graph.set_offset_x(0);
+        graph.set_scalar_x(1);
+    
+    } else if(dataMode == rand2Mode){
+
+        graph.set_data(change::random_experiment2(link.get_loop(length, position), freqLow, freqHigh));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
     
@@ -756,6 +774,8 @@ void Analyzer::info(ui::Command c){
     message += "dataset name: " + dataset + "\n";
     message += "clip begin: " + std::to_string(clipBegin) + "\n";
     message += "clip end: " + std::to_string(clipEnd) + "\n";
+    message += "filter range: " + std::to_string(freqLow) + "  "
+                                + std::to_string(freqHigh) + " Hz\n";
     message += "reverb: ";
     for(auto [delay, mag] : feedback)
         message += "("+std::to_string(delay)+","+std::to_string(mag)+"), ";
@@ -953,6 +973,24 @@ void Analyzer::translate_pitch(ui::Command c){
 void Analyzer::set_interpolate(ui::Command c){
     interpolate ^= 1;
     update_data();
+}
+
+void Analyzer::set_freq(ui::Command c){
+    try {
+        auto lo = c.pop(), hi = c.pop();
+        if(lo.empty() || hi.empty()){
+            c.source.push_error("give low and high frequency in Hz");
+            return;
+        }
+        float low = std::stof(lo);
+        float high = std::stof(hi);
+        freqLow = low;
+        freqHigh = high;
+        update_data();
+    }
+    catch (const std::invalid_argument &e){
+        c.source.push_error("sto_ parse error");
+    }
 }
 
 }

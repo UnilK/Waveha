@@ -15,7 +15,7 @@ struct PeakMatchVars {
 
 extern PeakMatchVars defaultPeakVars;
 
-std::vector<float> peak_match_graph(
+std::vector<std::complex<float> > peak_match_graph(
         const std::vector<float> &audio,
         PeakMatchVars = defaultPeakVars);
 
@@ -24,6 +24,7 @@ std::vector<float> phase_graph(
         unsigned period);
 
 std::vector<float> random_experiment(const std::vector<float> &audio);
+std::vector<float> random_experiment2(const std::vector<float> &audio, float low, float high);
 
 std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio);
 

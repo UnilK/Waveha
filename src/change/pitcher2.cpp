@@ -78,12 +78,12 @@ std::vector<float> Pitcher2::process(float sample){
                 
                 while(j+1 < p) j++;
                 
-                const std::complex<float> rot = std::polar(1.0f, 2 * PIF * (float)(p-j) / size);
+                const std::complex<float> rot = std::polar(1.0f, 2 * PIF * (float)p / size);
                 std::complex<float> ang = rot;
                 
                 float sum = f[0].real() / 2;
                 for(int i=1; i+1<freqs; i++){
-                    sum += (f[i] * std::conj(w[i][j]) * ang).real();
+                    sum += (f[i] * ang).real();
                     ang *= rot;
                 }
                 if(freqs > 1) sum += f[freqs-1].real() / 2;

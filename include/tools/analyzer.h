@@ -23,6 +23,7 @@ enum Mode {
     peakMode,
     correlationMode,
     randMode,
+    rand2Mode,
     candMode,
     last
 };
@@ -102,6 +103,7 @@ private:
     void process_pitch(ui::Command);
     void translate_pitch(ui::Command);
     void set_interpolate(ui::Command);
+    void set_freq(ui::Command);
     void info(ui::Command);
 
     AudioLink link;
@@ -126,13 +128,14 @@ private:
     ui::Frame buttons;
     ui::Text sourceNameBox;
     ui::Button switchRegular, switchFrequency, switchPeak, switchCorrelation;
-    ui::Button switchRand, switchCand;
+    ui::Button switchRand, switchRand2, switchCand;
 
     bool playing = 0;
     bool interpolate = 0;
 
     change::PeakMatchVars peakVars;
     change::CorrelationVars corrVars;
+    float freqLow = 0.0f, freqHigh = 44100.0f / 2;
 
     std::map<int, float> feedback;
 

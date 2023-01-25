@@ -11,7 +11,7 @@ std::vector<float> resample(
 
 struct SINCPrecalc {
     SINCPrecalc();
-    static const unsigned ZERO = 128;
+    static const unsigned ZERO = 32;
     static const unsigned N = 1<<10;
     static constexpr unsigned ZN = ZERO*N;
     std::vector<float > fsinc;
