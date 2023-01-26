@@ -204,19 +204,24 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     int wlen = std::ceil(200.0 / (44100.0 / n));
 
     vector<float> norm(m), windowed(n), window(m);
-    for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
-    
+    // for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
+    for(int i=0; i<n; i++) windowed[i] = audio[i] * std::sin(PIF * i / n);
+   
     for(int i=0; i<m; i++){
         if(i>low+wlen) window[i] = 0.0f;
         else if(i<low-wlen) window[i] = 1.0f;
-        else window[i] = 0.5f - 0.5f * std::sin(PIF*(i-low)/(2*wlen+1));
+        else window[i] = (float)(low-i+wlen)/(2*wlen+1);
     }
 
     auto freq = math::fft(windowed);
-    for(int i=0; i<m; i++) freq[i] = std::pow(std::norm(freq[i]), 1.0f/3.0f) * window[i];
+    for(int i=0; i<m; i++) freq[i] = std::abs(freq[i]) * window[i];
     freq.resize(m);
     norm = math::inverse_fft(freq);
     norm.resize(m/2);
+
+    float ma = 0.0f;
+    for(int i=32; i<m/2; i++) ma = std::max(ma, norm[i]);
+    std::cerr << ma/norm[0] << '\n';
 
     return norm;
 

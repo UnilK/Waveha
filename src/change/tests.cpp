@@ -106,17 +106,78 @@ std::vector<float> translate(const std::vector<float> &audio){
 
 std::vector<float> pitchenvelope(const std::vector<float> &audio){
 
-    change::Detector2 detector(44100, 90.0f, 500.0f);
+    using std::vector;
+    using std::complex;
+    using std::tuple;
+
+    int N = audio.size();
+    const int n = 1<<11, m = 1<<10, k = 1<<9;
+    float reso = 44100.0 / n;
+    int min = std::floor(900.0f/reso/2);
+
+    vector<float> enve, window(n), fwindow(m), norm(m), windowed(n);
     
-    std::vector<float> pitch;
-    
-    int N = 128, j = 0;
-    for(float i : audio){
-        detector.push(i);
-        if(j++%N == 0) pitch.push_back(detector.get_pitch());
+    for(int i=0; i<n; i++) window[i] = std::sin(PIF * i / n);
+   
+    {
+        int wlow = std::ceil(2000.0 / (44100.0 / n));
+        int wlen = std::ceil(200.0 / (44100.0 / n));
+        for(int i=0; i<m; i++){
+            if(i>wlow+wlen) fwindow[i] = 0.0f;
+            else if(i<wlow-wlen) fwindow[i] = 1.0f;
+            else fwindow[i] = (float)(wlow-i+wlen)/(2*wlen+1);
+        }
     }
 
-    return pitch;
+    auto para1 = [](float i, float l, float m, float r) -> tuple<float, float> {
+        const float a = 0.5f * (r+l) - m;
+        const float b = (r-l) * 0.5f;
+        const float d = - b / (2 * a);
+        return {m + b*d + a*d*d, i+d};
+    };
+    
+    auto para2 = [](float i, float l, float m, float r) -> float {
+        const float a = 0.5f * (r+l) - m;
+        const float b = (r-l) * 0.5f;
+        return m + b*i + a*i*i;
+    };
+
+    for(int x=0; x+n<=N; x+=n/16){
+
+        for(int i=0; i<n; i++) windowed[i] = audio[x+i] * window[i];
+        auto freq = math::fft(windowed);
+        for(int i=0; i<m; i++) freq[i] = std::abs(freq[i]) * fwindow[i];
+        freq.resize(m);
+        norm = math::inverse_fft(freq);
+    
+        vector<tuple<float, float> > peaks(8, {0.0f, 22050.0f});
+        auto add = [&](tuple<float, float> peak) -> void {
+            for(auto &i : peaks) if(i < peak) swap(i, peak);
+        };
+
+        for(int i=min; i<k; i++){
+            if(norm[i] > norm[i-1] && norm[i] > norm[i+1]){
+                add(para1(i, norm[i-1], norm[i], norm[i+1]));
+            }
+        }
+
+        for(auto &[a, f] : peaks){
+            float aa = a;
+            for(int i=2; i*f < k/2; i++){
+                int j = std::round(i*f);
+                a = std::min(a, i*para2(i*f-j, norm[j-1], norm[j], norm[j+1]));
+            }
+            a = std::max(aa * 0.75f, a);
+        }
+
+        tuple<float, float> best = {0.0f, 0.0f};
+        for(auto i : peaks) if(i > best) best = i;
+
+        auto [amp, pitch] = best;
+        enve.push_back(44100.0 / (2 * pitch));
+    }
+
+    return enve;
 }
 
 std::vector<float> frequencywindow(){
