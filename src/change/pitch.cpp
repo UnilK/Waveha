@@ -200,28 +200,30 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
 
     int n = audio.size();
     int m = n / 2;
-    int low = std::ceil(2000.0 / (44100.0 / n));
-    int wlen = std::ceil(200.0 / (44100.0 / n));
 
     vector<float> norm(m), windowed(n), window(m);
-    // for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
-    for(int i=0; i<n; i++) windowed[i] = audio[i] * std::sin(PIF * i / n);
-   
+    for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
+    // for(int i=0; i<n; i++) windowed[i] = audio[i] * std::sin(PIF * i / n);
+  
+    int low = std::ceil(1500.0 / (44100.0 / n));
+    int wlen = std::ceil(100.0 / (44100.0 / n));
     for(int i=0; i<m; i++){
         if(i>low+wlen) window[i] = 0.0f;
         else if(i<low-wlen) window[i] = 1.0f;
         else window[i] = (float)(low-i+wlen)/(2*wlen+1);
     }
 
+
     auto freq = math::fft(windowed);
-    for(int i=0; i<m; i++) freq[i] = std::abs(freq[i]) * window[i];
+    for(int i=0; i<m; i++) freq[i] = std::abs(freq[i])  * window[i];
     freq.resize(m);
+    
+    float ma = 1e-9;
+    for(auto i : freq) ma = std::max(ma, i.real());
+    for(auto &i : freq) i = std::sin(0.5f * PIF * i.real() / ma) * ma;
+
     norm = math::inverse_fft(freq);
     norm.resize(m/2);
-
-    float ma = 0.0f;
-    for(int i=32; i<m/2; i++) ma = std::max(ma, norm[i]);
-    std::cerr << ma/norm[0] << '\n';
 
     return norm;
 
@@ -332,155 +334,6 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
 
 std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){
 
-    /*
-    auto filter = [](std::vector<float> &plot) -> void {
-        for(float &i : plot) i *= i;
-        plot = math::ift(math::ft(plot, 20), plot.size());
-    };
-    */
-
-    /*
-    unsigned n = audio.size();
-    std::vector<float> corr(audio.size(), 0.0f);
-
-    for(unsigned i=1; 2*i<=audio.size(); i++){
-        for(unsigned j=0; j<i; j++){
-            float d = audio[j] - audio[i+j];
-            corr[i] += d*d;
-        }
-        corr[i] /= i;
-    }
-    
-    float sum = 0.0f;
-    for(float i : audio) sum += i*i;
-    sum /= n;
-
-    if(sum != 0.0f) for(float &i : corr) i /= sum;
-    */
-   
-    /*
-    unsigned n = 1470 / 2;
-    std::vector<float> left(n), right(n);
-    for(unsigned i=0; i<std::min((unsigned)audio.size(), n); i++){
-        left[i] = audio[i];
-        right[i] = audio[n+i];
-    }
-
-    // filter(left);
-    // filter(right);
-
-    auto corr = math::correlation(left, right);
-
-    float sum = 0.0f;
-    for(float i : left) sum += i*i;
-    for(float i : right) sum += i*i;
-
-    for(unsigned i=0; i<n; i++){
-        corr[i] = (sum - 2 * corr[i]) / (n-i);
-        sum -= left[i]*left[i] + right[n-i-1]*right[n-i-1];
-    }
-
-    corr.resize(n+1);
-    reverse(corr.begin(), corr.end());
-
-    sum = 0.0f;
-    for(unsigned i=1; i<=n; i++){
-        corr[i] = abs(corr[i]);
-        sum += corr[i];
-        if(sum/i != 0.0f) corr[i] /= (sum/i);
-    }
-
-    return corr;
-    */
-  
-    /*
-    unsigned n = 1470;
-    std::vector<float> plot(n, 0.0f);
-    for(int i=(int)audio.size()-1, j=n-1; i>=0 && j>=0; i--, j--) plot[j] = audio[i];
-
-    auto [corr, tmp] = math::autocorrelation(plot);
-
-    float sum = 0.0f;
-    for(float i : plot) sum += i*i;
-    sum *= 2;
-
-    corr[0] = 0.0f;
-    for(unsigned i=1; i<n; i++){
-        sum -= plot[i-1]*plot[i-1] + plot[n-i]*plot[n-i];
-        corr[i] = (sum - 2 * corr[i]) / (n - i);
-    }
-
-    sum = 0.0f;
-    for(unsigned i=1; i<n; i++){
-        sum += corr[i];
-        if(sum != 0.0f) corr[i] /= (sum/i);
-    }
-    */
-
-    /*
-    if(vars.sign) for(float &i : copy) i = sign(i) * std::pow(std::abs(i), vars.exponent);
-    else for(float &i : copy) i = std::pow(std::abs(i), vars.exponent);
-
-    auto reverseCopy = copy;
-    std::reverse(reverseCopy.begin(), reverseCopy.end());
-
-    auto plot = math::convolution(copy, reverseCopy);
-    */
-
-    /*
-    static std::vector<float> previous;
-
-    n /= 2;
-
-    previous.resize(n, 0.0f);
-    auto cumu = corr;
-    cumu.resize(n);
-
-    for(unsigned i=0; i<n; i++) cumu[i] += previous[i] * 0.9;
-    
-    float avg = 0.0f, min = 1e9;
-    for(unsigned i=60; i<n; i++){
-        avg += std::abs(cumu[i]);
-        min = std::min(min, std::abs(cumu[i]));
-    }
-
-    avg /= n;
-    if(avg != 0.0f) min /= avg;
-
-    for(unsigned i=0; i<n; i++) previous[i] = previous[i] * 0.7f + (1.0f - min) * corr[i];
-    */
-
-    /*
-    std::vector<float> food(128, 0.0f);
-    for(int i=0; i<std::min(128, (int)audio.size()); i++) food[i] = audio[i];
-    _detector.feed(food);
-
-    auto mse = _detector.get_mse();
-    
-    return mse;
-    */
-
-    /*
-    int low = 128;
-    auto f = math::fft(audio);
-    for(auto &i : f) i = std::abs(i);
-    for(unsigned i=f.size()/2; i<f.size(); i++) f[i] = 0.0f;
-    math::in_place_fft(f);
-    for(int i=-low; i<=low; i++) f[std::abs((int)f.size()+i)%f.size()] *= 2*(float)(low - std::abs(i)) / low;
-    for(unsigned i=low+1; i+low<f.size(); i++) f[i] = 0.0f;
-    math::in_place_fft(f, 1);
-    std::vector<float> a(f.size());
-    for(unsigned i=0; i<f.size(); i++) a[i] = f[i].real();
-    a.resize(a.size()/2);
-    */
-
-    /*
-    for(float i : audio) _detector.push(i);
-    std::cerr << _detector.pitch() << '\n';
-
-    return _detector.debug();
-    */
-    
     for(float i : audio){
         _phaser.push(i);
         _phaser.pull();
