@@ -110,7 +110,6 @@ std::vector<float> pitchenvelope(const std::vector<float> &audio){
     using std::complex;
     using std::tuple;
 
-    /*
     int N = audio.size();
     const int n = 1<<11, m = 1<<10, k = 1<<9;
     float reso = 44100.0 / n;
@@ -179,53 +178,6 @@ std::vector<float> pitchenvelope(const std::vector<float> &audio){
     }
 
     return enve;
-    */
-
-    int srate = 44100;
-    int n = 60 * srate;
-
-    double width = 6000.0;
-
-    double fslide = std::pow(2.0, 0.05 / srate);
-    double dpoint = 10.0;
-    double fpoint = 200.0;
-    double phase = 0.0;
-    double brown = 0.0;
-    double scale = 2;
-    double freq = dpoint / scale;
-
-    auto color = [&](double f) -> double {
-        if(freq > width) return 0.0;
-        return std::sqrt(f / width) * std::exp(-8.0*f/width);
-        // return (0.5 - 0.5 * std::cos(2 * PI * f / width)) * std::exp(-8.0*f/width);
-    };
-    
-    auto phas = [&](double f) -> double {
-        if(freq > width) return 0.0;
-        return (0.5 - 0.5 * std::cos(2 * PI * f / width));
-    };
-
-    vector<float> effect(n, 0.0f);
-    for(int x=0; x<n; x++){
-
-        for(double i=1; i*freq <= width; i*=scale){
-            effect[x] += color(freq * i) * std::cos(phase * i + (i * freq) / fpoint * phas(freq * i));
-        }
-
-        effect[x] += brown;
-        brown += ((0.5 - rnd()) - brown) * 0.01;
-
-        if(freq > dpoint){
-            freq /= scale;
-            phase /= scale;
-        }
-
-        freq *= fslide;
-        phase += (2 * PI * freq / srate);
-        if(phase > PI) phase -= 2 * PI;
-    }
-
-    return effect;
 }
 
 std::vector<float> frequencywindow(){

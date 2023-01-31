@@ -201,30 +201,71 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     int n = audio.size();
     int m = n / 2;
 
-    vector<float> norm(m), windowed(n), window(m);
-    for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
-    // for(int i=0; i<n; i++) windowed[i] = audio[i] * std::sin(PIF * i / n);
-  
-    int low = std::ceil(1500.0 / (44100.0 / n));
-    int wlen = std::ceil(100.0 / (44100.0 / n));
-    for(int i=0; i<m; i++){
-        if(i>low+wlen) window[i] = 0.0f;
-        else if(i<low-wlen) window[i] = 1.0f;
-        else window[i] = (float)(low-i+wlen)/(2*wlen+1);
+    auto para = [](float i, float l, float m, float r) -> tuple<float, float> {
+        const float a = 0.5f * (r+l) - m;
+        const float b = (r-l) * 0.5f;
+        const float d = - b / (2 * a);
+        return {m + b*d + a*d*d, i+d};
+    };
+
+    /*
+    auto sinc = [](float x) -> float {
+        if(std::abs(x) < 1e-9) return 1.0f;
+        return std::sin(x*PIF) / (x*PIF);
+    };
+
+    auto func = [&](float x) -> float {
+        return 0.5f * sinc(x) - 0.25f * (sinc(x-1) + sinc(x+1));
+    };
+    */
+
+    vector<float> waudio = audio;
+    for(int i=0; i<n; i++) waudio[i] *= 0.5f - 0.5f * std::cos(2 * PIF * i / n);
+
+    auto freq = math::fft(waudio);
+    vector<float> norm(n);
+    for(int i=0; i<n; i++) norm[i] = std::abs(freq[i]);
+
+    vector<tuple<float, float> > peaks;
+    for(int i=2; i+2<m; i++){
+        if(norm[i] > norm[i-1] && norm[i] > norm[i+1]/* &&
+           norm[i] > norm[i-2] && norm[i] > norm[i+2]*/){
+            peaks.push_back(para(i, norm[i-1], norm[i], norm[i+1]));
+        }
     }
 
+    double speed = 0.002 * 2 * PI;
+    static double shift = 0.0;
 
-    auto freq = math::fft(windowed);
-    for(int i=0; i<m; i++) freq[i] = std::abs(freq[i])  * window[i];
-    freq.resize(m);
-    
-    float ma = 1e-9;
-    for(auto i : freq) ma = std::max(ma, i.real());
-    for(auto &i : freq) i = std::sin(0.5f * PIF * i.real() / ma) * ma;
+    for(int x=0; x<(int)peaks.size(); x++){
+        auto [a, f] = peaks[x];
+        auto w = std::polar<float>(1.0f, shift * f);
+        int l, r;
+        if(x == 0){
+            l = 0;
+            if(peaks.size() == 1) r = m-1;
+            else {
+                auto [aa, ff] = peaks[x+1];
+                r = std::ceil((ff+f)/2);
+            }
+        } else if(x == (int)peaks.size()){
+            r = m-1;
+            auto [aa, ff] = peaks[x-1];
+            l = std::floor((f+ff)/2);
+        } else {
+            auto [al, fl] = peaks[x-1];
+            auto [ar, fr] = peaks[x+1];
+            l = std::floor((f+fl)/2);
+            r = std::ceil((fr+f)/2);
+        }
+        for(int i=l; i<=r; i++) freq[i] *= w;
+    }
 
+    shift += speed;
+    if(shift > 2*PI) shift -= 4 * PI;
+
+    for(int i=1; i<m; i++) freq[n-i] = std::conj(freq[i]);
     norm = math::inverse_fft(freq);
-    norm.resize(m/2);
-
     return norm;
 
     // return frequencywindow();
@@ -334,12 +375,38 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
 
 std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){
 
-    for(float i : audio){
-        _phaser.push(i);
-        _phaser.pull();
+    using std::vector;
+    using std::complex;
+    using std::tuple;
+
+    int n = audio.size();
+    int m = n / 2;
+
+    vector<float> norm(m), windowed(n), window(m);
+    for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
+    // for(int i=0; i<n; i++) windowed[i] = audio[i] * std::sin(PIF * i / n);
+  
+    int low = std::ceil(1500.0 / (44100.0 / n));
+    int wlen = std::ceil(100.0 / (44100.0 / n));
+    for(int i=0; i<m; i++){
+        if(i>low+wlen) window[i] = 0.0f;
+        else if(i<low-wlen) window[i] = 1.0f;
+        else window[i] = (float)(low-i+wlen)/(2*wlen+1);
     }
 
-    return _phaser.debug();
+
+    auto freq = math::fft(windowed);
+    for(int i=0; i<m; i++) freq[i] = std::abs(freq[i])  * window[i];
+    freq.resize(m);
+    
+    float ma = 1e-9;
+    for(auto i : freq) ma = std::max(ma, i.real());
+    for(auto &i : freq) i = std::sin(0.5f * PIF * i.real() / ma) * ma;
+
+    norm = math::inverse_fft(freq);
+    norm.resize(m/2);
+
+    return norm;
 }
 
 unsigned pitch(const std::vector<float> &audio, CorrelationVars vars){

@@ -222,8 +222,10 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
         else if(event.key.code == sf::Keyboard::P){
             analyzer.switch_play({analyzer.terminal, {}});
             return Capture::capture;
+        } else if(event.key.code == sf::Keyboard::Tab){
+            analyzer.update_data();
+            return Capture::capture;
         }
-
     }
 
     return Capture::pass;
@@ -458,7 +460,8 @@ Analyzer::Analyzer(App *a) :
             "C to switch clipping. U to move begin to mouse position, O to move end\n"
             "I J K L correspond to W A S D but for the clip\n"
             "V to switch dataset collection. F to collect a dataset sample (clip)\n"
-            "P to switch audio playback");
+            "P to switch audio playback\n"
+            "<Tab> to update the data");
     terminal.document("info", "list the configuration");
     
 }
@@ -567,15 +570,7 @@ void Analyzer::update_data(){
         graph.set_scalar_x(1);
 
     } else if(dataMode == correlationMode){
-        
-        int speed = 16;
-
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))
-            speed /= 16;
-        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
-            speed *= 16;
-        
-        graph.set_data(change::correlation_graph(link.get_loop(speed, position+length-speed), corrVars));
+        graph.set_data(change::correlation_graph(link.get_loop(length, position), corrVars));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
 
