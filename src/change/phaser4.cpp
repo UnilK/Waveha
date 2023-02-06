@@ -15,20 +15,16 @@ Phaser4::Phaser4(int rate, float low, float high){
     min = std::floor(rate/high);
     max = std::ceil(rate/low);
 
-    size = 1;
-    while(size < max) size *= 2;
+    size = max;
 
-    right = 4 * size - min;
-    left = 4 * size - max;
+    right = 3 * size - min;
+    left = 3 * size - max;
     old = 1;
 
     decay = std::pow(1e-5, 1.0 / max);
     wl = wr = wo = 0.0f;
 
     buffer.resize(4 * size + 32, 0.0f);
-    inv.resize(max+1, 0.0f);
-
-    for(int i=1; i<=max; i++) inv[i] = 1.0f / i;
 }
 
 void Phaser4::push(float sample){ buffer.push_back(sample); }
@@ -43,18 +39,17 @@ float Phaser4::pull(){
         right -= move;
     }
 
-    if(right == (int)buffer.size()){
+    while(right + size >= (int)buffer.size()){
         old = 2;
         right = left;
-        left -= period();
+        left -= period(left);
         std::swap(wl, wr);
-        wl = 0.0f;
-    } else if((int)buffer.size()-right > size + 32){
+    }
+    while((int)buffer.size()-right > 2 * size + 32){
         old = 1;
         left = right;
-        right += period();
+        right += period(right);
         std::swap(wl, wr);
-        wr = 0.0f;
     }
 
     if(old == 1){
@@ -71,20 +66,20 @@ float Phaser4::pull(){
     return (buffer[left++] * vl + buffer[right++] * vr) / (vl + vr + 1e-9);
 }
 
-int Phaser4::period(){
+int Phaser4::period(int mid){
 
     std::vector<float> a(max), b(max);
-    for(int i=0, z=buffer.size(); i<max; i++){
-        a[i] = buffer[z+i-2*max];
-        b[i] = buffer[z+i-max];
+    for(int i=0; i<max; i++){
+        a[i] = buffer[mid+i-max];
+        b[i] = buffer[mid+i];
     }
 
-    auto c = math::nmse(a, b);
+    auto c = math::emse(a, b);
 
-    int best = -1; float top = 1e9;
-    for(int i=min+1, j=max-min-1; i+1<=max; i++, j--){
-        if(c[j] < top && c[j] < c[j-1] && c[j] < c[j+1]){ best = i; top = c[j]; }
-    } if(best == -1) best = max;
+    int best = min; float top = 1e9;
+    for(int i=min+1; i+1<=max; i++){
+        if(c[i] < top && c[i] < c[i-1] && c[i] < c[i+1]){ best = i; top = c[i]; }
+    }
 
     return best;
 }

@@ -1,6 +1,6 @@
 #include "change/phaser2.h"
-#include "math/constants.h"
 #include "math/fft.h"
+#include "change/util.h"
 
 #include <cmath>
 #include <complex>
@@ -9,133 +9,129 @@
 
 namespace change {
 
-Phaser2::Phaser2(int rate_, float low, float high){
+Phaser2::Phaser2(int rate, float low, float high, float vpop, float srek){
     
-    rate = rate_;
-
     if(low > high) std::swap(low, high);
-    
+
+    pop = std::max<int>(8, std::ceil(rate / (2 * vpop)));
     min = std::floor(rate/high);
     max = std::ceil(rate/low);
-    
-    wsize = (int)(rate / (3 * low)) / 8 * 8;
-    if(wsize < 8) wsize = 8;
 
-    fsize = (int)(rate / 1000) / 4 * 4;
-    if(fsize < 4) fsize = 4;
-    
-    msize = std::max(wsize, fsize);
-    
-    size = 1;
-    while(size < std::max(max, msize)) size *= 2;
+    min = std::min(pop, min);
+    max = std::max(2 * pop, max);
 
-    out = wstate = fstate = 0;
-    in = 4 * size - 2 * msize;
-    pass = 2 * size;
+    size = 4 * max + 2 * pop;
+    buffer.resize(size, 0.0f);
+   
+    mid = max + pop;
+    left = mid - min;
+    right = left + pop;
+    old = 1;
 
-    ibuff.resize(4 * size, 0.0f);
-    obuff.resize(8 * size, 0.0f);
-    lowpass.resize(8 * size, 0.0f);
-    window.resize(wsize);
-    filter.resize(fsize);
-    inv.resize(max+1);
+    scale = pop;
+    similarity = 0.0f;
 
-    for(int i=0; i<wsize; i++) window[i] = (1.0 - std::cos(2 * PI * i / wsize)) / 8;
-    for(int i=0; i<fsize; i++) filter[i] = (1.0 - std::cos(2 * PI * i / fsize)) / std::sqrt(6);
-    for(int i=1; i<=max; i++) inv[i] = 1.0 / std::sqrt(i);
+    calc_state = 0;
+    calc_rate = std::ceil(rate / srek);
+
+    decay = 0.5f;
+    wl = wr = 0.0f;
 }
 
-void Phaser2::push(float sample){ ibuff.push_back(sample); }
+void Phaser2::push(float sample){
+    
+    if(mid + max + pop > size){
+        int move = mid - max - pop;
+        for(int i=0; i+move<size; i++) buffer[i] = buffer[i+move];
+        mid -= move;
+        left -= move;
+        right -= move;
+    }
+
+    buffer[mid+max+pop-1] = sample;
+
+    if(calc_state == 0) calc_scale();
+    calc_state = (calc_state + 1) % calc_rate;
+
+    mid++;
+}
 
 float Phaser2::pull(){
 
-    if(in > 8 * size && in > (int)ibuff.size() / 2){
-        int move = in - 2 * size;
-        for(int i=0; i+move<(int)ibuff.size(); i++) ibuff[i] = ibuff[i+move];
-        in -= move;
-        ibuff.resize(ibuff.size()-move);
+    if(mid-left >= max+pop || right-mid >= max+pop){
+        left = mid - min;
+        right = left + pop;
+        wl = wr = 0.0f;
     }
 
-    if(out + wsize > (int)obuff.size()){
-        for(int i=0; i<(int)obuff.size(); i++){
-            if(i+out<(int)obuff.size()) obuff[i] = obuff[i+out];
-            else obuff[i] = 0.0f;
-        }
-        out = 0;
+    if(left > mid){
+        old = 1;
+        right = left;
+        left = match(left, left-scale);
+        decay = std::pow(0.01f, 1.0f / scale);
+        std::swap(wl, wr);
     }
+
+    if(right < mid){
+        old = 2;
+        left = right;
+        right = match(right, right+scale);
+        decay = std::pow(0.01f, 1.0f / scale);
+        std::swap(wl, wr);
+    }
+
+    if(old == 1){
+        wl = wl * decay + 1.0f - decay;
+        wr = wr * decay;
+    } else {
+        wr = wr * decay + 1.0f - decay;
+        wl = wl * decay;
+    }
+
+    return buffer[left++] * wl + buffer[right++] * wr;
+}
+
+int Phaser2::get_scale(){ return scale; }
+
+float Phaser2::get_similarity(){ return similarity; }
+
+int Phaser2::get_delay(){ return max + pop; }
+
+void Phaser2::calc_scale(){
+
+    std::vector<float> l(max+2*pop), r(max+2*pop);
+    for(int i=0; i<max+2*pop; i++){
+        l[i] = buffer[mid+i-max-pop] + rnd() * 1e-2f;
+        r[i] = buffer[mid+i-pop] + rnd() * 1e-2f;
+    }
+
+    auto mse = math::emse(l, r);
+    for(int i=0; i<=max; i++) mse[i] = mse[i+2*pop];
+    mse.resize(max+1);
+    for(float &i : mse) i = 1.0f - i;
     
-    if(pass + fsize > (int)lowpass.size()){
-        int move = pass - 2 * size;
-        for(int i=0; i<(int)obuff.size(); i++){
-            if(i+move<(int)lowpass.size()) lowpass[i] = lowpass[i+move];
-            else lowpass[i] = 0.0f;
+    scale = pop;
+    for(int i=min+1; i+1<=max; i++){
+        if(mse[i] > mse[scale] && mse[i] > mse[i-1] && mse[i] > mse[i+1]){
+            scale = i;
         }
-        pass -= move;
     }
 
-    if(in + msize > (int)ibuff.size()) in -= period();
-    else if(in <= (int)ibuff.size() - max - 2 * msize) in += period();
-
-    if(wstate == 0){
-        for(int i=0; i<wsize; i++) obuff[out+i] += ibuff[in+i] * window[i];
-    }
-
-    if(fstate == 0){
-        float sum = 0.0f;
-        for(int i=0; i<fsize; i++) sum += ibuff[in+i] * filter[i];
-        sum /= fsize;
-        for(int i=0; i<fsize; i++) lowpass[pass+i] += sum * filter[i];
-    }
-
-    wstate = (wstate + 1) % (wsize / 8);
-    fstate = (fstate + 1) % (fsize / 4);
-
-    in++;
-    pass++;
-    return obuff[out++];
+    similarity = mse[scale];
 }
 
-int Phaser2::period(){
+int Phaser2::match(int x, int y){
 
-    std::vector<float> a(max), b(max);
-    for(int i=0; i<max; i++){
-        a[i] = lowpass[pass+i-2*max];
-        b[i] = lowpass[pass+i-max];
+    for(int d=0, s=1; std::abs(d)<scale/2; d = -(d+s), s *= -1){
+        if(std::abs((x+d)-mid) < max){
+            const float e0 = buffer[y+d-1]-buffer[x-1];
+            const float e1 = buffer[y+d]-buffer[x];
+            const float e2 = buffer[y+d+1]-buffer[x+1];
+            if(e0*e0 + e1*e1 + e2*e2 < 1e-2f) return y+d;
+        }
     }
 
-    auto c = math::correlation(a, b);
-
-    int best = min;
-    for(int i=min; i<=max; i++) c[max-i] *= inv[i];
-    for(int i=min+1, j=max-min-1; i<max; i++, j--){
-        if(c[j] > c[max-best] && c[j-1] < c[j] && c[j+1] < c[j]) best = i;
-    }
-
-    return best;
-}
-
-float Phaser2::pitch(){ return (float)rate / period(); }
-
-std::vector<float> Phaser2::debug(){
-
-    std::vector<float> a(max), b(max);
-    for(int i=0; i<max; i++){
-        a[i] = lowpass[pass+i-2*max];
-        b[i] = lowpass[pass+i-max];
-    }
-
-    auto c = math::correlation(a, b);
-
-    int best = max;
-    for(int i=min; i<=max; i++) c[max-i] *= inv[i];
-    for(int i=min+1, j=max-min-1; i<max; i++, j--){
-        if(c[j] > c[max-best] && c[j-1] < c[j] && c[j+1] < c[j]) best = i;
-    }
-    for(int i=0; i<(int)c.size(); i++){
-        if(max-i < min || max-i > max) c[i] = 0.0f;
-    }
-
-    return c;
+    return y;
 }
 
 }

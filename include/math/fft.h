@@ -46,6 +46,10 @@ std::vector<float> nmse(
         const std::vector<float> &a,
         const std::vector<float> &b);
 
+std::vector<float> emse(
+        const std::vector<float> &a,
+        const std::vector<float> &b);
+
 // implementation that utilizes fft's bandwidth of 2 vectors. The second vector is optional.
 std::array<std::vector<float>, 2> autocorrelation(std::vector<float> a, std::vector<float> b = {});
 

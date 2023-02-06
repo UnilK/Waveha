@@ -15,7 +15,7 @@ struct PeakMatchVars {
 
 extern PeakMatchVars defaultPeakVars;
 
-std::vector<std::complex<float> > peak_match_graph(
+std::vector<float> peak_match_graph(
         const std::vector<float> &audio,
         PeakMatchVars = defaultPeakVars);
 
@@ -37,18 +37,6 @@ extern CorrelationVars defaultCorrelationVars;
 
 std::vector<float> correlation_graph(
         const std::vector<float> &audio,
-        CorrelationVars = defaultCorrelationVars);
-
-unsigned pitch(const std::vector<float> &audio,
-        CorrelationVars = defaultCorrelationVars);
-
-unsigned pitch(const float *audio, unsigned size,
-        CorrelationVars = defaultCorrelationVars);
-
-unsigned hinted_pitch(const std::vector<float> &audio, unsigned hint,
-        CorrelationVars = defaultCorrelationVars);
-
-unsigned hinted_pitch(const float *audio, unsigned size, unsigned hint,
         CorrelationVars = defaultCorrelationVars);
 
 std::vector<float> ml_graph(ml::Stack *stack,

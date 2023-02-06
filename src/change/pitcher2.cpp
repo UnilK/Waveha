@@ -86,7 +86,7 @@ std::vector<float> Pitcher2::process(float sample){
                     sum += (f[i] * ang).real();
                     ang *= rot;
                 }
-                if(freqs > 1) sum += f[freqs-1].real() / 2;
+                if(freqs > 1) sum += (f[freqs-1] * rot).real() / 2;
                 
                 sum *= scalar * (1.0 - std::cos(2 * PI * p / size));
                 obuff[done+(k++)] += sum;

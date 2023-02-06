@@ -8,20 +8,25 @@ class Phaser2 {
 
 public:
 
-    Phaser2(int rate, float low, float high);
+    Phaser2(int rate, float low, float high,
+            float vpop = 200.0f, float srek = 200.0f);
 
     void push(float sample);
     float pull();
 
-    int period();
-    float pitch();
-
-    std::vector<float> debug();
+    int get_scale();
+    float get_similarity();
+    int get_delay();
 
 private:
 
-    int rate, min, max, size, in, out, pass, wsize, fsize, msize, wstate, fstate;
-    std::vector<float> ibuff, obuff, lowpass, window, filter, inv;
+    void calc_scale();
+    int match(int source, int destination);
+
+    float wl, wr, decay, similarity;
+    int size, min, max, left, mid, right, pop;
+    int old, scale, calc_state, calc_rate;
+    std::vector<float> buffer;
 
 };
 

@@ -15,11 +15,11 @@ public:
 
 private:
 
-    int period();
+    int period(int);
 
     float wl, wr, wo, decay;
     int min, max, size, left, right, old;
-    std::vector<float> buffer, inv;
+    std::vector<float> buffer;
 
 };
 

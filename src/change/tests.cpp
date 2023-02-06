@@ -1,16 +1,8 @@
-#pragma GCC target("avx2")
-#pragma GCC optimize("O3")
 #include "change/tests.h"
-#include "change/changer2.h"
-#include "change/changer3.h"
-#include "change/pitcher.h"
 #include "change/pitcher2.h"
 #include "change/phaser.h"
 #include "change/phaser2.h"
-#include "change/phaser3.h"
 #include "change/phaser4.h"
-#include "change/resample.h"
-#include "change/detector2.h"
 #include "math/fft.h"
 #include "math/constants.h"
 #include "change/util.h"
@@ -19,14 +11,15 @@
 #include <random>
 #include <iostream>
 #include <cassert>
+#include <tuple>
 
 namespace change {
 
 std::vector<float> translate(const std::vector<float> &audio){
    
     /*
-    change::Phaser4 phaser(44100, 100.0f, 900.0f);
-    double step = 4.0, point = 0.0;
+    change::Phaser4 phaser(44100, 80.0f, 1000.0f);
+    double step = 2.0, point = 0.0;
 
     std::vector<float> result;
     for(float i : audio){
@@ -37,7 +30,34 @@ std::vector<float> translate(const std::vector<float> &audio){
             point -= 1.0;
         }
     }
+    */
 
+    change::Phaser2 a(44100, 40.0f, 1000.0f);
+
+    std::vector<float> result;
+
+    for(float i : audio){
+        a.push(i);
+        result.push_back(a.pull());
+        result.push_back(a.pull());
+        result.push_back(a.pull());
+        result.push_back(a.pull());
+    }
+
+    /*
+    change::Pitcher2 a(1.9, 16);
+    change::Phaser4 b(44100, 40.0f, 1000.0f);
+
+    std::vector<float> result;
+
+    for(float i : audio){
+        auto j = a.process(i);
+        for(float k : j) b.push(k); // result.push_back(k);
+        result.push_back(b.pull());
+    }
+    */
+    
+    /*
     using std::vector;
 
     auto tmp = result;
@@ -62,17 +82,6 @@ std::vector<float> translate(const std::vector<float> &audio){
         for(int j=0; j<N; j++) result[i+j] += bit[j] * window[j];
     }
     */
-
-    change::Pitcher2 a(0.587, 32);
-    // change::Phaser4 b(44100, 180.0f, 700.0f);
-
-    std::vector<float> result;
-
-    for(float i : audio){
-        auto j = a.process(i);
-        for(float k : j) result.push_back(k); // b.push(k);
-        // result.push_back(b.pull());
-    }
     
     // result = energytranslate3(result);
 
@@ -182,6 +191,7 @@ std::vector<float> pitchenvelope(const std::vector<float> &audio){
 
 std::vector<float> frequencywindow(){
     
+    /*
     using std::vector;
     using std::tuple;
     using std::complex;
@@ -235,9 +245,6 @@ std::vector<float> frequencywindow(){
         auto &window = windows[f];
         auto [m, ff] = params[f];
 
-        float fff = F/m*2; 
-        std::cerr << m << ' ' << ff << ' ' << fff << ' ' << ff/fff << " -> ";
-
         for(int x=0; x<N; x++){
             for(float &i : audio) i = 2.0 * rnd() - 1.0;
             std::vector<float> result(n, 0.0f);
@@ -253,8 +260,6 @@ std::vector<float> frequencywindow(){
             for(int i=0; i<n; i++) enve[i] += std::abs(freq[i]);
         }
 
-        std::cerr << "done\n";
-
         for(float &i : enve) i /= N;
 
         sums[f] = enve;
@@ -263,10 +268,14 @@ std::vector<float> frequencywindow(){
     f = (f+1)%(windows.size()+1);
     
     return enve;
+    */
+
+    return {0.0f, 0.0f};
 }
 
 std::vector<float> energytranslate(const std::vector<float> &audio){
 
+    /*
     using std::vector;
     using std::tuple;
     using std::complex;
@@ -387,10 +396,14 @@ std::vector<float> energytranslate(const std::vector<float> &audio){
 
     ff = (ff+1)%(window.size());
     return output;
+    */
+
+    return audio;
 }
 
 std::vector<float> energytranslate2(const std::vector<float> &audio){
 
+    /*
     using std::vector;
     using std::tuple;
     using std::complex;
@@ -516,6 +529,8 @@ std::vector<float> energytranslate2(const std::vector<float> &audio){
 
     return out;
 
+    */
+
     /*
     static unsigned f = 0;
     int pf = f;
@@ -532,6 +547,8 @@ std::vector<float> energytranslate2(const std::vector<float> &audio){
         return cabs(calcband(pf));
     }
     */
+
+    return audio;
 }
 
 std::vector<float> energytranslate3(const std::vector<float> &audio){
@@ -582,11 +599,27 @@ std::vector<float> energytranslate3(const std::vector<float> &audio){
         for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
     }
 
+    /*
+    auto filtered = out;
+    for(float &i : out) i = 0.0f;
+    
+    for(int i=0; i+N<=n; i+=N/4){
+        vector<float> bit(N);
+        for(int j=0; j<N; j++) bit[j] = filtered[i+j] * window[j];
+        auto freq = math::fft(bit);
+        freq[0] = 0.0f;
+        for(int j=1; j<2*m; j++) freq[j] = freq[N-j] = 0.0f;
+        bit = math::inverse_fft(freq);
+        for(int j=0; j<N; j++) out[i+j] += window[j] * bit[j];
+    }
+    */
+
     return out;
 }
 
 std::vector<float> hodgefilter(const std::vector<float> &audio){
 
+    /*
     using std::vector;
     using std::tuple;
     using std::complex;
@@ -662,11 +695,9 @@ std::vector<float> hodgefilter(const std::vector<float> &audio){
         }
     }
 
-    /*
     for(auto [x, y, xx, yy] : shifted){
         std::cerr << x << ' ' << y << ' ' << xx << ' ' << yy << '\n';
     }
-    */
 
     for(int i=0; i<n; i++){
         
@@ -699,6 +730,9 @@ std::vector<float> hodgefilter(const std::vector<float> &audio){
 
     // if(rand()&1) return audio;
     return result;
+    */
+
+    return audio;
 }
 
 }

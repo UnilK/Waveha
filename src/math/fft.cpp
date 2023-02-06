@@ -206,10 +206,10 @@ vector<float> mse(const vector<float> &a, const vector<float> &b){
     for(float i : b) bsum += i*i;
 
     for(int i=0; i<n; i++){
-        c[i] = asum + bsum - 2.0f * c[i];
+        c[i] = std::max(0.0, asum + bsum - 2.0 * c[i]);
         asum -= a[i]*a[i];
         bsum -= b[n-i-1]*b[n-i-1];
-    }
+    } c[n] = 0.0f;
 
     return c;
 }
@@ -220,11 +220,35 @@ vector<float> nmse(const vector<float> &a, const vector<float> &b){
     int n = c.size();
     
     double sum = 1e-9;
+    for(float i : c) sum += i;
+    sum /= n;
+
     for(int i=n-1; i>=0; i--){
         sum += c[i];
         c[i] /= sum;
     };
    
+    return c;
+}
+
+vector<float> emse(const vector<float> &a, const vector<float> &b){
+
+    assert(a.size() == b.size());
+   
+    int n = a.size();
+    auto c = correlation(a, b, 2*n);
+    c.resize(n+1);
+
+    double a2 = 0, b2 = 0;
+    for(int i=n-1; i>=0; i--){
+        a2 += a[i]*a[i];
+        b2 += b[n-1-i]*b[n-1-i];
+        c[i] = std::max(1e-7, a2 + b2 - 2.0 * c[i]);
+        c[i] /= std::max(1e-7, a2 + b2);
+    } c[n] = 1.0f;
+    
+    reverse(c.begin(), c.end());
+
     return c;
 }
 
