@@ -212,8 +212,8 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     int extra = 128;
     vector<float> a(m+extra), b(m+extra);
     for(int i=0; i<m+extra; i++){
-        a[i] = audio[i] + rnd() * 1e-2;
-        b[i] = audio[m+i-extra] + rnd() * 1e-2;
+        a[i] = audio[i] + rnd(1e-2);
+        b[i] = audio[m+i-extra] + rnd(1e-2);
     }
 
     auto mse = math::emse(a, b);
@@ -243,14 +243,25 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     return out;
     */
 
-    Phaser2 a(44100, 40.0f, 1000.0f);
+
 
     vector<float> result;
+    
+    Pitcher2 b(8);
+    b.set_shift(1.5);
+
+    for(float i : audio){
+        for(float j : b.process(i)) result.push_back(j);
+    }
+
+    /*
+    Phaser2 a(44100, 40.0f, 1000.0f);
     for(float i : audio){
         a.push(i);
         result.push_back(a.pull());
         result.push_back(a.pull());
     }
+    */
 
     return result;
 

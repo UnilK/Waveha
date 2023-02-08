@@ -11,18 +11,20 @@ class Pitcher2 {
 
 public:
 
-    Pitcher2(double shift_, int size_);
+    Pitcher2(int size);
 
     std::vector<float> process(float sample);
 
-    int delay();
+    void set_shift(double pitch_shift);
+
+    int get_delay();
 
 private:
 
-    double shift, step, out;
-    int size, ssize, isize, osize, in, done, phase, period, freqs;
-    std::vector<float> ibuff, obuff, window;
-    std::vector<std::vector<std::complex<float> > > w;
+    double shift, out;
+    int wsize, osize, in, done, state;
+    std::vector<float> ibuff, obuff;
+    std::vector<std::vector<std::complex<float> > > wavelet;
 
 };
 

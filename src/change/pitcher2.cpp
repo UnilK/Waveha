@@ -8,107 +8,103 @@
 
 namespace change {
 
-Pitcher2::Pitcher2(double shift_, int size_){
+Pitcher2::Pitcher2(int size){
 
-    size = std::max(4, size_ / 4 * 4);
-    shift = std::min(100.0, std::max(0.01, shift_));
+    assert((size % 4 == 0 && size > 0) && "resampling window size must be a multiple of 4");
+
+    shift = 1.0;
     
-    period = size / 4;
-    phase = in = done = 0;
+    wsize = size / 2;
+    osize = size;
+
+    in = done = 0;
     out = 0;
+    state = 0;
     
-    step = shift;
-    ssize = std::ceil(size / step);
+    ibuff.resize(8 * wsize, 0.0f);
+    obuff.resize(8 * osize, 0.0f);
 
-    isize = 8 * size;
-    osize = 8 * ssize;
-
-    ibuff.resize(isize, 0.0f);
-    obuff.resize(osize, 0.0f);
-    window.resize(size);
-
-    for(int i=0; i<size; i++) window[i] = (1.0 - std::cos(2.0 * PI * i / size)) / std::sqrt(6);
-    
-    freqs = size / 2 + 1;
-    w.resize(freqs);
-    for(int i=0; i<freqs; i++){
-        w[i].resize(size);
-        for(int j=0; j<size; j++) w[i][j] = std::polar(1.0, -2.0 * PI * j * i / size);
+    wavelet.resize(wsize+1, std::vector<std::complex<float> >(2*wsize));
+    for(int j=0; j<2*wsize; j++){
+        for(int i=0; i<=wsize; i++){
+            double abs = (1 - std::cos(PI * j / wsize)) / std::sqrt(6);
+            double arg = - PI * j * i / wsize;
+            wavelet[i][j] = std::polar(abs, arg);
+        }
     }
 }
 
 std::vector<float> Pitcher2::process(float sample){
     
-    if(in+size > isize){
-        for(int i=0; i<isize; i++){
-            if(i+in < isize) ibuff[i] = ibuff[i+in];
-            else ibuff[i] = 0.0f;
-        }
-        
-        out = std::max(out - in, 0.0);
+    if(in + 2 * wsize > (int)ibuff.size()){
+        for(int i=0; i+in<(int)ibuff.size(); i++) ibuff[i] = ibuff[i + in];
+        out -= in;
         in = 0;
-
     }
 
-    if(done + ssize > osize){
-        for(int i=0; i<osize; i++){
-            if(i+done < osize) obuff[i] = obuff[i+done];
+    if(done + osize > (int)obuff.size()){
+        for(int i=0; i<(int)obuff.size(); i++){
+            if(i + done < (int)obuff.size()) obuff[i] = obuff[i + done];
             else obuff[i] = 0.0f;
         }
         done = 0;
     }
 
-    assert(in >= 0 && in+size-1 < isize);
-    ibuff[in+size-1] = sample;
+    ibuff[in + 2*wsize - 1] = sample;
 
-    if(phase == 0){
+    if(state == 0){
 
-        std::vector<std::complex<float> > f(freqs, 0.0f);
-        for(int i=0; i<freqs; i++){
-            for(int j=0; j<size; j++){
-                f[i] += w[i][j] * window[j] * ibuff[in + j] ;
+        std::vector<std::complex<float> > freq(wsize+1, 0.0f);
+        for(int j=0; j<2*wsize; j++){
+            for(int i=0; i<=wsize; i++){
+                freq[i] += wavelet[i][j] * ibuff[in + j];
             }
         }
 
-        {
-            int j = 0, k = 0;
-            double p = out - in;
-            const double scalar = (2.0 / std::sqrt(6.0)) / size;
-            while(p < size){
-                
-                while(j+1 < p) j++;
-                
-                const std::complex<float> rot = std::polar(1.0f, 2 * PIF * (float)p / size);
-                std::complex<float> ang = rot;
-                
-                float sum = f[0].real() / 2;
-                for(int i=1; i+1<freqs; i++){
-                    sum += (f[i] * ang).real();
-                    ang *= rot;
-                }
-                if(freqs > 1) sum += (f[freqs-1] * rot).real() / 2;
-                
-                sum *= scalar * (1.0 - std::cos(2 * PI * p / size));
-                obuff[done+(k++)] += sum;
-                p += step;
+        int j = 0;
+        double p = out - in;
+        
+        while(p < 2 * wsize){
+            
+            float sum = freq[0].real() * 0.5f;
+            
+            auto rot = std::polar<float>(1.0f, PIF * p / wsize);
+            auto ang = rot;
+           
+            for(int i=1; i<wsize; i++){
+                sum += (freq[i] * ang).real();
+                ang *= rot;
             }
+            
+            sum += (freq[wsize] * ang).real() * 0.5f;
+            
+            sum *= (1.0f - std::cos(PIF * p / wsize)) / std::sqrt(6.0f) / wsize;
+            
+            obuff[done + j] += sum;
+            p += shift;
+            j++;
         }
     }
 
-    phase = (phase + 1) % period;
+    state = (state + 1) % (wsize / 2);
 
     std::vector<float> result;
 
     in++;
     while(out < in){
-        out += step;
-        assert(done < osize);
+        out += shift;
         result.push_back(obuff[done++]);
     }
 
     return result;
 }
 
-int Pitcher2::delay(){ return size; }
+void Pitcher2::set_shift(double pitch_shift){
+    shift = std::max(0.05, std::min(pitch_shift, 20.0));
+    osize = std::max<int>(osize, 2 * wsize / shift);
+    obuff.resize(8 * osize);
+}
+
+int Pitcher2::get_delay(){ return 2 * wsize; }
 
 }

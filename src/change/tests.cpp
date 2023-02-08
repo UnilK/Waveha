@@ -12,11 +12,15 @@
 #include <iostream>
 #include <cassert>
 #include <tuple>
+#include <deque>
 
 namespace change {
 
 std::vector<float> translate(const std::vector<float> &audio){
    
+    using std::vector;
+    using std::complex;
+    
     /*
     change::Phaser4 phaser(44100, 80.0f, 1000.0f);
     double step = 2.0, point = 0.0;
@@ -32,16 +36,25 @@ std::vector<float> translate(const std::vector<float> &audio){
     }
     */
 
-    change::Phaser2 a(44100, 40.0f, 1000.0f);
+    change::Phaser2 a(44100, 70.0f, 1000.0f);
+    change::Pitcher2 b(16);
+    a.calibrate(1.751);
+    b.set_shift(1.751);
 
     std::vector<float> result;
 
+    /*
+    for(float i : audio) for(float j : b.process(i)) result.push_back(j);
+    */
+
+    std::deque<float> buffer;
     for(float i : audio){
         a.push(i);
-        result.push_back(a.pull());
-        result.push_back(a.pull());
-        result.push_back(a.pull());
-        result.push_back(a.pull());
+        while(buffer.empty()){
+            for(float j : b.process(a.pull())) buffer.push_back(j);
+        }
+        result.push_back(buffer.front());
+        buffer.pop_front();
     }
 
     /*

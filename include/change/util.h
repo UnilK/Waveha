@@ -6,6 +6,8 @@ namespace change {
 
 extern std::mt19937 rng32;
 double rnd();
+double rnd(double);
+double rnd(double, double);
 
 struct PID {
 

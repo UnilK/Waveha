@@ -36,6 +36,12 @@ Phaser2::Phaser2(int rate, float low, float high, float vpop, float srek){
 
     decay = 0.5f;
     wl = wr = 0.0f;
+
+    shift = 1.0f;
+}
+
+void Phaser2::calibrate(float pitch_shift){
+    shift = std::max(0.05f, std::min(shift, 20.0f));
 }
 
 void Phaser2::push(float sample){
@@ -58,6 +64,7 @@ void Phaser2::push(float sample){
 
 float Phaser2::pull(){
 
+    // shouldn't be triggered if used properly
     if(mid-left >= max+pop || right-mid >= max+pop){
         left = mid - min;
         right = left + pop;
@@ -68,15 +75,14 @@ float Phaser2::pull(){
         old = 1;
         right = left;
         left = match(left, left-scale);
-        decay = std::pow(0.01f, 1.0f / scale);
+        decay = std::pow(0.001f, 0.5f * (shift + 1.0f / shift) / scale);
         std::swap(wl, wr);
     }
-
-    if(right < mid){
+    else if(right < mid){
         old = 2;
         left = right;
         right = match(right, right+scale);
-        decay = std::pow(0.01f, 1.0f / scale);
+        decay = std::pow(0.001f, 0.5f * (shift + 1.0f / shift) / scale);
         std::swap(wl, wr);
     }
 
@@ -101,8 +107,8 @@ void Phaser2::calc_scale(){
 
     std::vector<float> l(max+2*pop), r(max+2*pop);
     for(int i=0; i<max+2*pop; i++){
-        l[i] = buffer[mid+i-max-pop] + rnd() * 1e-2f;
-        r[i] = buffer[mid+i-pop] + rnd() * 1e-2f;
+        l[i] = buffer[mid+i-max-pop] + rnd(0.01);
+        r[i] = buffer[mid+i-pop] + rnd(0.01);
     }
 
     auto mse = math::emse(l, r);
@@ -117,17 +123,19 @@ void Phaser2::calc_scale(){
         }
     }
 
-    similarity = mse[scale];
+    similarity = std::max(0.0f, std::min(mse[scale], 1.0f));
 }
 
 int Phaser2::match(int x, int y){
 
-    for(int d=0, s=1; std::abs(d)<scale/2; d = -(d+s), s *= -1){
+    // slight help for unvoiced contexts, computationally light.
+
+    for(int d=0, s=1; std::abs(d)<scale/3; d = -(d+s), s *= -1){
         if(std::abs((x+d)-mid) < max){
             const float e0 = buffer[y+d-1]-buffer[x-1];
             const float e1 = buffer[y+d]-buffer[x];
             const float e2 = buffer[y+d+1]-buffer[x+1];
-            if(e0*e0 + e1*e1 + e2*e2 < 1e-2f) return y+d;
+            if(e0*e0 + e1*e1 + e2*e2 < 0.01f) return y+d;
         }
     }
 
