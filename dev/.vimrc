@@ -1,6 +1,9 @@
 "compile
 map mk :silent !echo %<Bar>sed -r "s/(.+)\/(.+)\..+/-d \1 \2/"<Bar>xargs ./dev/compile<CR><C-l>
 
+"update dependencies
+map nk :silent !echo %<Bar>sed -r "s/(.+)\/(.+)\..+/-d \1 \2/"<Bar>xargs ./dev/dependencies<CR><C-l>
+
 "switch compilation flags
 map fl :silent !echo %<Bar>sed -r "s/(.+)\/(.+)\..+/-d \1 -o \2/"<Bar>xargs ./dev/compile<CR><C-l>
 

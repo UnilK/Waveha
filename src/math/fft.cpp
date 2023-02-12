@@ -245,7 +245,7 @@ vector<float> emse(const vector<float> &a, const vector<float> &b){
         b2 += b[n-1-i]*b[n-1-i];
         c[i] = std::max(1e-7, a2 + b2 - 2.0 * c[i]);
         c[i] /= std::max(1e-7, a2 + b2);
-    } c[n] = 1.0f;
+    } c[n] = 0.0f;
     
     reverse(c.begin(), c.end());
 

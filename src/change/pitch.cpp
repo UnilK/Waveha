@@ -10,6 +10,8 @@
 #include "change/phaser.h"
 #include "change/util.h"
 #include "change/tests.h"
+#include "designa/math.h"
+#include "designa/knot.h"
 
 #include <math.h>
 #include <algorithm>
@@ -216,7 +218,7 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
         b[i] = audio[m+i-extra] + rnd(1e-2);
     }
 
-    auto mse = math::emse(a, b);
+    auto mse = designa::energy_mse(a, b);
     for(int i=0; i+2*extra < (int)mse.size(); i++) mse[i] = mse[i+2*extra];
     mse.resize(mse.size()-2*extra);
     for(float &i : mse) i = 1.0f - i;
@@ -247,7 +249,7 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
 
     vector<float> result;
     
-    Pitcher2 b(8);
+    designa::Ftip b(16);
     b.set_shift(1.5);
 
     for(float i : audio){
@@ -325,6 +327,7 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
     using std::tuple;
     
     int n = audio.size();
+
     int N = 128;
 
     vector<float> window(N);

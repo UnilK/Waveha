@@ -6,6 +6,7 @@
 #include "math/fft.h"
 #include "math/constants.h"
 #include "change/util.h"
+#include "designa/knot.h"
 
 #include <complex>
 #include <random>
@@ -20,42 +21,17 @@ std::vector<float> translate(const std::vector<float> &audio){
    
     using std::vector;
     using std::complex;
-    
-    /*
-    change::Phaser4 phaser(44100, 80.0f, 1000.0f);
-    double step = 2.0, point = 0.0;
 
     std::vector<float> result;
-    for(float i : audio){
-        point += step;
-        phaser.push(i);
-        while(point > 1.0){
-            result.push_back(phaser.pull());
-            point -= 1.0;
-        }
-    }
-    */
+    designa::Knot knot(44100, 70.0f);
 
-    change::Phaser2 a(44100, 70.0f, 1000.0f);
-    change::Pitcher2 b(16);
-    a.calibrate(1.751);
-    b.set_shift(1.751);
-
-    std::vector<float> result;
-
+    knot.set_absolute_pitch_shift(1.7f);
     /*
-    for(float i : audio) for(float j : b.process(i)) result.push_back(j);
+    knot.enable_pitch_correction(1);
+    knot.set_pitch_correction_power(0.1f);
     */
 
-    std::deque<float> buffer;
-    for(float i : audio){
-        a.push(i);
-        while(buffer.empty()){
-            for(float j : b.process(a.pull())) buffer.push_back(j);
-        }
-        result.push_back(buffer.front());
-        buffer.pop_front();
-    }
+    for(float i : audio) result.push_back(knot.process(i));
 
     /*
     change::Pitcher2 a(1.9, 16);

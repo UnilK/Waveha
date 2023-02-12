@@ -7,10 +7,11 @@ openui="gnome-terminal --tab -t ui -- vim -S dev/.vimrc -p src/ui/*.cpp"
 openapp="gnome-terminal --tab -t app -- vim -S dev/.vimrc -p src/app/*.cpp"
 openstyle="gnome-terminal --tab -t style -- vim -S dev/.vimrc -p res/styles/*.style"
 openmain="gnome-terminal --tab -t main -- vim -S dev/.vimrc -p src/main.cpp"
-openchange="gnome-terminal --tab -t changer -- vim -S dev/.vimrc -p src/change/*.cpp"
+openchange="gnome-terminal --tab -t change -- vim -S dev/.vimrc -p src/change/*.cpp"
 opentools="gnome-terminal --tab -t tools -- vim -S dev/.vimrc -p src/tools/*.cpp"
 openml="gnome-terminal --tab -t ml -- vim -S dev/.vimrc -p src/ml/*.cpp include/ml/*.inl"
 openwstream="gnome-terminal --tab -t wstream -- vim -S dev/.vimrc -p lib/Wstream/src/wstream/*.cpp"
+opendesigna="gnome-terminal --tab -t designa -- vim -S dev/.vimrc -p src/designa/*.cpp"
 
 while [[ $# -gt 0 ]]
 do
@@ -44,6 +45,9 @@ do
             ;;
         wstream)
             $openwstream
+            ;;
+        designa)
+            $opendesigna
             ;;
         make)
             $openterminal
