@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <valarray>
 
 namespace designa {
 
@@ -24,7 +24,7 @@ private:
     float strong_weight, weak_weight, decay, similarity;
     int size, min, max, mid, strong, weak, pop;
     int scale, calc_state, calc_period;
-    std::vector<float> buffer;
+    std::valarray<float> buffer;
 
     const float epsilon = 0.001f;
 

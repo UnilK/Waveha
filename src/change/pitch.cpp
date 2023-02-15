@@ -245,8 +245,6 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     return out;
     */
 
-
-
     vector<float> result;
     
     designa::Ftip b(16);
@@ -266,7 +264,6 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     */
 
     return result;
-
     // return energytranslate3(audio);
 }
 

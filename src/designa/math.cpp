@@ -21,7 +21,7 @@ void in_place_fft(vector<complex<float> > &v, bool inv){
 
     int bits = 0;
     while(1ll<<bits < n) bits++;
-    assert(1ll<<bits == n && bits <= 30);
+    assert(1ll<<bits == n && bits < 30);
     if(bits == 0) return;
 
     // dynamic precalculation tables, calculated in O(n)
@@ -86,6 +86,7 @@ vector<complex<float> > fft(const vector<float> &v){
     vector<complex<float> > w(v.size());
     for(unsigned i=0; i<v.size(); i++) w[i] = v[i];
     in_place_fft(w, 0);
+    w.resize(v.size()/2+1);
     return w;
 }
 
@@ -94,18 +95,16 @@ array<vector<complex<float> >, 2> fft(const vector<float> &a, const vector<float
     assert(a.size() == b.size());
 
     int n = a.size();
-    vector<complex<float> > c(n), fa(n), fb(n);
+    vector<complex<float> > c(n), fa(n/2+1), fb(n/2+1);
     for(int i=0; i<n; i++) c[i] = {a[i], b[i]};
 
-    in_place_fft(c);
+    in_place_fft(c, 0);
 
     for(int i=0; i<=n-i; i++){
         int j = (n-i)&(n-1);
         fa[i] = 0.5f * (c[i] + conj(c[j]));
         fb[i] = 0.5f * (c[i] - conj(c[j]));
         fb[i] = {fb[i].imag(), -fb[i].real()};
-        fa[j] = conj(fa[i]);
-        fb[j] = conj(fb[i]);
     }
 
     return {fa, fb};
@@ -113,9 +112,11 @@ array<vector<complex<float> >, 2> fft(const vector<float> &a, const vector<float
 
 vector<float> inverse_fft(const vector<complex<float> > &v){
     auto w = v;
-    in_place_fft(w);
+    w.resize(v.size()*2-2);
+    for(unsigned i=1; i+1<v.size(); i++) w[w.size()-i] = std::conj(w[i]);
+    in_place_fft(w, 1);
     vector<float> r(w.size());
-    for(unsigned i=0; i<v.size(); i++) r[i] = w[i].real();
+    for(unsigned i=0; i<w.size(); i++) r[i] = w[i].real();
     return r;
 }
 
@@ -133,7 +134,7 @@ vector<float> energy_mse(const vector<float> &a, const vector<float> &b){
     cc[0].imag(b[0]);
     for(int i=1; i<n; i++) cc[2*m-i].imag(b[i]);
 
-    in_place_fft(cc);
+    in_place_fft(cc, 0);
     
     cc[0] = cc[0].real()*cc[0].imag();
     cc[m] = cc[m].real()*cc[m].imag();
@@ -159,6 +160,47 @@ vector<float> energy_mse(const vector<float> &a, const vector<float> &b){
     reverse(c.begin(), c.end());
 
     return c;
+}
+
+vector<float> sin_window(int length){
+    vector<float> window(length);
+    for(int i=0; i<length; i++) window[i] = std::sin(M_PI * i / length);
+    return window;
+}
+
+vector<float> cos_window(int length){
+    vector<float> window(length);
+    for(int i=0; i<length; i++) window[i] = 0.5f - 0.5f * std::cos(2 * M_PI * i / length);
+    return window;
+}
+
+float energy_frequency(std::vector<float> frequency_energy){
+    
+    frequency_energy.pop_back();
+    for(float &i : frequency_energy) i = std::sqrt(i);
+    auto freq = fft(frequency_energy);
+
+    int ma = 32;
+    for(unsigned i=16; 2*i<freq.size(); i++){
+        if(freq[ma].real() < freq[i].real()
+                && freq[i].real() > freq[i-1].real()
+                && freq[i].real() > freq[i+1].real()){
+            ma = i;
+        }
+    }
+    
+    auto para = [](float i, float l, float m, float r) -> float {
+        const float a = 0.5f * (r + l) - m;
+        const float b = (r - l) * 0.5f;
+        const float d = - b / (2 * a);
+        return i + d;
+    };
+
+    return freq.size() / para(ma, freq[ma-1].real(), freq[ma].real(), freq[ma+1].real());
+}
+
+complex<float> unit_complex(const complex<float> &c){
+    return c / (std::abs(c) + 1e-18f);
 }
 
 }

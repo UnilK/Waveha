@@ -4,6 +4,7 @@
 #include "designa/pace.h"
 #include "designa/ftip.h"
 
+#include <valarray>
 #include <vector>
 #include <deque>
 
@@ -25,6 +26,8 @@ public:
     void set_pitch_correction_scale(int scale);
     void set_pitch_correction_power(float power);
 
+    void enable_color_manipulation(bool);
+
 private:
 
     Pace pace;
@@ -45,6 +48,17 @@ private:
     int pitch_shift_delay;
     std::deque<float> shift_pipe, delay_pipe;
     
+    bool color_manipulation_x;
+    int window_size;
+    int buffer_size;
+    int buffer_pointer;
+    int window_state;
+    int window_period;
+
+    std::valarray<float> shifted_buffer;
+    std::valarray<float> original_buffer;
+    std::valarray<float> recolored_buffer;
+
 };
 
 }

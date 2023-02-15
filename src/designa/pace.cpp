@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <vector>
 
 namespace designa {
 
@@ -40,7 +41,7 @@ void Pace::push(float sample){
     
     if(mid + max + pop > size){
         int move = mid - max - pop;
-        for(int i=0; i+move<size; i++) buffer[i] = buffer[i+move];
+        buffer = buffer.shift(move);
         mid -= move;
         strong -= move;
         weak -= move;

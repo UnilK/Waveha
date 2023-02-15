@@ -99,7 +99,7 @@ std::vector<float> Ftip::process(float sample){
 void Ftip::set_shift(float pitch_shift){
     shift = std::max(0.05f, std::min(pitch_shift, 20.0f));
     osize = std::max<int>(osize, 2 * wsize / shift);
-    obuff.resize(8 * osize, 0.0f);
+    if(8 * osize > (int)obuff.size()) obuff.resize(8 * osize, 0.0f);
 }
 
 int Ftip::get_delay(){ return 2 * wsize; }

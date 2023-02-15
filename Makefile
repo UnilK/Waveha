@@ -392,9 +392,10 @@ build/ui/box.o: include/ui/window.h include/ui/text.h include/ui/button.h
 build/designa/pace.o: include/designa/pace.h include/designa/math.h
 build/designa/ftip.o: include/designa/ftip.h
 build/designa/math.o: include/designa/math.h
-build/designa/color.o: include/designa/color.h
+build/designa/color.o: include/designa/color.h include/designa/math.h
 build/designa/knot.o: include/designa/knot.h include/designa/color.h
 build/designa/knot.o: include/designa/pace.h include/designa/ftip.h
+build/designa/knot.o: include/designa/math.h
 build/main.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/main.o: include/ui/borders.h include/ui/style.h include/ui/box.h
 build/main.o: include/ui/slider.h include/ui/stack.h include/ui/text.h
