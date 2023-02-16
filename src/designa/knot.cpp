@@ -2,6 +2,7 @@
 #include "designa/color.h"
 #include "designa/math.h"
 
+#include <cassert>
 #include <cmath>
 
 namespace designa {
@@ -15,7 +16,6 @@ Knot::Knot(int frame_rate, float min_frequency) :
     
     pitch_shift_delay = pace.get_delay() + ftip.get_delay();
     
-    pitch_shift_x = 1;
     absolute_pitch_shift = 1.0f;
     
     pitch_correction_x = 0;
@@ -25,30 +25,26 @@ Knot::Knot(int frame_rate, float min_frequency) :
     set_pitch_correction_scale(8);
     set_pitch_correction_power(1.0f);
     
-    for(int i=0; i<pitch_shift_delay; i++) delay_pipe.push_back(0.0f);
+    for(int i=0; i<pitch_shift_delay-2; i++) delay_pipe.push_back(0.0f);
 
-    color_manipulation_x = 1;
-    
-    window_size = 2 * (int)(frame_rate / min_frequency);
-    buffer_size = 8 * window_size;
+    window_size = std::ceil(frame_rate / min_frequency);
+    previous_window_width = window_size / 2;
+    buffer_size = 4 * window_size;
     buffer_pointer = 0;
     
     window_state = 0;
-    window_period = window_size / 2;
     
     shifted_buffer.resize(buffer_size, 0.0f);
     original_buffer.resize(buffer_size, 0.0f);
     recolored_buffer.resize(buffer_size, 0.0f);
+    wave_period.resize(buffer_size, window_size / 2);
 }
 
 float Knot::process(float sample){
   
     float processed = sample;
-    float raw_sample = sample;
-    float pitch_shifted_sample = sample;
 
-    if(pitch_shift_x){
-        
+    {
         delay_pipe.push_back(sample);
         pace.push(sample);
     
@@ -77,83 +73,70 @@ float Knot::process(float sample){
             }
         }
         
-        raw_sample = delay_pipe.front();
-        pitch_shifted_sample = shift_pipe.front();
+        float raw_sample = delay_pipe.front();
+        float pitch_shifted_sample = shift_pipe.front();
+        
+        shifted_buffer[buffer_pointer + window_size - 1] = pitch_shifted_sample + rnd(1e-6f);
+        original_buffer[buffer_pointer + window_size - 1] = raw_sample + rnd(1e-6f);
+        wave_period[buffer_pointer + window_size - 1] = pace.get_scale();
         
         delay_pipe.pop_front();
         shift_pipe.pop_front();
     
         processed = pitch_shifted_sample;
     }
+    
+    if(buffer_pointer + window_size > buffer_size){
+        original_buffer = original_buffer.shift(buffer_pointer);
+        shifted_buffer = shifted_buffer.shift(buffer_pointer);
+        recolored_buffer = recolored_buffer.shift(buffer_pointer);
+        wave_period = wave_period.shift(buffer_pointer);
+        buffer_pointer = 0;
+    }
 
-    if(color_manipulation_x){
+    if(window_state <= 0){
         
-        if(buffer_pointer + window_size > buffer_size){
-            original_buffer = original_buffer.shift(buffer_pointer);
-            shifted_buffer = shifted_buffer.shift(buffer_pointer);
-            recolored_buffer = recolored_buffer.shift(buffer_pointer);
-            buffer_pointer = 0;
-        }
+        int right_width = wave_period[buffer_pointer];
+        right_width = std::max<int>(std::floor(previous_window_width / 1.1),
+                std::min<int>(right_width, std::ceil(previous_window_width * 1.1)));
 
-        shifted_buffer[buffer_pointer + window_size - 1] = pitch_shifted_sample + rnd(1e-6f);
-        original_buffer[buffer_pointer + window_size - 1] = raw_sample + rnd(1e-6f);
+        int width = previous_window_width / 2 + right_width / 2;
+        assert(width <= window_size);
 
-        if(window_state == 0){
-            
-            int bit_size = 1;
-            while(bit_size < window_size) bit_size *= 2;
+        auto window = cos_window(previous_window_width / 2, right_width / 2);
 
-            auto window = sin_window(window_size);
+        int big_width = pow2ceil(width);
 
-            auto shifted_bit = pick_window_from_buffer(
-                    window, shifted_buffer, buffer_pointer, bit_size);
-            auto original_bit = pick_window_from_buffer(
-                    window, original_buffer, buffer_pointer, bit_size);
+        auto bit = pick_bit(shifted_buffer, buffer_pointer, width);
+        bit.resize(big_width, 0.0f);
 
-            auto [shifted_freq, original_freq] = fft(shifted_bit, original_bit);
-            
-            auto shifted_energy = frequency_energies(shifted_freq);
-            auto original_energy = frequency_energies(original_freq);
-            auto phase_pattern = frequency_phases(original_freq);
+        apply_window(bit, window);
 
-            std::vector<float> color_shift(shifted_freq.size(), 1.0f);
-            for(unsigned i=0; 8*i < color_shift.size(); i++){
-                float d = std::cos(8 * M_PI * i / color_shift.size());
-                color_shift[i] = (1.0f - d) + d * absolute_pitch_shift;
-            }
+        auto freq = fft(bit);
+        auto energy = frequency_energies(freq);
+        
+        std::vector<float> shift(big_width, (1.0f / absolute_pitch_shift) * 0.5f + 0.5f);
+        energy = shift_bins(energy, shift);
 
-            float pitch_step = energy_frequency(original_energy);
+        auto phase = frequency_phases(freq);
+        freq = join_energy_to_phase(energy, phase);
 
-            auto new_color = color_injection(original_energy, shifted_energy, color_shift,
-                    pitch_step, pitch_step * absolute_pitch_shift);
+        bit = inverse_fft(freq);
+        apply_window(bit, window);
 
-            std::vector<float> shuffle_magnitudes(phase_pattern.size(), 0.1f);
+        bit.resize(width);
+        add_bit(bit, recolored_buffer, buffer_pointer);
 
-            add_phase_noise(phase_pattern, shuffle_magnitudes);
-
-            auto output_bit = inverse_fft(join_energy_to_phase(new_color, phase_pattern));
-
-            apply_window_to_buffer(
-                    output_bit, window, recolored_buffer, buffer_pointer);
-        }
-
-        window_state = (window_state + 1) % window_period;
+        window_state = (right_width + 3) / 4;
+        previous_window_width = right_width;
 
         processed = recolored_buffer[buffer_pointer];
-        buffer_pointer++;
     }
+
+    window_state--;
+    buffer_pointer++;
 
     return processed;
-}
-
-void Knot::enable_pitch_shift(bool x){
-    
-    pitch_shift_x = x;
-
-    if(!x){
-        shift_pipe.clear();
-        for(float &i : delay_pipe) i = 0.0f;
-    }
 }
 
 void Knot::set_absolute_pitch_shift(float shift){
@@ -176,10 +159,6 @@ void Knot::set_pitch_correction_scale(int scale){
 
 void Knot::set_pitch_correction_power(float power){
     pitch_correction_power = std::max(0.0f, std::min(power, 1.0f));
-}
-
-void Knot::enable_color_manipulation(bool x){
-    color_manipulation_x = x;
 }
 
 }

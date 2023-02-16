@@ -1,6 +1,5 @@
 #pragma once
 
-#include "designa/color.h"
 #include "designa/pace.h"
 #include "designa/ftip.h"
 
@@ -18,7 +17,6 @@ public:
 
     float process(float sample);
 
-    void enable_pitch_shift(bool);
     void set_absolute_pitch_shift(float shift);
     
     void enable_pitch_correction(bool);
@@ -35,7 +33,6 @@ private:
 
     int frame_rate;
 
-    bool pitch_shift_x;
     float absolute_pitch_shift;
     
     bool pitch_correction_x;
@@ -48,16 +45,16 @@ private:
     int pitch_shift_delay;
     std::deque<float> shift_pipe, delay_pipe;
     
-    bool color_manipulation_x;
     int window_size;
     int buffer_size;
     int buffer_pointer;
     int window_state;
-    int window_period;
+    int previous_window_width;
 
     std::valarray<float> shifted_buffer;
     std::valarray<float> original_buffer;
     std::valarray<float> recolored_buffer;
+    std::valarray<int> wave_period;
 
 };
 

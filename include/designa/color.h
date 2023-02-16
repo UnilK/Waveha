@@ -6,16 +6,18 @@
 
 namespace designa {
 
-std::vector<float> pick_window_from_buffer(
-        const std::vector<float> &window,
+std::vector<float> pick_bit(
         const std::valarray<float> &buffer,
         int offset, int size);
 
-void apply_window_to_buffer(
+void add_bit(
         const std::vector<float> &bit,
-        const std::vector<float> &window,
         std::valarray<float> &buffer,
         int offset);
+
+void apply_window(
+        std::vector<float> &bit,
+        const std::vector<float> &window);
 
 std::vector<std::complex<float> > frequency_phases(
         const std::vector<std::complex<float> > &frequency);
@@ -30,6 +32,14 @@ std::vector<std::complex<float> > join_energy_to_phase(
 void add_phase_noise(
         std::vector<std::complex<float> > &phase,
         const std::vector<float> &noise_magnitude);
+
+std::vector<float> split_to_bins(
+        const std::vector<float> &energy,
+        float bin_size);
+
+std::vector<float> shift_bins(
+        const std::vector<float> &bin,
+        const std::vector<float> &shift);
 
 std::vector<float> color_injection(
         const std::vector<float> &source_color,

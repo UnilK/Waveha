@@ -11,6 +11,7 @@
 #include "change/util.h"
 #include "change/tests.h"
 #include "designa/math.h"
+#include "designa/color.h"
 #include "designa/knot.h"
 
 #include <math.h>
@@ -233,38 +234,47 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     using std::complex;
     using std::tuple;
 
-    /*
-    Pitcher p(1.345, 16);
+    int n = audio.size();
+    int m;
+    int M = 1;
 
-    std::vector<float> out;
-    for(float i : audio){
-        auto j = p.process(i);
-        for(float k : j) out.push_back(k);
-    }
+    vector<float> bit;
+    {
+        const int N = 128;
+        int d = n / 2 - N;
+        vector<float> l(d + 2*N), r(d+2*N);
+        for(int i=0; i<d+2*N; i++){
+            l[i] = audio[i] + rnd(1e-2);
+            r[i] = audio[d + i] + rnd(1e-2);
+        }
 
-    return out;
-    */
-
-    vector<float> result;
+        auto mse = designa::padded_energy_mse(l, r, N);
+        for(float &i : mse) i = 1.0f - i;
+        
+        m = std::round(designa::maximum_peak(mse, 32, d));
+        if(m&1) m++;
+        while(M < m) M *= 2;
     
-    designa::Ftip b(16);
-    b.set_shift(1.5);
-
-    for(float i : audio){
-        for(float j : b.process(i)) result.push_back(j);
+        bit.resize(M, 0.0f);
+        for(int i=0; i<m; i++) bit[i] = audio[N+d+i];
     }
 
-    /*
-    Phaser2 a(44100, 40.0f, 1000.0f);
-    for(float i : audio){
-        a.push(i);
-        result.push_back(a.pull());
-        result.push_back(a.pull());
-    }
-    */
+    auto window = designa::cos_window(m/2, m/2);
+    designa::apply_window(bit, window);
 
-    return result;
-    // return energytranslate3(audio);
+    auto freq = designa::fft(bit);
+    auto energy = designa::frequency_energies(freq);
+    
+    std::vector<float> shift(energy.size(), 2.0f);
+    if(rand()&1) energy = designa::shift_bins(energy, shift);
+
+    auto phase = designa::frequency_phases(freq);
+    freq = designa::join_energy_to_phase(energy, phase);
+
+    bit = designa::inverse_fft(freq);
+    designa::apply_window(bit, window);
+
+    return bit;
 }
 
 std::vector<float> random_experiment2(const std::vector<float> &audio, float low, float high){

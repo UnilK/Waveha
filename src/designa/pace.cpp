@@ -93,21 +93,14 @@ void Pace::calc_scale(){
 
     std::vector<float> l(max+2*pop), r(max+2*pop);
     for(int i=0; i<max+2*pop; i++){
-        l[i] = buffer[mid+i-max-pop] + rnd(0.01);
-        r[i] = buffer[mid+i-pop] + rnd(0.01);
+        l[i] = buffer[mid-max-pop+i] + rnd(0.01);
+        r[i] = buffer[mid-pop+i] + rnd(0.01);
     }
 
-    auto mse = energy_mse(l, r);
-    for(int i=0; i<=max; i++) mse[i] = mse[i+2*pop];
-    mse.resize(max+1);
+    auto mse = padded_energy_mse(l, r, pop);
     for(float &i : mse) i = 1.0f - i;
     
-    scale = pop;
-    for(int i=min+1; i+1<=max; i++){
-        if(mse[i] > mse[scale] && mse[i] > mse[i-1] && mse[i] > mse[i+1]){
-            scale = i;
-        }
-    }
+    scale = std::round(maximum_peak(mse, min, max));
 
     similarity = std::max(0.0f, std::min(mse[scale], 1.0f));
 }

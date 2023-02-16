@@ -44,15 +44,15 @@ void in_place_fft(vector<complex<float> > &v, bool inv){
         invbit[1] = 1;
         for(int b=M-1; b>=0; b--){
 
-            int n = 1<<b, nn = 1<<(M-b);
-            w[b].resize(n);
+            int x = 1<<b, y = 1<<(M-b);
+            w[b].resize(x);
             
-            for(int i=0; i<nn; i++){
+            for(int i=0; i<y; i++){
                 invbit[i] <<= 1;
-                invbit[i+nn] = invbit[i] | 1;
+                invbit[i+y] = invbit[i] | 1;
             }
 
-            for(int i=0; i<n; i++) w[b][i] = w[b+1][2*i];
+            for(int i=0; i<x; i++) w[b][i] = w[b+1][2*i];
         }
     }
     
@@ -162,33 +162,27 @@ vector<float> energy_mse(const vector<float> &a, const vector<float> &b){
     return c;
 }
 
-vector<float> sin_window(int length){
-    vector<float> window(length);
-    for(int i=0; i<length; i++) window[i] = std::sin(M_PI * i / length);
-    return window;
+vector<float> padded_energy_mse(const vector<float> &a, const vector<float> &b, int border){
+
+    auto mse = energy_mse(a, b);
+    
+    for(int i=0; i+2*border < (int)mse.size(); i++) mse[i] = mse[i+2*border];
+    mse.resize(mse.size() - 2 * border);
+
+    return mse;
 }
 
-vector<float> cos_window(int length){
-    vector<float> window(length);
-    for(int i=0; i<length; i++) window[i] = 0.5f - 0.5f * std::cos(2 * M_PI * i / length);
-    return window;
-}
+float maximum_peak(const vector<float> &v, int min, int max){
 
-float energy_frequency(std::vector<float> frequency_energy){
-    
-    frequency_energy.pop_back();
-    for(float &i : frequency_energy) i = std::sqrt(i);
-    auto freq = fft(frequency_energy);
+    assert(min > 0);
+    assert(max < (int)v.size());
+    assert(max - min > 1);
 
-    int ma = 32;
-    for(unsigned i=16; 2*i<freq.size(); i++){
-        if(freq[ma].real() < freq[i].real()
-                && freq[i].real() > freq[i-1].real()
-                && freq[i].real() > freq[i+1].real()){
-            ma = i;
-        }
-    }
-    
+    int j = (max + min) / 2;
+
+    for(int i=min+1; i+1<=max; i++)
+        if(v[i] > v[j] && v[i] > v[i-1] && v[i] > v[i+1]) j = i;
+
     auto para = [](float i, float l, float m, float r) -> float {
         const float a = 0.5f * (r + l) - m;
         const float b = (r - l) * 0.5f;
@@ -196,11 +190,43 @@ float energy_frequency(std::vector<float> frequency_energy){
         return i + d;
     };
 
-    return freq.size() / para(ma, freq[ma-1].real(), freq[ma].real(), freq[ma+1].real());
+    return para(j, v[j-1], v[j], v[j+1]);
+}
+
+vector<float> sin_window(int left, int right){
+    
+    int length = left + right;
+    vector<float> window(length);
+    
+    for(int i=0; i<left; i++)
+        window[i] = std::sin(0.5f * M_PI * (float)i / left);
+    for(int i=0; i<right; i++)
+        window[left + i] = std::sin(0.5f * M_PI * ((float)i / right + 1.0f));
+    
+    return window;
+}
+
+vector<float> cos_window(int left, int right){
+    
+    int length = left + right;
+    vector<float> window(length);
+    
+    for(int i=0; i<left; i++)
+        window[i] = 0.5f - 0.5f * std::cos(M_PI * (float)i / left);
+    for(int i=0; i<right; i++)
+        window[left + i] = 0.5f - 0.5f * std::cos(M_PI * ((float)i / right + 1.0f));
+    
+    return window;
 }
 
 complex<float> unit_complex(const complex<float> &c){
     return c / (std::abs(c) + 1e-18f);
+}
+
+int pow2ceil(int n){
+    int N = 1;
+    while(N < n) N *= 2;
+    return N;
 }
 
 }

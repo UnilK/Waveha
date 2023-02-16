@@ -133,8 +133,8 @@ build/change/tests.o: include/change/tests.h include/change/pitcher2.h
 build/change/tests.o: include/change/phaser.h include/change/phaser2.h
 build/change/tests.o: include/change/phaser4.h include/math/fft.h
 build/change/tests.o: include/math/constants.h include/change/util.h
-build/change/tests.o: include/designa/knot.h include/designa/color.h
-build/change/tests.o: include/designa/pace.h include/designa/ftip.h
+build/change/tests.o: include/designa/knot.h include/designa/pace.h
+build/change/tests.o: include/designa/ftip.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -143,8 +143,8 @@ build/change/pitch.o: include/ml/judge.h include/ml/db.h
 build/change/pitch.o: include/change/detector2.h include/change/pitcher2.h
 build/change/pitch.o: include/change/phaser2.h include/change/phaser.h
 build/change/pitch.o: include/change/util.h include/change/tests.h
-build/change/pitch.o: include/designa/math.h include/designa/knot.h
-build/change/pitch.o: include/designa/color.h include/designa/pace.h
+build/change/pitch.o: include/designa/math.h include/designa/color.h
+build/change/pitch.o: include/designa/knot.h include/designa/pace.h
 build/change/pitch.o: include/designa/ftip.h
 build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
@@ -393,8 +393,8 @@ build/designa/pace.o: include/designa/pace.h include/designa/math.h
 build/designa/ftip.o: include/designa/ftip.h
 build/designa/math.o: include/designa/math.h
 build/designa/color.o: include/designa/color.h include/designa/math.h
-build/designa/knot.o: include/designa/knot.h include/designa/color.h
-build/designa/knot.o: include/designa/pace.h include/designa/ftip.h
+build/designa/knot.o: include/designa/knot.h include/designa/pace.h
+build/designa/knot.o: include/designa/ftip.h include/designa/color.h
 build/designa/knot.o: include/designa/math.h
 build/main.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/main.o: include/ui/borders.h include/ui/style.h include/ui/box.h

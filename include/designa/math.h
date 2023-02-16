@@ -21,15 +21,25 @@ std::array<std::vector<std::complex<float> >, 2> fft(
 std::vector<float> inverse_fft(
         const std::vector<std::complex<float> > &v);
 
-std::vector<float> energy_mse(const std::vector<float> &a, const std::vector<float> &b);
+std::vector<float> energy_mse(
+        const std::vector<float> &a,
+        const std::vector<float> &b);
 
-std::vector<float> sin_window(int length);
+std::vector<float> padded_energy_mse(
+        const std::vector<float> &a,
+        const std::vector<float> &b,
+        int border);
 
-std::vector<float> cos_window(int length);
+float maximum_peak(const std::vector<float> &v,
+        int min, int max);
 
-float energy_frequency(std::vector<float> frequency_energy);
+std::vector<float> sin_window(int left, int right);
+
+std::vector<float> cos_window(int left, int right);
 
 std::complex<float> unit_complex(const std::complex<float> &c);
+
+int pow2ceil(int);
 
 }
 

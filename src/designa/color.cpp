@@ -10,38 +10,37 @@ using std::valarray;
 using std::vector;
 using std::complex;
 
-vector<float> pick_window_from_buffer(
-        const vector<float> &window,
+vector<float> pick_bit(
         const valarray<float> &buffer,
         int offset, int size){
     
-    vector<float> bit(size, 0.0f);
-    int mid = size / 2;
-    int half = window.size() / 2;
-    
-    for(int i=0; i<(int)window.size(); i++){
-        assert(mid - half + i >= 0 && mid - half + i < size);
-        assert(offset + i >= 0 && offset + i < (int)buffer.size());
-        bit[mid - half + i] = buffer[offset + i] * window[i];
-    }
-    
+    assert(offset >= 0 && offset + size <= (int)buffer.size());
+
+    vector<float> bit(size);
+    for(int i=0; i<size; i++) bit[i] = buffer[offset + i];
+
     return bit;
 }
 
-void apply_window_to_buffer(
-        const std::vector<float> &bit,
-        const std::vector<float> &window,
-        std::valarray<float> &buffer,
+void add_bit(
+        const vector<float> &bit,
+        valarray<float> &buffer,
         int offset){
-
-    int mid = bit.size() / 2;
-    int half = window.size() / 2;
     
-    for(int i=0; i<(int)window.size(); i++){
-        assert(mid - half + i >= 0 && mid - half + i < (int)bit.size());
-        assert(offset + i >= 0 && offset + i < (int)buffer.size());
-        buffer[offset + i] += bit[mid - half + i]  * window[i];
-    }
+    int size = bit.size();
+    assert(offset >= 0 && offset + size <= (int)buffer.size());
+
+    for(int i=0; i<size; i++) buffer[offset + i] += bit[i];
+}
+
+void apply_window(
+        vector<float> &bit,
+        const vector<float> &window){
+
+    assert(bit.size() >= window.size());
+
+    for(unsigned i=0; i<window.size(); i++) bit[i] *= window[i];
+    for(unsigned i=window.size(); i<bit.size(); i++) bit[i] = 0.0f;
 }
 
 vector<complex<float> > frequency_phases(
@@ -76,6 +75,59 @@ void add_phase_noise(
     }
 }
 
+vector<float> split_to_bins(
+        const vector<float> &energy,
+        float bin_size){
+    
+    const int n = energy.size();
+    const int m = std::ceil(n / bin_size) + 1;
+    const float speed = M_PI / bin_size;
+    
+    auto extract_window = [&](float point) -> float {
+        const int l = std::max<int>(0, std::ceil(point - bin_size));
+        const int r = std::min<int>(n-1, std::floor(point + bin_size));
+        float sum = 0.0f;
+        for(int i=l; i<=r; i++){
+            sum += energy[i] * (0.5f + 0.5f * std::cos(speed * (i - point)));
+        }
+        return sum;
+    };
+
+    vector<float> bin(m);
+
+    for(int i=0; i<m; i++) bin[i] = extract_window(i * bin_size);
+
+    return bin;
+}
+
+vector<float> shift_bins(
+        const std::vector<float> &bin,
+        const std::vector<float> &shift){
+
+    int n = bin.size();
+    std::vector<float> result(n, 0.0f);
+
+    for(int i=0; i<n; i++){
+        
+        const float j = i * shift[i];
+        const float width = std::max(1.0f, shift[i]);
+        const float w = M_PI / width;
+
+        const int l = std::max<int>(0, std::ceil(j - width));
+        const int r = std::min<int>(n-1, std::floor(j + width));
+
+        float sum = 0.0f;
+        for(int k=l; k<=r; k++) sum += 0.5f + 0.5f * std::cos(w * (j - k));
+    
+        sum = 1.0f / (sum + 1e-18f);
+        
+        for(int k=l; k<=r; k++)
+            result[k] += (0.5f + 0.5f * std::cos(w * (j - k))) * sum * bin[i];
+    }
+
+    return result;
+}
+
 vector<float> color_injection(
         const vector<float> &source_color,
         const vector<float> &source_pattern,
@@ -105,14 +157,14 @@ vector<float> color_injection(
     }
     
     for(int i=0; i<pattern_size; i++){
-        pattern_bin[i] = extract_window(source_color, i * pattern_step, pattern_step);
+        pattern_bin[i] = extract_window(source_pattern, i * pattern_step, pattern_step);
     }
 
     vector<float> output(size, 0.0f), output_bin(pattern_size, 0.0f);
 
     auto exact_color_shift = [&](float x){
-        const int l = std::max<int>(0, std::ceil(x));
-        const int r = std::min<int>(size-1, std::floor(x));
+        const int l = std::max<int>(0, std::floor(x));
+        const int r = std::min<int>(size-1, std::ceil(x));
         const float d = std::max(0.0f, std::min(x-l, 1.0f));
         return color_shift[l] * (1.0f - d) + color_shift[r] * d;
     };
