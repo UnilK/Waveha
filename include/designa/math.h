@@ -21,6 +21,10 @@ std::array<std::vector<std::complex<float> >, 2> fft(
 std::vector<float> inverse_fft(
         const std::vector<std::complex<float> > &v);
 
+std::array<std::vector<float>, 2> inverse_fft(
+        std::vector<std::complex<float> > a,
+        std::vector<std::complex<float> > b);
+
 std::vector<float> energy_mse(
         const std::vector<float> &a,
         const std::vector<float> &b);

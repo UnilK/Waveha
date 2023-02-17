@@ -25,7 +25,10 @@ std::vector<float> translate(const std::vector<float> &audio){
     std::vector<float> result;
     designa::Knot knot(44100, 70.0f);
 
-    knot.set_absolute_pitch_shift(0.6f);
+    vector<float> shift(knot.get_color_shift_size(), 1.0f / 1.7f);
+
+    knot.set_absolute_pitch_shift(2.5f);
+    knot.set_color_shift(shift);
 
     /*
     knot.enable_pitch_correction(1);

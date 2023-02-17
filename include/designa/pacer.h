@@ -4,11 +4,11 @@
 
 namespace designa {
 
-class Pace {
+class Pacer {
 
 public:
 
-    Pace(int rate, float low, float high, float calc_frequency = 200.0f);
+    Pacer(int rate, float low, float high, float calc_frequency = 200.0f);
 
     void push(float sample);
     float pull();

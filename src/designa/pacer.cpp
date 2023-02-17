@@ -1,4 +1,4 @@
-#include "designa/pace.h"
+#include "designa/pacer.h"
 #include "designa/math.h"
 
 #include <cassert>
@@ -8,7 +8,7 @@
 
 namespace designa {
 
-Pace::Pace(int rate, float low, float high, float calc_frequency){
+Pacer::Pacer(int rate, float low, float high, float calc_frequency){
     
     if(low > high) std::swap(low, high);
 
@@ -37,7 +37,7 @@ Pace::Pace(int rate, float low, float high, float calc_frequency){
     weak_weight = 0.0f;
 }
 
-void Pace::push(float sample){
+void Pacer::push(float sample){
     
     if(mid + max + pop > size){
         int move = mid - max - pop;
@@ -58,7 +58,7 @@ void Pace::push(float sample){
     mid++;
 }
 
-float Pace::pull(){
+float Pacer::pull(){
     
     if(std::abs(mid-strong) >= max+pop){
         strong = mid;
@@ -83,18 +83,19 @@ float Pace::pull(){
     return sample;
 }
 
-int Pace::get_scale(){ return scale; }
+int Pacer::get_scale(){ return scale; }
 
-float Pace::get_similarity(){ return similarity; }
+float Pacer::get_similarity(){ return similarity; }
 
-int Pace::get_delay(){ return max + pop; }
+int Pacer::get_delay(){ return max + pop; }
 
-void Pace::calc_scale(){
+void Pacer::calc_scale(){
 
     std::vector<float> l(max+2*pop), r(max+2*pop);
     for(int i=0; i<max+2*pop; i++){
-        l[i] = buffer[mid-max-pop+i] + rnd(0.01);
-        r[i] = buffer[mid-pop+i] + rnd(0.01);
+        const float noise = rnd(1e-4f);
+        l[i] = buffer[mid-max-pop+i] + noise;
+        r[i] = buffer[mid-pop+i] + noise;
     }
 
     auto mse = padded_energy_mse(l, r, pop);

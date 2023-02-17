@@ -83,10 +83,15 @@ void in_place_fft(vector<complex<float> > &v, bool inv){
 }
 
 vector<complex<float> > fft(const vector<float> &v){
+    
     vector<complex<float> > w(v.size());
     for(unsigned i=0; i<v.size(); i++) w[i] = v[i];
     in_place_fft(w, 0);
     w.resize(v.size()/2+1);
+    
+    w[0] /= 2;
+    w.back() /= 2;
+    
     return w;
 }
 
@@ -107,16 +112,65 @@ array<vector<complex<float> >, 2> fft(const vector<float> &a, const vector<float
         fb[i] = {fb[i].imag(), -fb[i].real()};
     }
 
+    fa[0] /= 2;
+    fa[n/2] /= 2;
+    fb[0] /= 2;
+    fb[n/2] /= 2;
+
     return {fa, fb};
 }
 
+array<vector<float>, 2> inverse_fft(vector<complex<float> > a, vector<complex<float> > b){
+
+    assert(a.size() == b.size());
+
+    int n = a.size();
+
+    a[0] *= 2;
+    a[n-1] *= 2;
+    b[0] *= 2;
+    b[n-1] *= 2;
+
+    int m = 2 * n - 2;
+    
+    a.resize(m);
+    b.resize(m);
+    
+    for(int i=1; i<m-i; i++){
+        a[m-i] = std::conj(a[i]);  
+        b[m-i] = std::conj(b[i]);
+    }
+
+    for(int i=0; i<m; i++){
+        a[i].real(a[i].real() - b[i].imag());
+        a[i].imag(a[i].imag() + b[i].real());
+    }
+
+    in_place_fft(a, 1);
+
+    vector<float> ta(m), tb(m);
+    for(int i=0; i<m; i++){
+        ta[i] = a[i].real();
+        tb[i] = a[i].imag();
+    }
+    
+    return {ta, tb};
+}
+
 vector<float> inverse_fft(const vector<complex<float> > &v){
+    
     auto w = v;
     w.resize(v.size()*2-2);
+    
     for(unsigned i=1; i+1<v.size(); i++) w[w.size()-i] = std::conj(w[i]);
+    w[0] *= 2;
+    w[v.size()-1] *= 2;
+
     in_place_fft(w, 1);
+    
     vector<float> r(w.size());
     for(unsigned i=0; i<w.size(); i++) r[i] = w[i].real();
+    
     return r;
 }
 

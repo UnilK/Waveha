@@ -13,6 +13,7 @@
 #include "designa/math.h"
 #include "designa/color.h"
 #include "designa/knot.h"
+#include "designa/scolor.h"
 
 #include <math.h>
 #include <algorithm>
@@ -176,52 +177,17 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     using std::tuple;
 
     int n = audio.size();
-
-    /*
-    vector<float> windowed(n);
-    for(int i=0; i<n; i++) windowed[i] = audio[i] * std::sin(PIF * i / n);
- 
-    vector<float> window(n/2, 0.0f);
-    {
-        double pw = 2.0;
-        double reso = (44100.0 / n) / 1000.0 * pw;
-        for(int i=0; i<n/2; i++) window[i] = std::exp(-i*reso) * std::pow(i*reso, pw);
-    }
-    
-    auto freq = math::fft(windowed);
-    freq.resize(n/2);
-    for(int i=0; i<n/2; i++) freq[i] = std::abs(freq[i]) * window[i];
-
-    auto norm = math::inverse_fft(freq);
-    norm.resize(n/4);
-
-    float ma = 0.0f;
-    for(int i=20; i+1<n/4; i++){
-        if(norm[i] > norm[i-1] && norm[i] > norm[i+1]){
-            ma = std::max(ma, norm[i]);
-        }
-    }
-
-    std::cerr << ma / (norm[0] + 1e-9f) << '\n';
-
-    ma = 1.0f / (norm[0] + 1e-9f);
-    for(float &i : norm) i *= ma;
-
-    return norm;
-    */
-
     int m = n/2;
 
     int extra = 128;
     vector<float> a(m+extra), b(m+extra);
     for(int i=0; i<m+extra; i++){
-        a[i] = audio[i] + rnd(1e-2);
-        b[i] = audio[m+i-extra] + rnd(1e-2);
+        const float noise = rnd(1e-4);
+        a[i] = audio[i] + noise;
+        b[i] = audio[m+i-extra] + noise;
     }
 
-    auto mse = designa::energy_mse(a, b);
-    for(int i=0; i+2*extra < (int)mse.size(); i++) mse[i] = mse[i+2*extra];
-    mse.resize(mse.size()-2*extra);
+    auto mse = designa::padded_energy_mse(a, b, extra);
     for(float &i : mse) i = 1.0f - i;
 
     return mse;
@@ -234,6 +200,56 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     using std::complex;
     using std::tuple;
 
+    designa::Pacer pacer(44100, 70.0f, 1200.0f);
+    designa::Scolor scolor(44100, 70.0f, 0.1f);
+
+    vector<float> shift(scolor.get_shift_size(), 1.5f);
+    scolor.set_shift(shift);
+
+    vector<float> result;
+    for(float i : audio){
+        pacer.push(i);
+        result.push_back(scolor.process(pacer.pull(), pacer.get_scale()));
+    }
+
+    return result;
+
+    /*
+    int n = audio.size();
+
+    int N = 256;
+
+    auto window = designa::cos_window(N/2, N/2);
+    vector<float> shift(N/2+1, 2.5f);
+
+    vector<float> waudio(n, 0.0f);
+    for(int i=0; i+N<=n; i+=N/16){
+        
+        vector<float> bit(N);
+        for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+        
+        auto freq = designa::fft(bit);
+        auto phase = designa::frequency_phases(freq);
+        auto energy = designa::frequency_energies(freq);
+        energy = designa::shift_bins(energy, shift);
+
+        bit = designa::inverse_fft(designa::join_energy_to_phase(energy, phase));
+        for(int j=0; j<N; j++) waudio[i+j] += window[j] * bit[j];
+    }
+
+    return waudio;
+    */
+
+    /*
+    vector<float> result;
+    designa::Knot knot(44100, 70.0f);
+    
+    for(float i : audio) result.push_back(knot.process(i));
+
+    return result;
+    */
+
+    /*
     int n = audio.size();
     int m;
     int M = 1;
@@ -244,8 +260,9 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
         int d = n / 2 - N;
         vector<float> l(d + 2*N), r(d+2*N);
         for(int i=0; i<d+2*N; i++){
-            l[i] = audio[i] + rnd(1e-2);
-            r[i] = audio[d + i] + rnd(1e-2);
+            const float noise = rnd(1e-4);
+            l[i] = audio[i] + noise;
+            r[i] = audio[d + i] + noise;
         }
 
         auto mse = designa::padded_energy_mse(l, r, N);
@@ -265,8 +282,8 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     auto freq = designa::fft(bit);
     auto energy = designa::frequency_energies(freq);
     
-    std::vector<float> shift(energy.size(), 2.0f);
-    if(rand()&1) energy = designa::shift_bins(energy, shift);
+    std::vector<float> shift(energy.size(), 1.5f);
+    energy = designa::shift_bins(energy, shift);
 
     auto phase = designa::frequency_phases(freq);
     freq = designa::join_energy_to_phase(energy, phase);
@@ -275,6 +292,7 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     designa::apply_window(bit, window);
 
     return bit;
+    */
 }
 
 std::vector<float> random_experiment2(const std::vector<float> &audio, float low, float high){
@@ -335,39 +353,32 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
     
     int n = audio.size();
 
-    int N = 128;
+    int N = 256;
 
-    vector<float> window(N);
-    for(int i=0; i<N; i++) window[i] = 0.5f - 0.5f * std::cos(2 * PIF * i / N);
+    auto window = designa::cos_window(N/2, N/2);
+    vector<float> shift(N/2+1, 2.5f);
+
+    bool state = rand()&1;
 
     vector<float> waudio(n, 0.0f);
-    for(int i=0; i+N<=n; i+=N/4){
+    for(int i=0; i+N<=n; i+=N/16){
+        
         vector<float> bit(N);
         for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
-        auto freq = math::fft(bit);
-        int d = N / 24;
-        freq[0] = 0.0f;
-        for(int j=1; j<=d; j++) freq[j] = freq[N-j] = 0.0f;
-        bit = math::inverse_fft(freq);
+        
+        auto freq = designa::fft(bit);
+        auto phase = designa::frequency_phases(freq);
+        auto energy = designa::frequency_energies(freq);
+        if(state) energy = designa::shift_bins(energy, shift);
+
+        bit = designa::inverse_fft(designa::join_energy_to_phase(energy, phase));
         for(int j=0; j<N; j++) waudio[i+j] += window[j] * bit[j];
     }
 
-    auto vivo = waudio;
-    for(float &i : waudio) i = 0.0f;
-
-    for(int i=0; i+N<=n; i+=N/4){
-        vector<float> bit(N);
-        for(int j=0; j<N; j++) bit[j] = std::abs(vivo[i+j]) * window[j];
-        auto freq = math::fft(bit);
-        int d = N / 32;
-        for(int j=d+1; j<N-d; j++) freq[j] = 0.0f;
-        bit = math::inverse_fft(freq);
-        for(int j=0; j<N; j++) waudio[i+j] += window[j] * bit[j];
-    }
-
-    vector<complex<float> > freq(n);
-    for(int i=0; i<n; i++) freq[i] = waudio[i];
-
+    window = designa::cos_window(n/2, n/2);
+    for(int i=0; i<n; i++) waudio[i] *= window[i];
+    
+    auto freq = designa::fft(waudio);
     return freq;
 }
 
