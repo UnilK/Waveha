@@ -135,6 +135,8 @@ build/change/tests.o: include/change/phaser4.h include/math/fft.h
 build/change/tests.o: include/math/constants.h include/change/util.h
 build/change/tests.o: include/designa/knot.h include/designa/pacer.h
 build/change/tests.o: include/designa/ftip.h include/designa/scolor.h
+build/change/tests.o: include/designa/equalizer.h include/designa/binder.h
+build/change/tests.o: include/designa/math.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -146,6 +148,7 @@ build/change/pitch.o: include/change/util.h include/change/tests.h
 build/change/pitch.o: include/designa/math.h include/designa/color.h
 build/change/pitch.o: include/designa/knot.h include/designa/pacer.h
 build/change/pitch.o: include/designa/ftip.h include/designa/scolor.h
+build/change/pitch.o: include/designa/equalizer.h include/designa/binder.h
 build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
 build/change/pitcher3.o: include/math/fft.h include/change/resample.h
@@ -396,9 +399,11 @@ build/designa/ftip.o: include/designa/ftip.h
 build/designa/math.o: include/designa/math.h
 build/designa/color.o: include/designa/color.h include/designa/math.h
 build/designa/equalizer.o: include/designa/equalizer.h include/designa/math.h
+build/designa/binder.o: include/designa/binder.h
 build/designa/knot.o: include/designa/knot.h include/designa/pacer.h
 build/designa/knot.o: include/designa/ftip.h include/designa/scolor.h
-build/designa/knot.o: include/designa/color.h include/designa/math.h
+build/designa/knot.o: include/designa/equalizer.h include/designa/binder.h
+build/designa/knot.o: include/designa/math.h
 build/main.o: include/app/app.h include/ui/window.h include/ui/frame.h
 build/main.o: include/ui/borders.h include/ui/style.h include/ui/box.h
 build/main.o: include/ui/slider.h include/ui/stack.h include/ui/text.h

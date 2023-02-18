@@ -7,18 +7,21 @@
 
 namespace designa {
 
-Scolor::Scolor(int framerate, float min_frequency, float decay_halftime){
+Scolor::Scolor(int framerate, float min_frequency, float decay_halftime, int window_steps){
     
+    step = window_steps;
+    assert("window steps must be a multiple of 4" && step % 4 == 0 && step > 0);
+
     decay = std::pow(2.0f, 1.0f / (framerate * decay_halftime));
 
     wsize = std::ceil(framerate / min_frequency);
-    wsize = (wsize + 15) / 16 * 16;
+    wsize = (wsize + step - 1) / step * step;
     size = 4 * wsize;
 
     psize = 1;
     while(psize < wsize) psize *= 2;
     
-    wsize += wsize / 16;
+    wsize += wsize / step;
 
     pointer = 0;
     state = 0;
@@ -32,7 +35,7 @@ Scolor::Scolor(int framerate, float min_frequency, float decay_halftime){
 
 float Scolor::process(float sample, float period){
     
-    if(pointer + wsize + wsize / 16 > size){
+    if(pointer + wsize + wsize / step > size){
         ibuff = ibuff.shift(pointer);
         obuff = obuff.shift(pointer);
         pbuff = pbuff.shift(pointer);
@@ -49,7 +52,7 @@ float Scolor::process(float sample, float period){
     if(state == 0){
         
         int width = std::ceil(pbuff[pointer]);
-        width = (15 + width) / 16  * 16;
+        width = (step + width) / step  * step;
 
         int pwidth = 1;
         while(pwidth < width) pwidth *= 2;
@@ -59,7 +62,7 @@ float Scolor::process(float sample, float period){
         std::vector<float> bit1(width), bit2(width);
         for(int i=0; i<width; i++){
             bit1[i] = ibuff[pointer + i] * window[i];
-            bit2[i] = ibuff[pointer + width / 16 + i] * window[i];
+            bit2[i] = ibuff[pointer + width / step + i] * window[i];
         }
 
         bit1.resize(pwidth, 0.0f);
@@ -90,15 +93,15 @@ float Scolor::process(float sample, float period){
 
         for(int i=0; i<width; i++){
             obuff[pointer + i] += out1[i] * window[i];
-            obuff[pointer + width / 16 + i] += out2[i] * window[i];
+            obuff[pointer + width / step + i] += out2[i] * window[i];
         }
         
-        state = width / 8;
+        state = 2 * width / step;
     }
 
     state--;
 
-    return obuff[pointer++] / 6;
+    return obuff[pointer++] * 8 / (step * 3);
 }
 
 int Scolor::get_shift_size(){ return psize / 2 + 1; }

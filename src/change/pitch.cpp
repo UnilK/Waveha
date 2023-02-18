@@ -200,6 +200,45 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     using std::complex;
     using std::tuple;
 
+    designa::Knot knot(44100, 70.0f, 256);
+
+    int csize = knot.get_color_shift_size();
+    int esize = knot.get_eq_frequency_window_size();
+
+    vector<float> shift(csize, 1.0f / 1.7f);
+    
+    vector<float> merge = designa::cos_window(esize/2, esize - esize/2);
+    for(float &i : merge) i = 1.0f - i;
+    for(int i=0; i<esize/2; i++) merge[i] = 0.0f;
+
+    vector<float> gain(esize, 1.0f);
+
+    vector<float> clean(esize, 1e-4f);
+
+    vector<float> noise(esize);
+    for(int i=0; i<esize; i++) noise[i] = 0.1f * (esize - i) / esize;
+    for(float &i : noise) i = i*i;
+    
+    vector<float> shuffle(esize, 0.15f);
+
+    knot.set_absolute_pitch_shift(2.5f);
+    
+    knot.set_color_shift(shift);
+    
+    knot.set_eq_merge(merge);
+    knot.set_eq_gain(gain);
+    knot.set_eq_clean(clean);
+    knot.set_eq_noise(noise);
+    knot.set_eq_shuffle(shuffle);
+    
+    knot.set_bind_threshold(0.8f);
+
+    vector<float> result;
+    for(float i : audio) result.push_back(knot.process(i));
+
+    return result;
+
+    /*
     designa::Pacer pacer(44100, 70.0f, 1200.0f);
     designa::Scolor scolor(44100, 70.0f, 0.1f);
 
@@ -213,6 +252,7 @@ std::vector<float> random_experiment(const std::vector<float> &audio){
     }
 
     return result;
+    */
 
     /*
     int n = audio.size();

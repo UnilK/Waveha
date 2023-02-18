@@ -68,8 +68,8 @@ float Pacer::pull(){
     
     if(3 * std::abs(strong - mid) > 2 * scale && strong_weight > 1.0f - epsilon){
         weak = strong;
-        if(strong > mid) while(strong > mid) strong -= scale;
-        else while(strong < mid) strong += scale;
+        if(strong > mid){ while(strong > mid) strong -= scale; }
+        else { while(strong < mid) strong += scale; }
         weak_weight = strong_weight;
         strong_weight = 0.0f;
     }

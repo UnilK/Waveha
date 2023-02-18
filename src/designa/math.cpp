@@ -244,7 +244,8 @@ float maximum_peak(const vector<float> &v, int min, int max){
         return i + d;
     };
 
-    return para(j, v[j-1], v[j], v[j+1]);
+    if(v[j] > v[j-1] && v[j] > v[j+1]) return para(j, v[j-1], v[j], v[j+1]);
+    return j;
 }
 
 vector<float> sin_window(int left, int right){

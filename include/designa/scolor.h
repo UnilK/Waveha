@@ -9,7 +9,7 @@ class Scolor {
 
 public:
 
-    Scolor(int framerate, float min_frequency, float decay_halftime);
+    Scolor(int framerate, float min_frequency, float decay_halftime, int window_steps = 4);
 
     float process(float sample, float period);
 
@@ -22,7 +22,7 @@ public:
 private:
 
     float decay;
-    int pointer, size, wsize, psize, state;
+    int pointer, size, wsize, psize, state, step;
     std::valarray<float> ibuff, obuff, pbuff;
     std::vector<float> shift;
 
