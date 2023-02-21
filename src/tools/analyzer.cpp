@@ -227,6 +227,42 @@ ui::Frame::Capture AnalyzerGraph::on_event(sf::Event event, int priority){
             return Capture::capture;
         }
     }
+    else if(event.type == sf::Event::MouseWheelScrolled){
+       
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)){
+            
+            float d = 50.0f;
+            if(event.mouseWheelScroll.delta < 0) d = -d;
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) d *= 10;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) d *= 100;
+            
+            analyzer.freqLow = std::max(0.0f, std::min(analyzer.freqLow + d, analyzer.freqHigh));
+        
+            analyzer.terminal.push_output(std::to_string(analyzer.freqLow) + " Hz - "
+                    + std::to_string(analyzer.freqHigh) + "Hz");
+
+            analyzer.update_data();
+            
+            return Capture::capture;
+        }
+        else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)){
+            
+            float d = 50.0f;
+            if(event.mouseWheelScroll.delta < 0) d = -d;
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) d *= 10;
+            else if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) d *= 100;
+            
+            analyzer.freqHigh = std::min(std::max(analyzer.freqLow,
+                        analyzer.freqHigh + d), 22050.0f);
+            
+            analyzer.terminal.push_output(std::to_string(analyzer.freqLow) + " Hz - "
+                    + std::to_string(analyzer.freqHigh) + "Hz");
+
+            analyzer.update_data();
+            
+            return Capture::capture;
+        }
+    }
 
     return Capture::pass;
 }

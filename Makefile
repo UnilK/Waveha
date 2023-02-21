@@ -95,6 +95,11 @@ release: $(SOURCES) $(HEADERS) $(SRCDIR)/$(MAINAPP).cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it. 
 
+build/designb/wavelet.o: include/designb/wavelet.h include/designb/common.h
+build/designb/splitter.o: include/designb/splitter.h include/designb/common.h
+build/designb/splitter.o: include/designb/math.h
+build/designb/common.o: include/designb/common.h
+build/designb/math.o: include/designb/math.h
 build/wave/file.o: include/wave/file.h include/wave/source.h
 build/wave/file.o: lib/Wstream/include/wstream/wstream.h include/wave/util.h
 build/wave/cache.o: include/wave/cache.h include/wave/source.h
@@ -146,9 +151,8 @@ build/change/pitch.o: include/change/detector2.h include/change/pitcher2.h
 build/change/pitch.o: include/change/phaser2.h include/change/phaser.h
 build/change/pitch.o: include/change/util.h include/change/tests.h
 build/change/pitch.o: include/designa/math.h include/designa/color.h
-build/change/pitch.o: include/designa/knot.h include/designa/pacer.h
-build/change/pitch.o: include/designa/ftip.h include/designa/scolor.h
-build/change/pitch.o: include/designa/equalizer.h include/designa/binder.h
+build/change/pitch.o: include/designb/common.h include/designb/splitter.h
+build/change/pitch.o: include/designb/wavelet.h include/designb/math.h
 build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
 build/change/pitcher3.o: include/math/fft.h include/change/resample.h

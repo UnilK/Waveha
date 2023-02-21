@@ -24,28 +24,16 @@ std::vector<float> translate(const std::vector<float> &audio){
     using std::complex;
 
     std::vector<float> result;
-    designa::Knot knot(44100, 70.0f, 256);
+    designa::Knot knot(44100, 70.0f, 512);
+
+    std::cerr << knot.get_delay() << '\n';
 
     int csize = knot.get_color_shift_size();
     int esize = knot.get_eq_frequency_window_size();
 
-    float s = 0.6f;
+    float s = 3.6f;
 
-    vector<float> shift(csize, 1.2f);
-
-    /*
-    for(int i=0; i<csize; i++){
-        if(i<csize/64){
-            shift[i] = 0.7f + 0.3f / s * 1.2f;
-        } else if(i<13*csize/64){
-            float d = std::cos(M_PI * (i - csize/64) / (12*csize/64));
-            d = 0.7f * d;
-            shift[i] = d + (1.0f - d) / s * 1.2f;
-        } else {
-            shift[i] = 1.0f / s * 1.2;
-        }
-    }
-    */
+    vector<float> shift(csize, 1.0f / 2.3f);
     
     vector<float> merge = designa::cos_window(esize/2, esize - esize/2);
     for(float &i : merge) i = 1.0f - i;
