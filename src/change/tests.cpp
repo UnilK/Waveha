@@ -6,7 +6,8 @@
 #include "math/fft.h"
 #include "math/constants.h"
 #include "change/util.h"
-#include "designa/knot.h"
+#include "change/pitch.h"
+#include "designc/knot.h"
 #include "designa/math.h"
 
 #include <complex>
@@ -24,40 +25,42 @@ std::vector<float> translate(const std::vector<float> &audio){
     using std::complex;
 
     std::vector<float> result;
-    designa::Knot knot(44100, 70.0f, 512);
+    designc::Knot knot(44100, 70.0f, 256, 256);
 
     std::cerr << knot.get_delay() << '\n';
 
     int csize = knot.get_color_shift_size();
     int esize = knot.get_eq_frequency_window_size();
 
-    float s = 3.6f;
+    float s = 1.7f;
 
-    vector<float> shift(csize, 1.0f / 2.3f);
+    vector<float> shift(csize, 0.8f);
     
-    vector<float> merge = designa::cos_window(esize/2, esize - esize/2);
-    for(float &i : merge) i = 1.0f - i;
-    for(int i=0; i<esize/2; i++) merge[i] = 0.0f;
+    vector<float> gain(esize, 1.0f);
 
-    vector<float> gain(esize, 3.0f);
+    vector<float> clean(esize, 5e-5f);
 
-    vector<float> clean(esize, 1e-6f);
+    vector<float> shuffle(esize, 0.05f);
 
-    vector<float> noise(esize);
-    for(int i=0; i<esize; i++) noise[i] = 0.1f * (esize - i) / esize;
-    for(float &i : noise) i = i*i;
+    vector<float> noise(esize, 0.0f);
     
-    vector<float> shuffle(esize, 0.2f);
+    vector<float> blur(esize, 0.0f);
 
     knot.set_absolute_pitch_shift(s);
     
     knot.set_color_shift(shift);
     
-    // knot.set_eq_merge(merge);
     knot.set_eq_gain(gain);
     knot.set_eq_clean(clean);
-    knot.set_eq_noise(noise);
     knot.set_eq_shuffle(shuffle);
+    knot.set_eq_noise(noise);
+    knot.set_eq_blur(blur);
+    
+    knot.enable_eq_gain(0);
+    knot.enable_eq_clean(0);
+    knot.enable_eq_shuffle(0);
+    knot.enable_eq_noise(0);
+    knot.enable_eq_blur(0);
     
     knot.set_bind_threshold(0.8f);
 

@@ -58,14 +58,14 @@ std::vector<float> Wavelet::process(float sample){
 
         {
             const float c = a * spin * (cshift + (1.0 - cshift) / shift);
-            auto inter = phase * std::polar<float>(1.0f, c * wsize / 4);
+            auto inter = phase * std::polar<float>(1.0f, (c - b) * wsize / 4);
 
             float e = std::norm(sum);
             float f = std::max(0.0f, e - energy) / std::max(1e-18f, e + energy);
 
-            phase = unit_complex(f * unit_complex(sum) + (1.0f - f) * inter);
+            phase = std::polar<float>(1.0f, (1.0f - f) * std::arg(inter));
 
-            sum = std::abs(sum) * phase;
+            sum *= phase;
             
             energy = e * (1.0 - decay) + energy * decay;
 

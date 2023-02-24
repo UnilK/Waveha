@@ -129,6 +129,8 @@ vector<float> shift_bins(
     int n = bin.size();
     std::vector<float> result(n, 0.0f);
 
+    result[0] = bin[0];
+
     for(int i=0; i<n; i++){
         
         const float j = i * shift[i];
@@ -136,7 +138,7 @@ vector<float> shift_bins(
         const float w = M_PI / width;
 
         const int l = std::max<int>(1, std::ceil(j - width));
-        const int r = std::min<int>(n-2, std::floor(j + width));
+        const int r = std::min<int>(n-1, std::floor(j + width));
 
         float sum = 0.0f;
         for(int k=l; k<=r; k++) sum += 0.5f + 0.5f * std::cos(w * (j - k));

@@ -100,6 +100,19 @@ build/designb/splitter.o: include/designb/splitter.h include/designb/common.h
 build/designb/splitter.o: include/designb/math.h
 build/designb/common.o: include/designb/common.h
 build/designb/math.o: include/designb/math.h
+build/designc/common.o: include/designc/common.h
+build/designc/pacer.o: include/designc/pacer.h include/designc/common.h
+build/designc/pacer.o: include/designc/math.h
+build/designc/resampler.o: include/designc/resampler.h
+build/designc/math.o: include/designc/math.h
+build/designc/painter.o: include/designc/painter.h include/designc/common.h
+build/designc/painter.o: include/designc/math.h
+build/designc/equalizer.o: include/designc/equalizer.h include/designc/common.h
+build/designc/equalizer.o: include/designc/math.h
+build/designc/binder.o: include/designc/binder.h
+build/designc/knot.o: include/designc/knot.h include/designc/pacer.h
+build/designc/knot.o: include/designc/resampler.h include/designc/painter.h
+build/designc/knot.o: include/designc/equalizer.h include/designc/binder.h
 build/wave/file.o: include/wave/file.h include/wave/source.h
 build/wave/file.o: lib/Wstream/include/wstream/wstream.h include/wave/util.h
 build/wave/cache.o: include/wave/cache.h include/wave/source.h
@@ -138,10 +151,10 @@ build/change/tests.o: include/change/tests.h include/change/pitcher2.h
 build/change/tests.o: include/change/phaser.h include/change/phaser2.h
 build/change/tests.o: include/change/phaser4.h include/math/fft.h
 build/change/tests.o: include/math/constants.h include/change/util.h
-build/change/tests.o: include/designa/knot.h include/designa/pacer.h
-build/change/tests.o: include/designa/ftip.h include/designa/scolor.h
-build/change/tests.o: include/designa/equalizer.h include/designa/binder.h
-build/change/tests.o: include/designa/math.h
+build/change/tests.o: include/change/pitch.h include/designc/knot.h
+build/change/tests.o: include/designc/pacer.h include/designc/resampler.h
+build/change/tests.o: include/designc/painter.h include/designc/equalizer.h
+build/change/tests.o: include/designc/binder.h include/designa/math.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h

@@ -13,6 +13,7 @@ openml="gnome-terminal --tab -t ml -- vim -S dev/.vimrc -p src/ml/*.cpp include/
 openwstream="gnome-terminal --tab -t wstream -- vim -S dev/.vimrc -p lib/Wstream/src/wstream/*.cpp"
 opendesigna="gnome-terminal --tab -t designa -- vim -S dev/.vimrc -p src/designa/*.cpp"
 opendesignb="gnome-terminal --tab -t designb -- vim -S dev/.vimrc -p src/designb/*.cpp"
+opendesignc="gnome-terminal --tab -t designc -- vim -S dev/.vimrc -p src/designc/*.cpp"
 
 while [[ $# -gt 0 ]]
 do
@@ -52,6 +53,9 @@ do
             ;;
         designb)
             $opendesignb
+            ;;
+        designc)
+            $opendesignc
             ;;
         make)
             $openterminal

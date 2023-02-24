@@ -585,7 +585,7 @@ void Analyzer::update_data(){
         
         auto audio = link.get_loop(length, position);
         // if(rand()&1) audio = change::random_experiment(audio);
-        for(int i=0; i<length; i++) audio[i] *= std::sin(PIF * i / length);
+        for(int i=0; i<length; i++) audio[i] *= 1.0f - std::cos(2 * PIF * i / length);
         auto data = math::fft(audio);
 
         data.resize(data.size()/2 + 1);
