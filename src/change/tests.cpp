@@ -9,6 +9,7 @@
 #include "change/pitch.h"
 #include "designc/knot.h"
 #include "designa/math.h"
+#include "designd/knot.h"
 
 #include <complex>
 #include <random>
@@ -25,7 +26,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     using std::complex;
 
     std::vector<float> result;
-    designc::Knot knot(44100, 70.0f, 256, 256);
+    designd::Knot knot(44100, 70.0f, 2048, 256);
 
     std::cerr << knot.get_delay() << '\n';
 
@@ -34,7 +35,7 @@ std::vector<float> translate(const std::vector<float> &audio){
 
     float s = 1.7f;
 
-    vector<float> shift(csize, 0.8f);
+    vector<float> shift(csize, 1.0f);
     
     vector<float> gain(esize, 1.0f);
 
@@ -64,78 +65,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     
     knot.set_bind_threshold(0.8f);
 
-    /*
-    knot.enable_pitch_correction(1);
-    knot.set_pitch_correction_power(0.1f);
-    */
-
     for(float i : audio) result.push_back(knot.process(i));
-
-    /*
-    change::Pitcher2 a(1.9, 16);
-    change::Phaser4 b(44100, 40.0f, 1000.0f);
-
-    std::vector<float> result;
-
-    for(float i : audio){
-        auto j = a.process(i);
-        for(float k : j) b.push(k); // result.push_back(k);
-        result.push_back(b.pull());
-    }
-    */
-    
-    /*
-    using std::vector;
-
-    auto tmp = result;
-    for(float &i : result) i = 0.0f;
-    int n = result.size();
-
-    const int N = 512;
-    const int H = N / 2 + 1;
-    constexpr int high = std::ceil(5000.0 / (44100.0 / N));
-
-        
-    vector<float> window(N);
-    for(int i=0; i<N; i++) window[i] = (1.0f - 1.0f * std::cos(2 * PIF * i / N)) / std::sqrt(6);
-
-    for(int i=0; i+N<=n; i+=N/4){
-        vector<float> bit(N);
-        for(int j=0; j<N; j++) bit[j] = tmp[i+j] * window[j];
-        auto freq = math::fft(bit);
-        for(int j=high; j<H; j++) freq[j] *= std::polar<float>(1.0f, 2 * PI * rnd());
-        for(int j=1; j<H; j++) freq[N-j] = std::conj(freq[j]);
-        bit = math::inverse_fft(freq);
-        for(int j=0; j<N; j++) result[i+j] += bit[j] * window[j];
-    }
-    */
-    
-    // result = energytranslate3(result);
-
-    /*
-    const int N = 256;
-
-    auto filtered = result;
-    int n = filtered.size();
-    for(float &i : result) i = 0.0f;
-
-    std::vector<float> window(N);
-    for(int i=0; i<N; i++) window[i] = (std::cos(2*PI*i/N) - 1.0) / sqrt(6);
-
-    for(int i=0; i+N<n; i+=N/4){
-        std::vector<float> bit(N);
-        for(int j=0; j<N; j++) bit[j] = filtered[i+j] * window[j];
-        auto freq = math::fft(bit);
-        for(int j=0; j<=N-j; j++){
-            int k = (N-j)%N;
-            std::complex<float> a = std::polar(1.0f, (float)(2 * PI * (rnd()*0.4-0.2)));
-            freq[j] *= a;
-            freq[k] *= std::conj(a);
-        }
-        bit = math::inverse_fft(freq);
-        for(int j=0; j<N; j++) result[i+j] += bit[j] * window[j];
-    }
-    */
 
     return result;
 }

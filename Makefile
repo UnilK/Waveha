@@ -100,6 +100,19 @@ build/designb/splitter.o: include/designb/splitter.h include/designb/common.h
 build/designb/splitter.o: include/designb/math.h
 build/designb/common.o: include/designb/common.h
 build/designb/math.o: include/designb/math.h
+build/designd/common.o: include/designd/common.h
+build/designd/pacer.o: include/designd/pacer.h include/designd/common.h
+build/designd/pacer.o: include/designd/math.h
+build/designd/resampler.o: include/designd/resampler.h
+build/designd/math.o: include/designd/math.h
+build/designd/painter.o: include/designd/painter.h include/designd/common.h
+build/designd/painter.o: include/designd/math.h
+build/designd/equalizer.o: include/designd/equalizer.h include/designd/common.h
+build/designd/equalizer.o: include/designd/math.h
+build/designd/binder.o: include/designd/binder.h
+build/designd/knot.o: include/designd/knot.h include/designd/pacer.h
+build/designd/knot.o: include/designd/resampler.h include/designd/painter.h
+build/designd/knot.o: include/designd/equalizer.h include/designd/binder.h
 build/designc/common.o: include/designc/common.h
 build/designc/pacer.o: include/designc/pacer.h include/designc/common.h
 build/designc/pacer.o: include/designc/math.h
@@ -155,6 +168,9 @@ build/change/tests.o: include/change/pitch.h include/designc/knot.h
 build/change/tests.o: include/designc/pacer.h include/designc/resampler.h
 build/change/tests.o: include/designc/painter.h include/designc/equalizer.h
 build/change/tests.o: include/designc/binder.h include/designa/math.h
+build/change/tests.o: include/designd/knot.h include/designd/pacer.h
+build/change/tests.o: include/designd/resampler.h include/designd/painter.h
+build/change/tests.o: include/designd/equalizer.h include/designd/binder.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -166,6 +182,9 @@ build/change/pitch.o: include/change/util.h include/change/tests.h
 build/change/pitch.o: include/designa/math.h include/designa/color.h
 build/change/pitch.o: include/designb/common.h include/designb/splitter.h
 build/change/pitch.o: include/designb/wavelet.h include/designb/math.h
+build/change/pitch.o: include/designc/knot.h include/designc/pacer.h
+build/change/pitch.o: include/designc/resampler.h include/designc/painter.h
+build/change/pitch.o: include/designc/equalizer.h include/designc/binder.h
 build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
 build/change/pitcher3.o: include/math/fft.h include/change/resample.h

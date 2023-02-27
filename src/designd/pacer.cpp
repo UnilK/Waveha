@@ -1,14 +1,14 @@
-#include "designc/pacer.h"
+#include "designd/pacer.h"
 
-#include "designc/common.h"
-#include "designc/math.h"
+#include "designd/common.h"
+#include "designd/math.h"
 
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <vector>
 
-namespace designc {
+namespace designd {
 
 Pacer::Pacer(int rate, float low, float high, float calc_frequency){
     

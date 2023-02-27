@@ -23,7 +23,7 @@ std::vector<float> phase_graph(
         const std::vector<float> &audio,
         unsigned period);
 
-std::vector<float> random_experiment(const std::vector<float> &audio);
+std::vector<float> random_experiment(const std::vector<float> &audi, float low, float higho);
 std::vector<float> random_experiment2(const std::vector<float> &audio, float low, float high);
 
 std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio);

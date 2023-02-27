@@ -16,6 +16,7 @@
 #include "designb/splitter.h"
 #include "designb/wavelet.h"
 #include "designb/math.h"
+#include "designc/knot.h"
 
 #include <math.h>
 #include <algorithm>
@@ -89,7 +90,7 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     int n = audio.size();
     int m = n/2;
 
-    int extra = 128;
+    int extra = 64;
     vector<float> a(m+extra), b(m+extra);
     for(int i=0; i<m+extra; i++){
         const float noise = rnd(1e-4);
@@ -104,58 +105,67 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
 }
 
 
-std::vector<float> random_experiment(const std::vector<float> &audio){
+std::vector<float> random_experiment(const std::vector<float> &audio, float low, float high){
 
     using std::vector;
     using std::complex;
     using std::tuple;
     
     int n = audio.size();
-    const int N = 64;
-    const int M = N / 2 + 1;
 
-    auto window = designb::cos_window(N);
-    for(float &i : window) i /= std::sqrt(6);
+    vector<float> result(n, 0.0f), filtered(n, 0.0f);
 
-    vector<vector<complex<float> > > wavelet(M, vector<complex<float> >(N));
-    for(int i=0; i<M; i++){
-        for(int j=0; j<N; j++) wavelet[i][j] = std::polar<double>(window[j], 2 * M_PI * i * j / N);
-    }
+    {
+        const int N = 512;
 
-    vector<vector<complex<float> > > waudio(n, vector<complex<float> >(M, 0.0f));
-
-    for(int i=0; i+N<=n; i+=N/4){
-        std::vector<float> bit(N);
-        for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
-        auto freq = designb::fft(bit);
-        for(int j=1; j+1<M; j++) freq[j] *= 2;
-        for(int j=0; j<N; j++){
-            for(int k=0; k<M; k++){
-                waudio[i+j][k] += (freq[k] * wavelet[k][j] / (float)N);
-            }
+        vector<complex<float> > cres(n, 0.0f);
+        vector<float> window(N), fwindow(N);
+        for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * PIF * i / N)) / sqrt(6);
+        
+        float reso = 44100.0f / N;
+        
+        low -= reso / 2;
+        high += reso / 2;
+        
+        for(int i=0; i<=N-i; i++){
+            float l = i * reso - reso / 2, r = i * reso + reso / 2;
+            l = std::max(l, low);
+            r = std::min(r, high);
+            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
         }
+
+        for(int i=0; i+N<=n; i+=N/4){
+            std::vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+            auto freq = math::fft(bit);
+            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
+            
+            for(int j=N/2; j<N; j++) freq[j] = 0.0f;
+            math::in_place_fft(freq, 1);
+            for(int j=0; j<N; j++) cres[i+j] += window[j] * freq[j];
+            
+            // bit = math::inverse_fft(freq);
+            // for(int j=0; j<N; j++) result[i+j] += window[j] * bit[j];
+        }
+
+        for(int i=0; i<n; i++) filtered[i] = cres[i].real();
     }
 
-    vector<vector<float> > energy(n, vector<float>(M, 1e-18f));
+    {
+        const int N = 64;
 
-    for(int i=0; i+N<=n; i+=N/4){
-        for(int k=0; k<M; k++){
+        for(float &i : filtered) i *= i;
+
+        auto window = designb::cos_window(N);
+
+        for(int i=0; i+N<=n; i+=N/4){
             float sum = 0.0f;
-            for(int j=0; j<N; j++) sum += std::norm(waudio[i+j][k]) * window[j];
+            for(int j=0; j<N; j++) sum += filtered[i+j] * window[j];
             sum /= N;
-            for(int j=0; j<N; j++) energy[i+j][k] += sum * window[j];
+            for(int j=0; j<N; j++) result[i+j] += sum * window[j];
         }
-    }
 
-    vector<float> result(n, 0.0f);
-    vector<float> shift(M, 0.95);
-
-    for(int i=0; i<n; i++){
-        
-        auto e = energy[i];
-        auto f = designa::shift_bins(e, shift);
-        
-        for(int k=0; k<M; k++) result[i] += (waudio[i][k] * std::sqrt(f[k] / e[k])).real();
+        for(float &i : result) i = std::sqrt(i);
     }
 
     return result;
@@ -172,7 +182,7 @@ std::vector<float> random_experiment2(const std::vector<float> &audio, float low
     vector<float> result(n, 0.0f), filtered(n, 0.0f);
 
     {
-        const int N = 1024;
+        const int N = 512;
 
         vector<complex<float> > cres(n, 0.0f);
         vector<float> window(N), fwindow(N);
@@ -229,7 +239,7 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
         for(int j=0; j<N; j++) wavelet[i][j] = std::polar<double>(window[j], 2 * M_PI * i * j / N);
     }
 
-    vector<vector<complex<float> > > waudio(n, vector<complex<float> >(M, 0.0f));
+    vector<vector<complex<float> > > waudio(M, vector<complex<float> >(n, 0.0f));
 
     for(int i=0; i+N<=n; i+=N/4){
         std::vector<float> bit(N);
@@ -238,42 +248,15 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
         for(int j=1; j+1<M; j++) freq[j] *= 2;
         for(int j=0; j<N; j++){
             for(int k=0; k<M; k++){
-                waudio[i+j][k] += (freq[k] * wavelet[k][j] / (float)N);
+                waudio[k][i+j] += (freq[k] * wavelet[k][j] / (float)N);
             }
         }
     }
 
-    vector<vector<float> > energy(n, vector<float>(M, 1e-18f));
+    static int type = 0;
+    type = (type + 1) % waudio.size();
 
-    for(int i=0; i+N<=n; i+=N/4){
-        for(int k=0; k<M; k++){
-            float sum = 0.0f;
-            for(int j=0; j<N; j++) sum += std::norm(waudio[i+j][k]) * window[j];
-            sum /= N;
-            for(int j=0; j<N; j++) energy[i+j][k] += sum * window[j];
-        }
-    }
-
-    vector<float> result(n, 0.0f);
-    vector<float> shift(M, 0.6f);
-
-    for(int i=0; i<n; i++){
-        
-        auto e = energy[i];
-        auto f = designa::shift_bins(e, shift);
-
-        for(int k=0; k<M; k++) result[i] += (waudio[i][k] * std::sqrt(f[k] / e[k])).real();
-    }
-
-    window = designb::cos_window(n);
-    for(int i=0; i<n; i++) result[i] *= window[i];
-
-    if(rand()&1){
-        vector<float> tmp = audio;
-        for(int i=0; i<n; i++) tmp[i] *= window[i];
-        return designb::fft(tmp);
-    }
-    return designb::fft(result);
+    return waudio[type];
 }
 
 std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio, float pitch){

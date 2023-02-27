@@ -1,12 +1,12 @@
-#include "designc/painter.h"
+#include "designd/painter.h"
 
-#include "designc/common.h"
-#include "designc/math.h"
+#include "designd/common.h"
+#include "designd/math.h"
 
 #include <cassert>
 #include <cmath>
 
-namespace designc {
+namespace designd {
 
 Painter::Painter(int windowSize){
     
@@ -47,8 +47,44 @@ float Painter::process(float sample){
 
         auto energy = extract_energy(freq);
         auto phase = extract_phase(freq);
+
+        std::vector<float> shifted(fsize, 0.0f);
+
+        for(int i=0; i<fsize; i++){
+            int j = std::round(i * shift[i]);
+            if(j < fsize) shifted[j] += energy[i];
+        }
+
+        std::vector<float> blur1(fsize, 1e-18f), blur2(fsize, 1e-18f);
         
-        energy = shift_bins(energy, shift);
+        int width = (fsize / 24) / 4 * 4;
+        auto w = cos_window(width);
+
+        for(int i=0; i<fsize; i+=width/4){
+            
+            float sum1 = 0.0f, sum2 = 0.0f;
+            int len = 0;
+
+            for(int j=-width/2; j<width/2; j++){
+                if(i+j >= 0 && i+j < fsize){
+                    len++;
+                    sum1 += energy[i+j] * w[width/2 + j];
+                    sum2 += shifted[i+j] * w[width/2 + j];
+                }
+            }
+
+            sum1 /= len;
+            sum2 /= len;
+            
+            for(int j=-width/2; j<width/2; j++){
+                if(i+j >= 0 && i+j < fsize){
+                    blur1[i+j] += sum1 * w[width/2 + j];
+                    blur2[i+j] += sum2 * w[width/2 + j];
+                }
+            }
+        }
+
+        for(int i=0; i<fsize; i++) energy[i] *= blur2[i] / blur1[i];
 
         freq = create_frequency(energy, phase);
 
