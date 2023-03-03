@@ -42,8 +42,8 @@ std::vector<float> translate(const std::vector<float> &audio){
     
     vector<float> blur(esize, 0.0f);
 
-    knot.set_colored_pitch_shift(1.3f);
-    knot.set_neutral_pitch_shift(1.5f);
+    knot.set_colored_pitch_shift(1.2f);
+    knot.set_neutral_pitch_shift(1.9f);
     
     knot.set_eq_gain(gain);
     knot.set_eq_clean(clean);

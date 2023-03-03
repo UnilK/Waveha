@@ -1,5 +1,9 @@
 #include "designe/splicer.h"
 
+#include <cassert>
+#include <cmath>
+#include <iostream>
+
 namespace designe {
 
 Splicer::Splicer(int frameRate, float minPitchHZ){
@@ -68,10 +72,16 @@ std::vector<float> Splicer::process(float sample, float energy, float period, fl
 
         const float rot = 2 * M_PI / olen;
 
-        for(int i=0; i<olen/2; i++) obuff[done + i] = ibuff[in + i];
+        for(int i=0; i<olen/2; i++){
+            assert(done + i < osize);
+            // assert(obuff[done + i] == 0.0f);
+            obuff[done + i] = ibuff[in + i];
+        }
         for(int i=olen/2; i<olen; i++){
-            const float d = 0.5f + 0.5f + std::cos(rot * (i - olen/2));
-            obuff[done + i] = ibuff[in + i] * d + ibuff[in + ilen - olen + i - 1] * (1.0f - d);
+            const float d = 0.5f + 0.5f * std::cos(rot * (i - olen/2));
+            assert(done + i < osize);
+            // assert(obuff[done + i] == 0.0f);
+            obuff[done + i] = ibuff[in + i] * d + ibuff[in + ilen - olen + i] * (1.0f - d);
         }
 
         state = ilen;
