@@ -9,7 +9,7 @@
 #include "change/pitch.h"
 #include "designc/knot.h"
 #include "designa/math.h"
-#include "designd/knot.h"
+#include "designe/knot.h"
 
 #include <complex>
 #include <random>
@@ -26,17 +26,12 @@ std::vector<float> translate(const std::vector<float> &audio){
     using std::complex;
 
     std::vector<float> result;
-    designd::Knot knot(44100, 70.0f, 2048, 256);
+    designe::Knot knot(44100, 70.0f, 2048);
 
     std::cerr << knot.get_delay() << '\n';
 
-    int csize = knot.get_color_shift_size();
     int esize = knot.get_eq_frequency_window_size();
 
-    float s = 1.7f;
-
-    vector<float> shift(csize, 1.0f);
-    
     vector<float> gain(esize, 1.0f);
 
     vector<float> clean(esize, 5e-5f);
@@ -47,9 +42,8 @@ std::vector<float> translate(const std::vector<float> &audio){
     
     vector<float> blur(esize, 0.0f);
 
-    knot.set_absolute_pitch_shift(s);
-    
-    knot.set_color_shift(shift);
+    knot.set_colored_pitch_shift(1.3f);
+    knot.set_neutral_pitch_shift(1.5f);
     
     knot.set_eq_gain(gain);
     knot.set_eq_clean(clean);

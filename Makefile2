@@ -12,7 +12,7 @@ TEST := test
 CXX := g++
 CXXFLAGS := -std=c++17 -g -Og -Wall
 #ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
-RELEASEFLAGS := -std=c++17 -O3 -flto -funroll-loops -mavx2 -Wall
+RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 
 
 
@@ -23,8 +23,9 @@ SOURCES := $(shell find $(SRCDIR) -type f -name *.cpp -not -name $(MAINAPP).cpp)
 OBJECTS := $(patsubst $(SRCDIR)%,$(BUILDDIR)%, $(SOURCES:.cpp=.o))
 
 # mirror the source directory structure to the build directory.
-SRCSTRUCT := $(shell find $(SRCDIR) -type d)
+SRCSTRUCT := $(shell find $(SRCDIR) -mindepth 1 -maxdepth 1 -type d)
 BUILDSTRUCT := $(patsubst $(SRCDIR)%,$(BUILDDIR)%, $(SRCSTRUCT))
+DIRARCHIVES := $(BUILDSTRUCT:=.a)
 
 # gather the local libraries (archives)
 LLIB := $(shell find $(LIBDIR) -type f -name *.a)
@@ -37,8 +38,8 @@ LIB := -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -lpthread
 
 
 # link the executable
-$(BINDIR)/$(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MAINAPP).o
-	$(CXX) $(BUILDDIR)/$(MAINAPP).o $(OBJECTS) $(LLIB) $(LIB) -o $(BINDIR)/$(EXEC)
+$(BINDIR)/$(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MAINAPP).o $(DIRARCHIVES)
+	$(CXX) -ftime-report $(BUILDDIR)/$(MAINAPP).o $(DIRARCHIVES) $(LLIB) $(LIB) -o $(BINDIR)/$(EXEC)
 	@mkdir -p audio
 	@mkdir -p sessions
 	@mkdir -p stacks
@@ -50,6 +51,10 @@ $(BINDIR)/$(EXEC):  $(BUILDSTRUCT) $(BINDIR) $(OBJECTS) $(LLIB) $(BUILDDIR)/$(MA
 # compile the source files
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -c $(CXXFLAGS) $(INC) $< -o $@
+
+# bundle directories to bigger object files.
+$(BUILDDIR)/%.a: $(BUILDDIR)/%/*.o
+	ld -relocatable $^ -o $@
 
 # build the file that include main separately
 $(BUILDDIR)/$(MAINAPP).o: $(SRCDIR)/$(MAINAPP).cpp
@@ -91,7 +96,9 @@ depend: $(INLINES) $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(TESTDIR)/$(TEST).cpp
 release: $(SOURCES) $(HEADERS) $(SRCDIR)/$(MAINAPP).cpp
 	$(CXX) $(RELEASEFLAGS) $(SOURCES) $(SRCDIR)/$(MAINAPP).cpp $(INC) $(LLIB) $(LIB) -o $(BINDIR)/$(EXEC)
 
-
+.PHONY: lol
+lol:
+	@echo $(DIRARCHIVES)
 
 # DO NOT DELETE THIS LINE -- make depend depends on it. 
 
@@ -181,9 +188,7 @@ build/change/pitch.o: include/change/phaser2.h include/change/phaser.h
 build/change/pitch.o: include/change/util.h include/change/tests.h
 build/change/pitch.o: include/designa/math.h include/designa/color.h
 build/change/pitch.o: include/designb/common.h include/designb/math.h
-build/change/pitch.o: include/designe/splitter.h include/designe/pitcher.h
-build/change/pitch.o: include/designe/pacer.h include/designe/resampler.h
-build/change/pitch.o: include/designe/splicer.h
+build/change/pitch.o: include/designe/splitter.h
 build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
 build/change/pitcher3.o: include/math/fft.h include/change/resample.h
@@ -309,8 +314,7 @@ build/ml/reblock.o: include/ml/reblock.h include/ml/layer.h include/ui/fileio.h
 build/ml/reblock.o: include/ml/util.h
 build/designe/splitter.o: include/designe/splitter.h include/designe/common.h
 build/designe/pitcher.o: include/designe/pitcher.h include/designe/pacer.h
-build/designe/pitcher.o: include/designe/resampler.h include/designe/splicer.h
-build/designe/pitcher.o: include/designe/splitter.h include/designe/common.h
+build/designe/pitcher.o: include/designe/resampler.h include/designe/common.h
 build/designe/pitcher.o: include/designe/math.h
 build/designe/common.o: include/designe/common.h
 build/designe/pacer.o: include/designe/pacer.h include/designe/common.h
@@ -323,7 +327,6 @@ build/designe/equalizer.o: include/designe/math.h
 build/designe/binder.o: include/designe/binder.h
 build/designe/knot.o: include/designe/knot.h include/designe/pacer.h
 build/designe/knot.o: include/designe/resampler.h include/designe/pitcher.h
-build/designe/knot.o: include/designe/splicer.h include/designe/splitter.h
 build/designe/knot.o: include/designe/equalizer.h include/designe/binder.h
 build/math/sinc.o: include/math/sinc.h include/math/constants.h
 build/math/ft.o: include/math/ft.h include/math/constants.h

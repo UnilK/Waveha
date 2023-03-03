@@ -13,10 +13,9 @@
 #include "designa/math.h"
 #include "designa/color.h"
 #include "designb/common.h"
-#include "designb/splitter.h"
-#include "designb/wavelet.h"
 #include "designb/math.h"
-#include "designc/knot.h"
+#include "designe/splitter.h"
+#include "designe/pitcher.h"
 
 #include <math.h>
 #include <algorithm>
@@ -58,27 +57,30 @@ std::vector<float> peak_match_graph(const std::vector<float> &audio, PeakMatchVa
     using std::vector;
     using std::complex;
     using std::tuple;
-
+    
     int n = audio.size();
 
-    vector<float> windowed(n);
-    // for(int i=0; i<n; i++) windowed[i] = audio[i] * (0.5f - 0.5f  * std::cos(2 * PIF * i / n));
-    for(int i=0; i<n; i++) windowed[i] = audio[i] * std::sin(PIF * i / n);
+    vector<float> result(n, 0.0f);
 
-    auto freq = math::fft(windowed);
-    int m = n/2;
+    const int N = 64;
 
-    vector<float> window(m, 0.0f);
-    {
-        double pw = 2.0;
-        double reso = (44100.0 / n) / 1000.0 * pw;
-        for(int i=0; i<m; i++) window[i] = std::exp(-i*reso) * std::pow(i*reso, pw);
+    auto window = designb::cos_window(N);
+
+    static int type = 0;
+
+    for(int i=0; i+N<=n; i+=N/8){
+        vector<float> bit(N);
+        for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+        auto freq = designb::fft(bit);
+        if(type) for(int j=0; j<2; j++) freq[j] = 0.0f;
+        else for(int j=2; j<=N/2; j++) freq[j] = 0.0f;
+        bit = designb::inverse_fft(freq);
+        for(int j=0; j<N; j++) result[i+j] += bit[j] * window[j] / 12;
     }
 
-    vector<float> norm(m);
-    for(int i=0; i<m; i++) norm[i] = std::abs(freq[i]) * window[i];
+    type ^= 1;
 
-    return norm;
+    return result;
 }
 
 std::vector<float> correlation_graph(const std::vector<float> &audio, CorrelationVars vars){
@@ -90,7 +92,7 @@ std::vector<float> correlation_graph(const std::vector<float> &audio, Correlatio
     int n = audio.size();
     int m = n/2;
 
-    int extra = 64;
+    int extra = 128;
     vector<float> a(m+extra), b(m+extra);
     for(int i=0; i<m+extra; i++){
         const float noise = rnd(1e-4);
@@ -111,62 +113,23 @@ std::vector<float> random_experiment(const std::vector<float> &audio, float low,
     using std::complex;
     using std::tuple;
     
-    int n = audio.size();
+    /*
+    vector<float> result;
 
-    vector<float> result(n, 0.0f), filtered(n, 0.0f);
+    designe::Splitter splitter(40);
+    for(float i : audio) result.push_back(splitter.process(i).high);
 
-    {
-        const int N = 512;
+    return result;
+    */
+    
+    vector<float> result;
 
-        vector<complex<float> > cres(n, 0.0f);
-        vector<float> window(N), fwindow(N);
-        for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * PIF * i / N)) / sqrt(6);
-        
-        float reso = 44100.0f / N;
-        
-        low -= reso / 2;
-        high += reso / 2;
-        
-        for(int i=0; i<=N-i; i++){
-            float l = i * reso - reso / 2, r = i * reso + reso / 2;
-            l = std::max(l, low);
-            r = std::min(r, high);
-            fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
-        }
+    designe::Pitcher pitcher(44100, 70.0f);
 
-        for(int i=0; i+N<=n; i+=N/4){
-            std::vector<float> bit(N);
-            for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
-            auto freq = math::fft(bit);
-            for(int j=0; j<N; j++) freq[j] *= fwindow[j];
-            
-            for(int j=N/2; j<N; j++) freq[j] = 0.0f;
-            math::in_place_fft(freq, 1);
-            for(int j=0; j<N; j++) cres[i+j] += window[j] * freq[j];
-            
-            // bit = math::inverse_fft(freq);
-            // for(int j=0; j<N; j++) result[i+j] += window[j] * bit[j];
-        }
+    pitcher.set_colored_shift(1.3);
+    pitcher.set_neutral_shift(1.5);
 
-        for(int i=0; i<n; i++) filtered[i] = cres[i].real();
-    }
-
-    {
-        const int N = 64;
-
-        for(float &i : filtered) i *= i;
-
-        auto window = designb::cos_window(N);
-
-        for(int i=0; i+N<=n; i+=N/4){
-            float sum = 0.0f;
-            for(int j=0; j<N; j++) sum += filtered[i+j] * window[j];
-            sum /= N;
-            for(int j=0; j<N; j++) result[i+j] += sum * window[j];
-        }
-
-        for(float &i : result) i = std::sqrt(i);
-    }
+    for(float i : audio) result.push_back(pitcher.process(i));
 
     return result;
 }
@@ -228,35 +191,22 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
     using std::tuple;
     
     int n = audio.size();
-    const int N = 64;
-    const int M = N / 2 + 1;
 
-    auto window = designb::cos_window(N);
-    for(float &i : window) i /= std::sqrt(6);
+    vector<float> result;
 
-    vector<vector<complex<float> > > wavelet(M, vector<complex<float> >(N));
-    for(int i=0; i<M; i++){
-        for(int j=0; j<N; j++) wavelet[i][j] = std::polar<double>(window[j], 2 * M_PI * i * j / N);
-    }
-
-    vector<vector<complex<float> > > waudio(M, vector<complex<float> >(n, 0.0f));
-
-    for(int i=0; i+N<=n; i+=N/4){
-        std::vector<float> bit(N);
-        for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
-        auto freq = designb::fft(bit);
-        for(int j=1; j+1<M; j++) freq[j] *= 2;
-        for(int j=0; j<N; j++){
-            for(int k=0; k<M; k++){
-                waudio[k][i+j] += (freq[k] * wavelet[k][j] / (float)N);
-            }
-        }
-    }
+    designe::Splitter splitter(64);
 
     static int type = 0;
-    type = (type + 1) % waudio.size();
+    if(type) for(float i : audio) result.push_back(splitter.process(i).high);
+    else for(float i : audio) result.push_back(splitter.process(i).low);
 
-    return waudio[type];
+    type ^= 1;
+
+    auto window = designb::cos_window(n);
+
+    for(int i=0; i<n; i++) result[i] *= window[i];
+
+    return designb::fft(result);
 }
 
 std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio, float pitch){
