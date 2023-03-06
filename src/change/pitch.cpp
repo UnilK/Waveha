@@ -14,8 +14,8 @@
 #include "designa/color.h"
 #include "designb/common.h"
 #include "designb/math.h"
-#include "designe/splitter.h"
 #include "designe/pitcher.h"
+#include "designf/enveloper.h"
 
 #include <math.h>
 #include <algorithm>
@@ -112,24 +112,32 @@ std::vector<float> random_experiment(const std::vector<float> &audio, float low,
     using std::vector;
     using std::complex;
     using std::tuple;
-    
+
+    designf::Enveloper enveloper(64, 128);
+
+    vector<float> result;
+    for(float i : audio) result.push_back(enveloper.process(i));
+
     /*
-    vector<float> result;
+    int n = audio.size();
 
-    designe::Splitter splitter(40);
-    for(float i : audio) result.push_back(splitter.process(i).high);
+    vector<float> result(n, 0.0f);
 
-    return result;
+    const int M = 128;
+
+    for(int N=32; N<=M; N*=2){
+        auto window = designb::cos_window(N);
+        for(int i=0; i+N<=n; i+=N/8){
+            vector<float> bit(N);
+            for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+            auto freq = designb::fft(bit);
+            float sum = 0.0f;
+            for(int j=2; j<=N/2; j++) sum += std::norm(freq[j]);
+            sum /= N;
+            for(int j=0; j<N; j++) result[i+j] += window[j] * sum;
+        }
+    }
     */
-    
-    vector<float> result;
-
-    designe::Pitcher pitcher(44100, 70.0f);
-
-    pitcher.set_colored_shift(1.3);
-    pitcher.set_neutral_shift(1.5);
-
-    for(float i : audio) result.push_back(pitcher.process(i));
 
     return result;
 }
@@ -167,6 +175,7 @@ std::vector<float> random_experiment2(const std::vector<float> &audio, float low
             std::vector<float> bit(N);
             for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
             auto freq = math::fft(bit);
+            
             for(int j=0; j<N; j++) freq[j] *= fwindow[j];
             
             for(int j=N/2; j<N; j++) freq[j] = 0.0f;

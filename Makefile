@@ -168,9 +168,15 @@ build/change/tests.o: include/change/pitch.h include/designc/knot.h
 build/change/tests.o: include/designc/pacer.h include/designc/resampler.h
 build/change/tests.o: include/designc/painter.h include/designc/equalizer.h
 build/change/tests.o: include/designc/binder.h include/designa/math.h
-build/change/tests.o: include/designd/knot.h include/designd/pacer.h
-build/change/tests.o: include/designd/resampler.h include/designd/painter.h
-build/change/tests.o: include/designd/equalizer.h include/designd/binder.h
+build/change/tests.o: include/designe/knot.h include/designe/pacer.h
+build/change/tests.o: include/designe/resampler.h include/designe/pitcher.h
+build/change/tests.o: include/designe/splicer.h include/designe/splitter.h
+build/change/tests.o: include/designe/equalizer.h include/designe/binder.h
+build/change/tests.o: include/designf/knot.h include/designf/pacer.h
+build/change/tests.o: include/designf/resampler.h include/designf/pitcher.h
+build/change/tests.o: include/designf/delay.h include/designf/enveloper.h
+build/change/tests.o: include/designf/splicer.h include/designf/peakfinder.h
+build/change/tests.o: include/designf/equalizer.h include/designf/binder.h
 build/change/pitch.o: include/change/pitch.h include/math/fft.h
 build/change/pitch.o: include/math/ft.h include/math/sinc.h
 build/change/pitch.o: include/math/constants.h include/ml/stack.h
@@ -181,9 +187,9 @@ build/change/pitch.o: include/change/phaser2.h include/change/phaser.h
 build/change/pitch.o: include/change/util.h include/change/tests.h
 build/change/pitch.o: include/designa/math.h include/designa/color.h
 build/change/pitch.o: include/designb/common.h include/designb/math.h
-build/change/pitch.o: include/designe/splitter.h include/designe/pitcher.h
-build/change/pitch.o: include/designe/pacer.h include/designe/resampler.h
-build/change/pitch.o: include/designe/splicer.h
+build/change/pitch.o: include/designe/pitcher.h include/designe/pacer.h
+build/change/pitch.o: include/designe/resampler.h include/designe/splicer.h
+build/change/pitch.o: include/designe/splitter.h include/designf/enveloper.h
 build/change/phaser4.o: include/change/phaser4.h include/math/fft.h
 build/change/pitcher3.o: include/change/pitcher3.h include/math/constants.h
 build/change/pitcher3.o: include/math/fft.h include/change/resample.h
@@ -445,6 +451,29 @@ build/ui/terminal.o: include/ui/window.h
 build/ui/box.o: include/ui/box.h include/ui/slider.h include/ui/stack.h
 build/ui/box.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/ui/box.o: include/ui/window.h include/ui/text.h include/ui/button.h
+build/designf/peakfinder.o: include/designf/peakfinder.h
+build/designf/pitcher.o: include/designf/pitcher.h include/designf/delay.h
+build/designf/pitcher.o: include/designf/enveloper.h include/designf/pacer.h
+build/designf/pitcher.o: include/designf/resampler.h include/designf/splicer.h
+build/designf/pitcher.o: include/designf/peakfinder.h include/designf/common.h
+build/designf/pitcher.o: include/designf/math.h
+build/designf/common.o: include/designf/common.h
+build/designf/pacer.o: include/designf/pacer.h include/designf/common.h
+build/designf/pacer.o: include/designf/math.h
+build/designf/splicer.o: include/designf/splicer.h include/designf/delay.h
+build/designf/splicer.o: include/designf/peakfinder.h
+build/designf/resampler.o: include/designf/resampler.h
+build/designf/math.o: include/designf/math.h
+build/designf/delay.o: include/designf/delay.h
+build/designf/equalizer.o: include/designf/equalizer.h include/designf/common.h
+build/designf/equalizer.o: include/designf/math.h
+build/designf/binder.o: include/designf/binder.h
+build/designf/enveloper.o: include/designf/enveloper.h include/designf/common.h
+build/designf/knot.o: include/designf/knot.h include/designf/pacer.h
+build/designf/knot.o: include/designf/resampler.h include/designf/pitcher.h
+build/designf/knot.o: include/designf/delay.h include/designf/enveloper.h
+build/designf/knot.o: include/designf/splicer.h include/designf/peakfinder.h
+build/designf/knot.o: include/designf/equalizer.h include/designf/binder.h
 build/designa/pacer.o: include/designa/pacer.h include/designa/math.h
 build/designa/scolor.o: include/designa/scolor.h include/designa/color.h
 build/designa/scolor.o: include/designa/math.h
