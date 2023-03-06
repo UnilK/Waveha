@@ -25,22 +25,20 @@ Splicer::Splicer(int frameRate, float minPitchHZ){
     ibuff.resize(isize, 0.0f);
     ebuff.resize(isize, 0.0f);
     pbuff.resize(isize, 0.0f);
-    sbuff.resize(isize, 0.0f);
     obuff.resize(osize, 0.0f);
 }
 
-std::vector<float> Splicer::process(float sample, float energy, float period, float similarity){
+std::vector<float> Splicer::process(float sample, float energy, float period){
     
     if(in + iwsize > isize){
         ibuff = ibuff.shift(in);
         ebuff = ebuff.shift(in);
         pbuff = pbuff.shift(in);
-        sbuff = sbuff.shift(in);
         out -= in;
         in = 0;
     }
 
-    if(done + owsize > osize){
+    if(done + iwsize + owsize > osize){
         obuff = obuff.shift(done);
         done = 0;
     }
@@ -48,13 +46,12 @@ std::vector<float> Splicer::process(float sample, float energy, float period, fl
     ibuff[in + iwsize - 1] = sample;
     ebuff[in + iwsize - 1] = energy;
     pbuff[in + iwsize - 1] = period;
-    sbuff[in + iwsize - 1] = similarity;
 
     if(state <= 0){
         
         int ilen = 0;
         {
-            int min = std::max<int>(pbuff[in] * 0.45, 64);
+            int min = std::max<int>(pbuff[in] * 0.45, 32);
             int max = std::min<int>(pbuff[in] * 1.55, iwsize);
 
             ilen = (min + max) / 2;
@@ -63,25 +60,37 @@ std::vector<float> Splicer::process(float sample, float energy, float period, fl
 
         int olen = 0;
         {
-            float i = out;
+            double i = out;
             while(i < in + ilen){
                 i += shift;
                 olen++;
             }
         }
 
-        const float rot = 2 * M_PI / olen;
+        int milen = std::min(ilen, olen);
 
-        for(int i=0; i<olen/2; i++){
+        for(int i=0; i<ilen; i++){
+            
+            const float d = 0.5f + 0.5f * std::cos((float)M_PI * i / ilen);
+            
             assert(done + i < osize);
-            // assert(obuff[done + i] == 0.0f);
-            obuff[done + i] = ibuff[in + i];
+            assert(in + i < isize);
+
+            obuff[done + i] += ibuff[in + i] * d;
         }
-        for(int i=olen/2; i<olen; i++){
-            const float d = 0.5f + 0.5f * std::cos(rot * (i - olen/2));
+        
+        for(int i=1; i<=milen; i++){
+            
+            const float d = 0.5f + 0.5f * std::cos((float)M_PI * i / milen);
+            
             assert(done + i < osize);
-            // assert(obuff[done + i] == 0.0f);
-            obuff[done + i] = ibuff[in + i] * d + ibuff[in + ilen - olen + i] * (1.0f - d);
+            assert(in + i < isize);
+            assert(in + ilen - i >= 0);
+            assert(in + ilen - i < isize);
+            assert(in + olen - i >= 0);
+            assert(in + olen - i < osize);
+
+            obuff[done + olen - i] += ibuff[in + ilen - i] * d;
         }
 
         state = ilen;
@@ -101,9 +110,11 @@ std::vector<float> Splicer::process(float sample, float energy, float period, fl
 }
 
 void Splicer::set_shift(float pitch_shift){
-    shift = std::max(0.6f, std::min(pitch_shift, 4.0f));
+    
+    shift = std::max(0.25f, std::min(pitch_shift, 4.0f));
     owsize = std::max<int>(owsize, std::ceil(iwsize / shift));
     while(osize < 4 * owsize) osize *= 2;
+    
     if(osize > (int)obuff.size()){
         auto prev = obuff;
         obuff.resize(osize, 0.0f);

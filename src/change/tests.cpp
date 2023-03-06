@@ -27,7 +27,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     using std::complex;
 
     std::vector<float> result;
-    designe::Knot knot(44100, 70.0f, 256);
+    designe::Knot knot(44100, 70.0f, 512);
 
     std::cerr << knot.get_delay() << '\n';
 
@@ -35,7 +35,7 @@ std::vector<float> translate(const std::vector<float> &audio){
 
     vector<float> gain(esize, 1.0f);
 
-    vector<float> clean(esize, 5e-5f);
+    vector<float> clean(esize, 3e-5f);
 
     vector<float> shuffle(esize, 0.05f);
 
@@ -43,8 +43,8 @@ std::vector<float> translate(const std::vector<float> &audio){
     
     vector<float> blur(esize, 0.0f);
 
-    knot.set_colored_pitch_shift(1.2f);
-    knot.set_neutral_pitch_shift(1.15f);
+    knot.set_colored_pitch_shift(1.5f);
+    knot.set_neutral_pitch_shift(2.15);
     
     knot.set_eq_gain(gain);
     knot.set_eq_clean(clean);
@@ -53,7 +53,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     knot.set_eq_blur(blur);
     
     knot.enable_eq_gain(0);
-    knot.enable_eq_clean(0);
+    knot.enable_eq_clean(1);
     knot.enable_eq_shuffle(0);
     knot.enable_eq_noise(0);
     knot.enable_eq_blur(0);

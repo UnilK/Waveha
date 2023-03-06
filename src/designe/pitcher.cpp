@@ -9,7 +9,7 @@
 namespace designe {
 
 Pitcher::Pitcher(int frameRate, float minPitchHZ) :
-    splitter(104),
+    splitter(160),
     pacer(frameRate, minPitchHZ, 1200.0f),
     splicer(frameRate, minPitchHZ),
     resamplerLow(16),
@@ -41,8 +41,7 @@ float Pitcher::process(float sample){
         float low = lowPipe.front();
         lowPipe.pop_front();
 
-        auto high = splicer.process(split.high, split.energy,
-                pacer.get_real_period(), pacer.get_similarity());
+        auto high = splicer.process(split.high, split.energy, pacer.get_real_period());
 
         std::vector<float> lv = resamplerLow.process(low), hv;
 

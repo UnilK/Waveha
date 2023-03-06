@@ -11,7 +11,7 @@ public:
 
     Splicer(int frameRate, float minPitchHZ);
 
-    std::vector<float> process(float sample, float energy, float period, float similarity);
+    std::vector<float> process(float sample, float energy, float period);
 
     void set_shift(float pitch_shift);
 
@@ -19,10 +19,10 @@ public:
 
 private:
     
-    float shift, out;
+    double shift, out;
     int iwsize, owsize, isize, osize, in, done, state;
 
-    std::valarray<float> ibuff, ebuff, pbuff, sbuff, obuff;
+    std::valarray<float> ibuff, ebuff, pbuff, obuff;
 
 };
 

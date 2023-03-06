@@ -14,7 +14,7 @@ float Binder::process(float sample){
     if(std::abs(sample) > bound){
 
         float sign = (sample > 0.0f) - (sample < 0.0f);
-        float amplitude = sign * sample;
+        double amplitude = sign * sample;
         
         amplitude = 1.0f - (1.0f - bound) * (1.0f - bound) / (amplitude - 2 * bound + 1);
         sample = sign * amplitude;
