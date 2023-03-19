@@ -9,7 +9,7 @@
 namespace designe {
 
 Pitcher::Pitcher(int frameRate, float minPitchHZ) :
-    splitter(160),
+    splitter(128),
     pacer(frameRate, minPitchHZ, 1200.0f),
     splicer(frameRate, minPitchHZ),
     resamplerLow(16),

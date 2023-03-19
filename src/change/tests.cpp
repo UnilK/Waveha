@@ -7,10 +7,11 @@
 #include "math/constants.h"
 #include "change/util.h"
 #include "change/pitch.h"
-#include "designc/knot.h"
+#include "designd/knot.h"
 #include "designa/math.h"
 #include "designe/knot.h"
-#include "designf/knot.h"
+#include "designg/knot.h"
+#include "designg/wavelet.h"
 
 #include <complex>
 #include <random>
@@ -26,14 +27,71 @@ std::vector<float> translate(const std::vector<float> &audio){
     using std::vector;
     using std::complex;
 
+    /*
+    int n = audio.size();
+    vector<float> result(n, 0.0f);
+
+    auto w = designg::hpset("hp3");
+
+    for(int i=0; i<n; i++){
+        for(auto &v : w){
+            if(v.state <= 0 && i + v.length <= n){
+                std::complex<float> sum = 0.0f;
+                for(int j=0; j<v.length; j++) sum += audio[i+j] * std::conj(v.w[j]);
+                sum /= (float)v.length;
+                sum *= v.gain;
+                for(int j=0; j<v.length; j++) result[i+j] += (sum * v.w[j]).real();
+                v.state = v.length / 4;
+            }
+            v.state--;
+        }
+    }
+
+    for(float &i : result) i /= 6;
+
+    return result;
+    */
+
     std::vector<float> result;
-    designe::Knot knot(44100, 70.0f, 512);
+    designg::Knot knot(44100, 60.0f, 512);
 
     std::cerr << knot.get_delay() << '\n';
 
     int esize = knot.get_eq_frequency_window_size();
 
     vector<float> gain(esize, 1.0f);
+    vector<float> clean(esize, 3e-5f);
+
+    knot.set_eq_gain(gain);
+    knot.set_eq_clean(clean);
+    
+    knot.enable_eq_gain(0);
+    knot.enable_eq_clean(0);
+   
+    knot.set_bind_threshold(0.8f);
+
+    knot.set_absolute_pitch_shift(1.36f);
+
+    std::vector<float> shift(knot.get_color_shift_size(), 1.0 / 1.36f);
+    knot.set_color_shift(shift);
+
+    for(float i : audio) result.push_back(knot.process(i));
+
+    return result;
+
+    /*
+    std::vector<float> result;
+    designd::Knot knot(44100, 60.0f, 256, 512);
+
+    std::cerr << knot.get_delay() << '\n';
+
+    int esize = knot.get_eq_frequency_window_size();
+    
+    // int ssize = knot.get_color_shift_size();
+    // vector<float> shift(ssize, 1 / 0.9f);
+    // knot.set_color_shift(shift);
+    
+    vector<float> gain(esize, 2.0f);
 
     vector<float> clean(esize, 3e-5f);
 
@@ -43,8 +101,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     
     vector<float> blur(esize, 0.0f);
 
-    knot.set_colored_pitch_shift(1.5f);
-    knot.set_neutral_pitch_shift(2.15);
+    knot.set_absolute_pitch_shift(1.36f);
     
     knot.set_eq_gain(gain);
     knot.set_eq_clean(clean);
@@ -53,7 +110,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     knot.set_eq_blur(blur);
     
     knot.enable_eq_gain(0);
-    knot.enable_eq_clean(1);
+    knot.enable_eq_clean(0);
     knot.enable_eq_shuffle(0);
     knot.enable_eq_noise(0);
     knot.enable_eq_blur(0);
@@ -63,6 +120,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     for(float i : audio) result.push_back(knot.process(i));
 
     return result;
+    */
 }
 
 std::vector<float> pitchenvelope(const std::vector<float> &audio){

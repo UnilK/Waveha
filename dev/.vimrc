@@ -1,17 +1,20 @@
 "compile
-map mk :silent !echo %<Bar>sed -r "s/(.+)\/(.+)\..+/-d \1 \2/"<Bar>xargs ./dev/compile<CR><C-l>
+map mk :silent !dev/compile<CR><C-l>
 
 "update dependencies
-map nk :silent !echo %<Bar>sed -r "s/(.+)\/(.+)\..+/-d \1 \2/"<Bar>xargs ./dev/dependencies<CR><C-l>
+map nk :silent !dev/dependencies<CR><C-l>
 
 "switch compilation flags
-map fl :silent !echo %<Bar>sed -r "s/(.+)\/(.+)\..+/-d \1 -o \2/"<Bar>xargs ./dev/compile<CR><C-l>
+map fl :silent !dev/flag<CR><C-l>
 
 "run
-map ml :silent !echo %<Bar>sed -r "s/.+\/(.+)\.(.+)/\1 -f \2/"<Bar>xargs ./dev/run<CR><C-l>
+map ml :silent !dev/run<CR><C-l>
+
+"run with automatically closing debug terminal
+map nl :silent !dev/run -w<CR><C-l>
 
 "debug with gdb
-map mj :silent !echo %<Bar>sed -r "s/.+\/(.+)\..+/\1/"<Bar>xargs ./dev/debug<CR><C-l>
+map mj :silent !dev/debug<CR><C-l>
 
 "switch to headerfile. <C-o> switches back to source.
 map <C-h> G/include<CR> :noh<CR> w w gf

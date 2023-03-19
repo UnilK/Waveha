@@ -1,5 +1,28 @@
 #!/bin/bash
 
+dbg="no"
+
+while [[ $# -gt 0 ]]
+do
+    option="$1"
+    case $option in
+        -w)
+            dbg="yes"
+            shift 1
+            ;;
+        *)
+            shift 1
+            ;;
+    esac
+done
+
 stay="bash -c \"read var\""
 
-gnome-terminal -- bash -c "./waveha; $stay;"
+case $dbg in
+    yes)
+        gnome-terminal -- bash -c "./waveha; $stay;"
+        ;;
+    no)
+        gnome-terminal -- bash -c "./waveha;"
+        ;;
+esac
