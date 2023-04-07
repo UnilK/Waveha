@@ -7,11 +7,10 @@
 #include "math/constants.h"
 #include "change/util.h"
 #include "change/pitch.h"
-#include "designd/knot.h"
 #include "designa/math.h"
-#include "designe/knot.h"
-#include "designg/knot.h"
+#include "designh/knot.h"
 #include "designg/wavelet.h"
+#include "designg/common.h"
 
 #include <complex>
 #include <random>
@@ -53,14 +52,14 @@ std::vector<float> translate(const std::vector<float> &audio){
     */
 
     std::vector<float> result;
-    designg::Knot knot(44100, 60.0f, 512);
+    designh::Knot knot(44100, 60.0f, 512);
 
     std::cerr << knot.get_delay() << '\n';
 
     int esize = knot.get_eq_frequency_window_size();
 
     vector<float> gain(esize, 1.0f);
-    vector<float> clean(esize, 3e-5f);
+    vector<float> clean(esize, 9e-5f);
 
     knot.set_eq_gain(gain);
     knot.set_eq_clean(clean);
@@ -70,10 +69,8 @@ std::vector<float> translate(const std::vector<float> &audio){
    
     knot.set_bind_threshold(0.8f);
 
-    knot.set_absolute_pitch_shift(1.36f);
-
-    std::vector<float> shift(knot.get_color_shift_size(), 1.0 / 1.36f);
-    knot.set_color_shift(shift);
+    knot.set_absolute_pitch_shift(1.7f);
+    knot.set_color_shift(0.5f);
 
     for(float i : audio) result.push_back(knot.process(i));
 

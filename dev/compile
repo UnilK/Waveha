@@ -1,5 +1,5 @@
 #!/bin/bash
 
 stay="bash -c \"echo done;read var\""
-gnome-terminal -- bash -c "make; $stay;"
+gnome-terminal -- bash -c "time make; $stay;"
 

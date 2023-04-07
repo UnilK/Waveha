@@ -621,7 +621,7 @@ void Analyzer::update_data(){
     
     } else if(dataMode == candMode){
 
-        graph.set_data(change::candom_experiment(link.get_loop(length, position)));
+        graph.set_data(change::candom_experiment(link.get_loop(length, position), freqLow, freqHigh));
         graph.set_offset_x(0);
         graph.set_scalar_x(1);
     }

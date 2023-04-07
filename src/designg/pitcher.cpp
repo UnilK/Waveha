@@ -84,17 +84,20 @@ float Pitcher::process(float sample){
                 float phase = std::arg(sum);
                 float amplitude = std::abs(sum) / w.length * w.gain;
                 
-                w.phase += 2 * M_PI * w.spins / w.length / 4 * (1.0f - shifts[ww]);
-                if(w.phase > M_PI) w.phase -= 2 * M_PI;
+                w.phase += 2 * M_PI * w.spins / w.length / 4 * (shifts[ww]);
+                if(w.phase > 2*M_PI) w.phase -= 2 * M_PI;
+                if(w.phase < -2*M_PI) w.phase += 2 * M_PI;
 
+                /*
                 if(amplitude > w.amplitude){
                     if(!w.increasing) w.phase = 0.0f;
                     w.increasing = 1;
                 } else {
                     w.increasing = 0;
                 }
+                */
 
-                phase += w.phase;
+                // phase += w.phase;
                 w.amplitude = amplitude;
 
                 float wrot = 2 * M_PI / w.length;
@@ -104,7 +107,7 @@ float Pitcher::process(float sample){
                 float j = fpointer - ipointer;
 
                 while(j < w.length){
-                    obuff[i] += amplitude * std::cos(phase + j * frot * shifts[ww])
+                    obuff[i] += amplitude * std::cos(phase + j * frot /* * shifts[ww] */)
                         * (1.0f - std::cos(j * wrot));
                     i++;
                     j += shift;

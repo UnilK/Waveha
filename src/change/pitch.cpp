@@ -115,6 +115,43 @@ std::vector<float> random_experiment(const std::vector<float> &audio, float low,
     using std::tuple;
 
     int n = audio.size();
+    const int N = 128;
+
+    vector<float> result(n, 0.0f), window(N);
+    for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * M_PI * i / N)) * std::cos(4 * M_PI * i / N);
+
+    for(int i=0; i+N<=n; i++){
+        float sum = 0.0f;
+        for(int j=0; j<N; j++) sum += audio[i+j] * window[j];
+        sum /= N;
+        for(int j=0; j<N; j++) result[i+j] += sum * window[j];
+    }
+
+    return result;
+
+    /*
+    int n = audio.size();
+    
+    auto window = designb::cos_window(n);
+    
+    auto a = audio;
+    for(int i=0; i<n; i++) a[i] *= window[i];
+
+    auto freq = math::fft(a);
+    for(int i=n/2; i<n; i++) freq[i] = 0.0f;
+
+    math::in_place_fft(freq, 1);
+
+    vector<float> result(n);
+    for(int i=0; i<n; i++) result[i] = freq[i].imag();
+
+    return result;
+    */
+
+    /*
+    return freq;
+
+    int n = audio.size();
     int m = n/2+1;
 
     std::vector<float> response(m, 0.0f);
@@ -129,7 +166,8 @@ std::vector<float> random_experiment(const std::vector<float> &audio, float low,
     }
     
     return response;
-    
+    */
+
     /*
     int n = audio.size();
     int m = n/2+1;
@@ -214,12 +252,18 @@ std::vector<float> random_experiment2(const std::vector<float> &audio, float low
         
     }
 
-    for(int i=0; i<n; i++) filtered[i] = cres[i].real();
+    static float angle = 0.0f;
+    // angle += 2 * M_PI / 50;
+    // if(angle > M_PI) angle -= 2 * M_PI;
+    complex<float> rot = std::polar(1.0f, angle);
+
+    for(int i=0; i<n; i++) filtered[i] = (cres[i]*rot).real();
 
     return filtered;
 }
 
-std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio){
+std::vector<std::complex<float> > candom_experiment(const std::vector<float> &audio,
+        float low, float high){
     
     using std::vector;
     using std::complex;
@@ -227,6 +271,40 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
     
     int n = audio.size();
 
+    const int N = 512;
+
+    vector<complex<float> > cres(n, 0.0f);
+    vector<float> window(N), fwindow(N);
+    for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * PIF * i / N)) / sqrt(6);
+    
+    float reso = 44100.0f / N;
+    
+    low -= reso / 2;
+    high += reso / 2;
+    
+    for(int i=0; i<=N-i; i++){
+        float l = i * reso - reso / 2, r = i * reso + reso / 2;
+        l = std::max(l, low);
+        r = std::min(r, high);
+        fwindow[i] = fwindow[(N-i)%N] = std::max(0.0f, (r-l)/reso);
+    }
+
+    for(int i=0; i+N<=n; i+=N/4){
+        std::vector<float> bit(N);
+        for(int j=0; j<N; j++) bit[j] = audio[i+j] * window[j];
+        auto freq = math::fft(bit);
+        
+        for(int j=0; j<N; j++) freq[j] *= fwindow[j];
+        
+        for(int j=N/2; j<N; j++) freq[j] = 0.0f;
+        math::in_place_fft(freq, 1);
+        for(int j=0; j<N; j++) cres[i+j] += window[j] * freq[j];
+        
+    }
+
+    return cres;
+
+    /*
     vector<float> filtered(n, 0.0f);
 
     {
@@ -277,6 +355,7 @@ std::vector<std::complex<float> > candom_experiment(const std::vector<float> &au
     for(int i=0; i<n; i++) filtered[i] *= window[i];
 
     return designb::fft(filtered);
+    */
 }
 
 std::vector<float> ml_graph(ml::Stack *stack, const std::vector<float> &audio, float pitch){
