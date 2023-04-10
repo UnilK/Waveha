@@ -28,11 +28,11 @@ struct Wavelet {
     int ipointer;
 };
 
-class Pitcher {
+class Pitcher1 {
 
 public:
 
-    Pitcher(int framerate, float minPitchHZ);
+    Pitcher1(int framerate, float minPitchHZ);
 
     float process(float sample);
 
@@ -54,7 +54,7 @@ private:
 
     float similarity;
     double fpointer, shift, scale;
-    int ipointer, min, max, pop, bsize;
+    int ipointer, min, max, pop, bsize, maxlen;
     int calc_state, calc_period;
 
     int no_jump;

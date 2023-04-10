@@ -1,0 +1,7 @@
+#!/bin/bash
+
+cp include/$1.h include/$2.h
+cp src/$1.cpp src/$2.cpp
+
+sed -i -e "s|$1.h|$2.h|g" src/$2.cpp
+

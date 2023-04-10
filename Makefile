@@ -12,7 +12,7 @@ TEST := test
 CXX := g++
 CXXFLAGS := -std=c++17 -g -Og -Wall
 #ALTERNATIVE := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
-RELEASEFLAGS := -std=c++17 -O3 -flto -funroll-loops -mavx2 -Wall
+RELEASEFLAGS := -std=c++17 -O3 -funroll-loops -mavx2 -Wall
 
 
 
@@ -165,7 +165,7 @@ build/change/tests.o: include/change/phaser.h include/change/phaser2.h
 build/change/tests.o: include/change/phaser4.h include/math/fft.h
 build/change/tests.o: include/math/constants.h include/change/util.h
 build/change/tests.o: include/change/pitch.h include/designa/math.h
-build/change/tests.o: include/designh/knot.h include/designh/pitcher.h
+build/change/tests.o: include/designh/knot.h include/designh/pitcher2.h
 build/change/tests.o: include/designh/rbuffer.h include/designh/enveloper.h
 build/change/tests.o: include/designh/rsegtree.h include/designh/equalizer.h
 build/change/tests.o: include/designh/binder.h include/designg/wavelet.h
@@ -458,10 +458,15 @@ build/ui/terminal.o: include/ui/window.h
 build/ui/box.o: include/ui/box.h include/ui/slider.h include/ui/stack.h
 build/ui/box.o: include/ui/frame.h include/ui/borders.h include/ui/style.h
 build/ui/box.o: include/ui/window.h include/ui/text.h include/ui/button.h
-build/designh/pitcher.o: include/designh/pitcher.h include/designh/rbuffer.h
-build/designh/pitcher.o: include/designh/enveloper.h include/designh/rsegtree.h
-build/designh/pitcher.o: include/designh/common.h include/designh/math.h
+build/designh/pitcher1.o: include/designh/pitcher1.h include/designh/rbuffer.h
+build/designh/pitcher1.o: include/designh/enveloper.h
+build/designh/pitcher1.o: include/designh/rsegtree.h include/designh/common.h
+build/designh/pitcher1.o: include/designh/math.h
 build/designh/common.o: include/designh/common.h
+build/designh/pitcher2.o: include/designh/pitcher2.h include/designh/rbuffer.h
+build/designh/pitcher2.o: include/designh/enveloper.h
+build/designh/pitcher2.o: include/designh/rsegtree.h include/designh/common.h
+build/designh/pitcher2.o: include/designh/math.h
 build/designh/rbuffer.o: include/designh/rbuffer.h
 build/designh/rsegtree.o: include/designh/rsegtree.h
 build/designh/math.o: include/designh/math.h
@@ -472,7 +477,7 @@ build/designh/binder.o: include/designh/binder.h
 build/designh/enveloper.o: include/designh/enveloper.h
 build/designh/enveloper.o: include/designh/rbuffer.h include/designh/common.h
 build/designh/enveloper.o: include/designh/math.h
-build/designh/knot.o: include/designh/knot.h include/designh/pitcher.h
+build/designh/knot.o: include/designh/knot.h include/designh/pitcher2.h
 build/designh/knot.o: include/designh/rbuffer.h include/designh/enveloper.h
 build/designh/knot.o: include/designh/rsegtree.h include/designh/equalizer.h
 build/designh/knot.o: include/designh/binder.h

@@ -1,4 +1,4 @@
-#include "designh/pitcher.h"
+#include "designh/pitcher2.h"
 
 #include "designh/common.h"
 #include "designh/math.h"
@@ -12,7 +12,7 @@ namespace designh {
 
 // Pitcher ////////////////////////////////////////////////////////////////////
 
-Pitcher::Pitcher(int framerate, float minPitchHZ) :
+Pitcher2::Pitcher2(int framerate, float minPitchHZ) :
     enveloper(64),
     delayer(64, 0.0f)
 {
@@ -35,18 +35,19 @@ Pitcher::Pitcher(int framerate, float minPitchHZ) :
 
     fpointer = 0.0;
     ipointer = 0;
-    wavelet = hodgepodge("hp3");
+    wavelet = hodgepodge2("hp3");
 
-    int maxlen = 0;
+    maxlen = 0;
     for(auto &i : wavelet) maxlen = std::max<int>(maxlen, i.length);
 
-    bsize = max + std::max<int>(pop, maxlen + 1);
+    bsize = std::max<int>(max + pop, 2 * max / 3 + maxlen + 1);
 
     ibuff.resize(max + 2 * bsize, 0.0f);
-    obuff.resize(bsize, 0.0f);
+    obuff.resize(maxlen + 2, 0.0f);
 
     ibuff.set_offset(max + bsize);
-    
+    obuff.set_offset(maxlen / 2 + 1);
+
     energyquery.init(max + 2 * bsize);
     energyquery.set_offset(max + bsize);
 
@@ -57,7 +58,7 @@ Pitcher::Pitcher(int framerate, float minPitchHZ) :
     lock_wavelets();
 }
 
-float Pitcher::process(float sample){
+float Pitcher2::process(float sample){
 
     delayer.push(sample);
     ibuff.push(delayer[0]);
@@ -77,13 +78,12 @@ float Pitcher::process(float sample){
         float inner = energyquery.max(ipointer - scale / 8, ipointer + scale / 8);
 
         if(outer == inner && no_jump > scale / 2){
-            if(similarity > 0.7f && scale > 300){
-                std::cerr << scale << ' ' << no_jump << ' ' << inner << ' ' << outer << '\n';
-            }
             lock_wavelets();
         }
 
         if(3 * std::abs(ipointer) >= 2 * scale){
+
+            calc_scale();
 
             double dir = (ipointer > 0) - (ipointer < 0);
             double len = 0.0;
@@ -137,7 +137,7 @@ float Pitcher::process(float sample){
                 
                 std::complex<float> sum = 0.0f;
                 
-                for(int i=0; i<w.length; i++) sum += ibuff[w.ipointer + i] * std::conj(w.w[i]);
+                for(int i=0; i<w.length; i++) sum += ibuff[w.ipointer + i - w.length / 2] * std::conj(w.w[i]);
                 
                 float phase = std::arg(sum);
                 float amplitude = std::abs(sum) / w.length * w.gain;
@@ -145,8 +145,13 @@ float Pitcher::process(float sample){
                 const float wrot = 2 * M_PI / w.length;
                 const float frot = 2 * M_PI * w.spins / w.length;
 
+                float j = w.fpointer - w.ipointer + w.length / 2;
                 int i = 0;
-                float j = w.fpointer - w.ipointer;
+
+                while(j - w.shift >= 0){
+                    j -= w.shift;
+                    i--;
+                }
 
                 while(j < w.length){
                     obuff[i] += amplitude * std::cos(phase + j * frot)
@@ -163,17 +168,23 @@ float Pitcher::process(float sample){
         }
     }
 
-    return obuff[0] / 6;
+    return obuff[-obuff.left()] / 6;
 }
 
-void Pitcher::set_absolute_pitch_shift(float s){
+void Pitcher2::set_absolute_pitch_shift(float s){
     shift = std::max(1.0f / 8, std::min(s, 8.0f));
-    obuff.resize((int)std::ceil(bsize / shift), 0.0f);
+    
+    int nmax = std::ceil(maxlen / shift);
+    if(nmax + 2 > obuff.size()){
+        obuff.resize(nmax + 2, 0.0f);
+        obuff.set_offset(nmax + 1);
+    }
+
     wavelet[0].target_shift = shift;
     wavelet[1].target_shift = shift;
 }
 
-void Pitcher::set_color_shift(float s){
+void Pitcher2::set_color_shift(float s){
     s = std::max(0.0f, std::min(s, 1.0f));
     s = s * shift + 1.0f - s;
     for(auto &w : wavelet) w.target_shift = s;
@@ -181,9 +192,9 @@ void Pitcher::set_color_shift(float s){
     wavelet[1].target_shift = shift;
 }
 
-int Pitcher::get_delay(){ return bsize + enveloper.get_delay(); }
+int Pitcher2::get_delay(){ return bsize + enveloper.get_delay(); }
 
-void Pitcher::calc_scale(){
+void Pitcher2::calc_scale(){
 
     auto l = ibuff.slice(-max-pop, pop);
     auto r = ibuff.slice(-pop, max+pop);
@@ -200,9 +211,11 @@ void Pitcher::calc_scale(){
     scale = maximum_peak(mse, min, max);
 
     similarity = mse[std::floor(scale)];
+
+    if(similarity < 0.3f) scale = std::min<int>(2 * pop + rnd(1) * pop, max-1);
 }
 
-void Pitcher::lock_wavelets(){
+void Pitcher2::lock_wavelets(){
 
     no_jump = 0;
 
@@ -212,9 +225,9 @@ void Pitcher::lock_wavelets(){
     }
 }
 
-// Wavelet ////////////////////////////////////////////////////////////////////
+// Wavelet2 ////////////////////////////////////////////////////////////////////
 
-Wavelet::Wavelet() :
+Wavelet2::Wavelet2() :
     length(0),
     state(0),
     spins(0),
@@ -223,7 +236,7 @@ Wavelet::Wavelet() :
     shift(1.0)
 {}
 
-Wavelet::Wavelet(int length, float spins, float gain) : 
+Wavelet2::Wavelet2(int length, float spins, float gain) : 
     length(length),
     state(0),
     spins(spins),
@@ -233,11 +246,11 @@ Wavelet::Wavelet(int length, float spins, float gain) :
     shift(1.0)
 {}
 
-std::complex<float> Wavelet::eval(float t){
+std::complex<float> Wavelet2::eval(float t){
     return std::complex<float>(1.0f, 2 * M_PI * t * spins / length);
 }
 
-float Wavelet::frequency_response(float framerate, float frequency){
+float Wavelet2::frequency_response(float framerate, float frequency){
 
     auto sinc = [](float x){
         if(std::abs(x) < 1e-5f) return 1.0f;
@@ -260,15 +273,15 @@ float Wavelet::frequency_response(float framerate, float frequency){
     return r * gain;
 }
 
-void Wavelet::update_shift(float target){
+void Wavelet2::update_shift(float target){
     shift = std::max<float>(0.9 * shift, std::min<float>(target, shift * 1.1));
 }
 
-std::vector<Wavelet> hodgepodge(std::string version){
+std::vector<Wavelet2> hodgepodge2(std::string version){
     
     std::ifstream I("wavelets/"+version);
 
-    std::vector<Wavelet> set;
+    std::vector<Wavelet2> set;
 
     int len; float freq; float gain;
     while(I >> len){

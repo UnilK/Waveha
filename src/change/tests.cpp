@@ -44,8 +44,8 @@ std::vector<float> translate(const std::vector<float> &audio){
    
     knot.set_bind_threshold(0.8f);
 
-    knot.set_absolute_pitch_shift(1.7f);
-    knot.set_color_shift(0.5f);
+    knot.set_absolute_pitch_shift(2.3f);
+    knot.set_color_shift(0.3f);
 
     for(float i : audio) result.push_back(knot.process(i));
 
