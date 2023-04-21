@@ -212,9 +212,9 @@ void Pitcher1::lock_wavelets(){
     }
 }
 
-// Wavelet ////////////////////////////////////////////////////////////////////
+// Wavelet1 ////////////////////////////////////////////////////////////////////
 
-Wavelet::Wavelet() :
+Wavelet1::Wavelet1() :
     length(0),
     state(0),
     spins(0),
@@ -223,7 +223,7 @@ Wavelet::Wavelet() :
     shift(1.0)
 {}
 
-Wavelet::Wavelet(int length, float spins, float gain) : 
+Wavelet1::Wavelet1(int length, float spins, float gain) : 
     length(length),
     state(0),
     spins(spins),
@@ -233,11 +233,11 @@ Wavelet::Wavelet(int length, float spins, float gain) :
     shift(1.0)
 {}
 
-std::complex<float> Wavelet::eval(float t){
+std::complex<float> Wavelet1::eval(float t){
     return std::complex<float>(1.0f, 2 * M_PI * t * spins / length);
 }
 
-float Wavelet::frequency_response(float framerate, float frequency){
+float Wavelet1::frequency_response(float framerate, float frequency){
 
     auto sinc = [](float x){
         if(std::abs(x) < 1e-5f) return 1.0f;
@@ -260,15 +260,15 @@ float Wavelet::frequency_response(float framerate, float frequency){
     return r * gain;
 }
 
-void Wavelet::update_shift(float target){
+void Wavelet1::update_shift(float target){
     shift = std::max<float>(0.9 * shift, std::min<float>(target, shift * 1.1));
 }
 
-std::vector<Wavelet> hodgepodge(std::string version){
+std::vector<Wavelet1> hodgepodge(std::string version){
     
     std::ifstream I("wavelets/"+version);
 
-    std::vector<Wavelet> set;
+    std::vector<Wavelet1> set;
 
     int len; float freq; float gain;
     while(I >> len){
@@ -515,9 +515,9 @@ void Pitcher1::lock_wavelets(){
     }
 }
 
-// Wavelet ////////////////////////////////////////////////////////////////////
+// Wavelet1 ////////////////////////////////////////////////////////////////////
 
-Wavelet::Wavelet() :
+Wavelet1::Wavelet1() :
     length(0),
     state(0),
     spins(0),
@@ -526,7 +526,7 @@ Wavelet::Wavelet() :
     shift(1.0)
 {}
 
-Wavelet::Wavelet(int length, float spins, float gain) : 
+Wavelet1::Wavelet1(int length, float spins, float gain) : 
     length(length),
     state(0),
     spins(spins),
@@ -536,11 +536,11 @@ Wavelet::Wavelet(int length, float spins, float gain) :
     shift(1.0)
 {}
 
-std::complex<float> Wavelet::eval(float t){
+std::complex<float> Wavelet1::eval(float t){
     return std::complex<float>(1.0f, 2 * M_PI * t * spins / length);
 }
 
-float Wavelet::frequency_response(float framerate, float frequency){
+float Wavelet1::frequency_response(float framerate, float frequency){
 
     auto sinc = [](float x){
         if(std::abs(x) < 1e-5f) return 1.0f;
@@ -563,15 +563,15 @@ float Wavelet::frequency_response(float framerate, float frequency){
     return r * gain;
 }
 
-void Wavelet::update_shift(float target){
+void Wavelet1::update_shift(float target){
     shift = std::max<float>(0.9 * shift, std::min<float>(target, shift * 1.1));
 }
 
-std::vector<Wavelet> hodgepodge(std::string version){
+std::vector<Wavelet1> hodgepodge(std::string version){
     
     std::ifstream I("wavelets/"+version);
 
-    std::vector<Wavelet> set;
+    std::vector<Wavelet1> set;
 
     int len; float freq; float gain;
     while(I >> len){

@@ -4,7 +4,7 @@
 #include <cstring>
 #include <cassert>
 
-namespace designh {
+namespace designi {
 
 template<typename T> class rbuffer {
 

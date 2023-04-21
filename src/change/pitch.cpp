@@ -15,7 +15,10 @@
 #include "designb/common.h"
 #include "designb/math.h"
 #include "designe/pitcher.h"
-#include "designf/enveloper.h"
+#include "designh/enveloper.h"
+#include "designh/common.h"
+#include "designh/pitcher3.h"
+#include "designi/pitcher1.h"
 #include "designg/wavelet.h"
 
 #include <math.h>
@@ -114,101 +117,12 @@ std::vector<float> random_experiment(const std::vector<float> &audio, float low,
     using std::complex;
     using std::tuple;
 
-    int n = audio.size();
-    const int N = 128;
+    designi::Pitcher1 pitcher(44100, 60.0f);
 
-    vector<float> result(n, 0.0f), window(N);
-    for(int i=0; i<N; i++) window[i] = (1.0f - std::cos(2 * M_PI * i / N)) * std::cos(4 * M_PI * i / N);
+    vector<float> envelope;
+    for(float i : audio) envelope.push_back(pitcher.process(i));
 
-    for(int i=0; i+N<=n; i++){
-        float sum = 0.0f;
-        for(int j=0; j<N; j++) sum += audio[i+j] * window[j];
-        sum /= N;
-        for(int j=0; j<N; j++) result[i+j] += sum * window[j];
-    }
-
-    return result;
-
-    /*
-    int n = audio.size();
-    
-    auto window = designb::cos_window(n);
-    
-    auto a = audio;
-    for(int i=0; i<n; i++) a[i] *= window[i];
-
-    auto freq = math::fft(a);
-    for(int i=n/2; i<n; i++) freq[i] = 0.0f;
-
-    math::in_place_fft(freq, 1);
-
-    vector<float> result(n);
-    for(int i=0; i<n; i++) result[i] = freq[i].imag();
-
-    return result;
-    */
-
-    /*
-    return freq;
-
-    int n = audio.size();
-    int m = n/2+1;
-
-    std::vector<float> response(m, 0.0f);
-
-    float rate = 44100.0f;
-    float step = rate / n;
-
-    auto w = designg::hpset("hp3");
-
-    for(int i=0; i<m; i++){
-        for(auto j : w) response[i] += j.frequency_response(rate, i * step);
-    }
-    
-    return response;
-    */
-
-    /*
-    int n = audio.size();
-    int m = n/2+1;
-
-    const int N = 1<<24;
-    vector<float> samples(N), result(N, 0.0f);
-    for(float &i : samples) i = rnd(1);
-
-    auto w = designg::hpset("hp3");
-
-    for(int i=0; i<N; i++){
-        for(auto &v : w){
-            if(v.state <= 0 && i + v.length <= N){
-                std::complex<float> sum = 0.0f;
-                for(int j=0; j<v.length; j++) sum += samples[i+j] * std::conj(v.w[j]);
-                sum /= (float)v.length;
-                sum *= v.gain;
-                for(int j=0; j<v.length; j++) result[i+j] += (sum * v.w[j]).real();
-                v.state = v.length / 4;
-            }
-            v.state--;
-        }
-    }
-
-    for(float &i : result) i /= 6;
-
-    int num = 0;
-
-    vector<float> response(m, 0.0f), window = designb::cos_window(n);
-    for(int i=0; i+n<=N; i+=n/4){
-        vector<float> bit(n);
-        for(int j=0; j<n; j++) bit[j] = result[i+j] * window[j];
-        auto freq = designb::fft(bit);
-        for(int j=0; j<m; j++) response[j] += std::abs(freq[j]);
-        num++;
-    }
-
-    if(num) for(float &i : response) i /= num;
-
-    return response;
-    */
+    return envelope;
 }
 
 std::vector<float> random_experiment2(const std::vector<float> &audio, float low, float high){

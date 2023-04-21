@@ -13,7 +13,7 @@ Enveloper::Enveloper(int windowSize){
     state = 0;
 
     assert("window size must be a power of 2" && (wsize&-wsize) == wsize);
-    assert("window size must be greater than 4" && wsize > 4);
+    assert("window size must be greater than 8" && wsize > 4);
     
     ibuff.resize(wsize, 0.0f);
     obuff.resize(wsize, 0.0f);
@@ -36,14 +36,11 @@ float Enveloper::process(float sample){
         float energy = 0.0f;
         for(int i=2; i<=wsize/2; i++) energy += std::norm(freq[i]) * i * i;
 
-        energy += freq[0].real() * std::abs(freq[0]);
-        energy += freq[1].real() * std::abs(freq[1]);
-
         energy /= 6 * wsize * wsize;
 
         for(int i=0; i<wsize; i++) obuff[i] += window[i] * energy;
 
-        state = wsize / 4;
+        state = wsize / 8;
     }
 
     state--;

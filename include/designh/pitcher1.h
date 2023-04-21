@@ -9,10 +9,10 @@
 
 namespace designh {
 
-struct Wavelet {
+struct Wavelet1 {
 
-    Wavelet();
-    Wavelet(int length, float spins, float gain);
+    Wavelet1();
+    Wavelet1(int length, float spins, float gain);
 
     std::complex<float> eval(float t);
 
@@ -59,13 +59,13 @@ private:
 
     int no_jump;
 
-    std::vector<Wavelet > wavelet;
+    std::vector<Wavelet1 > wavelet;
 
     rbuffer<float> ibuff, obuff, ebuff;
 
 };
 
-std::vector<Wavelet> hodgepodge(std::string version);
+std::vector<Wavelet1> hodgepodge(std::string version);
 
 }
 

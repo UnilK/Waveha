@@ -9,6 +9,7 @@
 #include "change/pitch.h"
 #include "designa/math.h"
 #include "designh/knot.h"
+#include "designi/knot.h"
 #include "designg/wavelet.h"
 #include "designg/common.h"
 
@@ -27,9 +28,7 @@ std::vector<float> translate(const std::vector<float> &audio){
     using std::complex;
 
     std::vector<float> result;
-    designh::Knot knot(44100, 60.0f, 512);
-
-    std::cerr << knot.get_delay() << '\n';
+    designi::Knot knot(44100, 60.0f, 512);
 
     int esize = knot.get_eq_frequency_window_size();
 
@@ -44,8 +43,15 @@ std::vector<float> translate(const std::vector<float> &audio){
    
     knot.set_bind_threshold(0.8f);
 
-    knot.set_absolute_pitch_shift(2.3f);
-    knot.set_color_shift(0.3f);
+    /*
+    knot.set_absolute_pitch_shift(2.7f);
+    knot.set_color_shift(0.2f);
+    */
+
+    knot.enable_equalizer(0);
+    knot.enable_binder(0);
+
+    std::cerr << knot.get_delay() << '\n';
 
     for(float i : audio) result.push_back(knot.process(i));
 

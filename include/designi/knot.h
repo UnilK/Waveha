@@ -1,14 +1,14 @@
 #pragma once
 
-#include "designh/pitcher3.h"
-#include "designh/equalizer.h"
-#include "designh/binder.h"
+#include "designi/pitcher1.h"
+#include "designi/equalizer.h"
+#include "designi/binder.h"
 
 #include <valarray>
 #include <vector>
 #include <deque>
 
-namespace designh {
+namespace designi {
 
 class Knot {
 
@@ -46,7 +46,7 @@ private:
 
     bool pitcher_x, equalizer_x, binder_x;
 
-    Pitcher3 pitcher;
+    Pitcher1 pitcher;
     Equalizer equalizer;
     Binder binder;
 

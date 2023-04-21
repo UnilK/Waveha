@@ -19,6 +19,7 @@ opendesigne="gnome-terminal --tab -t designe -- vim -S dev/.vimrc -p src/designe
 opendesignf="gnome-terminal --tab -t designf -- vim -S dev/.vimrc -p src/designf/*.cpp"
 opendesigng="gnome-terminal --tab -t designg -- vim -S dev/.vimrc -p src/designg/*.cpp"
 opendesignh="gnome-terminal --tab -t designh -- vim -S dev/.vimrc -p src/designh/*.cpp"
+opendesigni="gnome-terminal --tab -t designi -- vim -S dev/.vimrc -p src/designi/*.cpp"
 
 while [[ $# -gt 0 ]]
 do
@@ -76,6 +77,9 @@ do
             ;;
         designh)
             $opendesignh
+            ;;
+        designi)
+            $opendesigni
             ;;
         make)
             $openterminal
