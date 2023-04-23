@@ -29,6 +29,9 @@ Pitcher1::Pitcher1(int framerate, float minPitchHZ){
     splitter.wavelet1 = cos_wavelet(splitter.length, 1);
     splitter.wavelet2 = cos_wavelet(splitter.length, 2);
     splitter.bit.resize(splitter.length);
+    splitter.tick_period = splitter.length / 8;
+    splitter.energy_weight = 4.0f;
+    splitter.lowpass_weight = 1.0f;
 
     detector.pop = std::max<int>(8, std::ceil(pop_length / 2));
     detector.min = std::floor(framerate / high);
@@ -41,6 +44,8 @@ Pitcher1::Pitcher1(int framerate, float minPitchHZ){
     detector.similarity = 0.0;
     detector.calc_state = 0;
     detector.calc_period = std::ceil(framerate / calc_frequency);
+    
+    detector.momentum = 0.0f;
 
     segment.length = detector.pop;
     segment.left = 0;
@@ -49,6 +54,7 @@ Pitcher1::Pitcher1(int framerate, float minPitchHZ){
     segment.slow_cut = 0.7f;
     segment.fast_precut = 0.4f;
     segment.fast_postcut = 0.8f;
+    segment.previous_peak = 0.0f;
 
     hpset.init("hp4");
 
@@ -94,7 +100,8 @@ float Pitcher1::process(float sample){
         w.increment();
     }
 
-    // return lbuff[lbuff.right() - splitter.length];
+    // return ebuff[0];
+    // return lbuff[0];
     return obuff[-obuff.left()] / 6;
 }
 
@@ -164,6 +171,7 @@ void Pitcher1::apply_splitter(){
     freq[2] *= 2.0f;
 
     const float normalize = 1.0f / (12.0f * splitter.length);
+    energy *= normalize;
 
     for(int i=0; i<splitter.length; i++){
         ebuff[pointer + i] += splitter.window[i] * energy;
@@ -172,12 +180,16 @@ void Pitcher1::apply_splitter(){
                 + (freq[1] * splitter.wavelet1[i]).real()
                 + (freq[2] * splitter.wavelet2[i]).real());
     }
+    
+    for(int i=0; i<splitter.tick_period; i++){
+        ebuff[pointer + i] = ebuff[pointer + i] * splitter.energy_weight
+            + lbuff[pointer + i] * splitter.lowpass_weight;
+    }
 }
 
 void Pitcher1::move_segment(){
-    
-    float factor = 2.0f - detector.similarity;
-    factor = std::max(1.05f, factor);
+   
+    float factor = 2.0f - detector.similarity * 0.8f;
 
     int min = std::max<int>(detector.period / factor, detector.min);
     int max = std::min<int>(detector.period * factor, detector.max);
@@ -186,32 +198,53 @@ void Pitcher1::move_segment(){
     int peak_index = segment.right + detector.period;
     float best_max = -1e9f, best_peak = -1e9f;
 
-    for(int i=min; i<=max; i++){
+    for(int i=detector.min, potential=max; i<=max && potential >= 0; i++, potential--){
         
-        if(best_max < ebuff[segment.right + i]){
-            max_index = segment.right + i;
-            best_max = ebuff[max_index];
+        if(i >= min){
+            
+            if(best_max < ebuff[segment.right + i]){
+                max_index = segment.right + i;
+                best_max = ebuff[max_index];
+            }
+            
+            if(best_peak < ebuff[segment.right + i]
+                && ebuff[segment.right + i] > ebuff[segment.right + i - 1]
+                && ebuff[segment.right + i] > ebuff[segment.right + i + 1])
+            {
+                peak_index = segment.right + i;
+                best_peak = ebuff[peak_index];
+                if(best_peak > 1.5f * segment.previous_peak) potential = detector.period / 10;
+            }
+
+        } else if(ebuff[segment.right + i] > 1.5f * segment.previous_peak
+                && detector.similarity < 0.8f){
+
+            if(best_peak < ebuff[segment.right + i]
+                && ebuff[segment.right + i] > ebuff[segment.right + i - 1]
+                && ebuff[segment.right + i] > ebuff[segment.right + i + 1])
+            {
+                peak_index = segment.right + i;
+                best_peak = ebuff[peak_index];
+                potential = detector.period / 10;
+            }
         }
-        
-        if(best_peak < ebuff[segment.right + i]
-            && ebuff[segment.right + i] > ebuff[segment.right + i - 1]
-            && ebuff[segment.right + i] > ebuff[segment.right + i + 1])
-        {
-            peak_index = segment.right + i;
-            best_peak = ebuff[peak_index];
-        }
+
     }
 
     segment.left = segment.right;
 
-    if(best_peak > 0.0f) segment.right = peak_index;
-    else segment.right = max_index;
+    if(best_peak > 0.5f * best_max){
+        segment.right = peak_index;
+        segment.previous_peak = best_peak;
+    }
+    else {
+        segment.right = max_index;
+        segment.previous_peak = best_max;
+    }
 
-    std::cerr << segment.length << ' ' << detector.period << ' ' << detector.similarity << " -> ";
+    // ebuff[segment.right] = -1;
 
     segment.length = segment.right - segment.left + 1;
-
-    std::cerr << segment.length << '\n';
 }
 
 void Pitcher1::apply_wavelet(Wavelet &w){
@@ -384,7 +417,8 @@ bool Pitcher1::Detector::tick(){
 // Splitter ///////////////////////////////////////////////////////////////////
 
 bool Pitcher1::Splitter::tick(){
-    state = (state + 1) % (length / 8);
+    state++;
+    if(state >= tick_period) state = 0;
     return state == 0;
 }
 

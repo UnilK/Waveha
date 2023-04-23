@@ -50,6 +50,8 @@ public:
         int left, right, length;
         float state;
 
+        float previous_peak;
+
         float slow_cut, fast_precut, fast_postcut;
 
         void push_left();
@@ -64,14 +66,17 @@ public:
         int min, max, pop, period;
         int calc_state, calc_period;
 
+        float momentum;
+
         bool tick();
     };
 
     struct Splitter {
         
-        int state, length;
+        int state, length, tick_period;
         std::vector<float> window, bit;
         std::vector<std::complex<float> > wavelet1, wavelet2;
+        float energy_weight, lowpass_weight;
 
         bool tick();
     };
