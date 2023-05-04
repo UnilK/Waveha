@@ -52,6 +52,7 @@ public:
 
         float previous_peak;
 
+        float zero_offset, max_dist;
         float slow_cut, fast_precut, fast_postcut;
 
         void push_left();

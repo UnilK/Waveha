@@ -51,6 +51,8 @@ Pitcher1::Pitcher1(int framerate, float minPitchHZ){
     segment.left = 0;
     segment.right = segment.length - 1;
     segment.state = 0.0f;
+    segment.zero_offset = 0.3f;
+    segment.max_dist = detector.max;
     segment.slow_cut = 0.7f;
     segment.fast_precut = 0.4f;
     segment.fast_postcut = 0.8f;
@@ -189,7 +191,7 @@ void Pitcher1::apply_splitter(){
 
 void Pitcher1::move_segment(){
    
-    float factor = 2.0f - detector.similarity * 0.8f;
+    float factor = 2.0f - detector.similarity * 0.95f;
 
     int min = std::max<int>(detector.period / factor, detector.min);
     int max = std::min<int>(detector.period * factor, detector.max);
@@ -242,7 +244,7 @@ void Pitcher1::move_segment(){
         segment.previous_peak = best_max;
     }
 
-    // ebuff[segment.right] = -1;
+    ebuff[segment.right] = -1;
 
     segment.length = segment.right - segment.left + 1;
 }
@@ -388,10 +390,12 @@ void Pitcher1::PulseSegment::update_state(float shift){
 
 float Pitcher1::PulseSegment::calculate_position(float relative_shift){
 
+    float relative_pos = 0.0f;
+
     if(relative_shift <= 1.0f){
         
-        if(state < slow_cut) return left + length * state * relative_shift;
-        return right - length * (1.0f - state) * relative_shift;
+        if(state < slow_cut) relative_pos = state * relative_shift;
+        else relative_pos = 1.0f - (1.0f - state) * relative_shift;
 
     } else {
 
@@ -403,8 +407,15 @@ float Pitcher1::PulseSegment::calculate_position(float relative_shift){
         while(head > fast_postcut) head -= len;
         if(head + tail < 1.0f) head = 1.0f - tail;
 
-        return left + length * head;
+        relative_pos = head;
     }
+
+    if(relative_pos > 1.0f - zero_offset) relative_pos -= 1.0f;
+    
+    float pos = right + relative_pos * length;
+    if(pos >= max_dist) pos = left + relative_pos * length;
+
+    return pos;
 }
 
 // Detector ///////////////////////////////////////////////////////////////////
