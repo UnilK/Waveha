@@ -18,7 +18,7 @@
 #include "designh/enveloper.h"
 #include "designh/common.h"
 #include "designh/pitcher3.h"
-#include "designi/pitcher1.h"
+#include "designi/pitcher2.h"
 #include "designg/wavelet.h"
 
 #include <math.h>
@@ -117,7 +117,10 @@ std::vector<float> random_experiment(const std::vector<float> &audio, float low,
     using std::complex;
     using std::tuple;
 
-    designi::Pitcher1 pitcher(44100, 60.0f);
+    designi::Pitcher2 pitcher(44100, 60.0f);
+
+    pitcher.set_absolute_pitch_shift(1.4f);
+    pitcher.set_color_shift(1.4f);
 
     vector<float> envelope;
     for(float i : audio) envelope.push_back(pitcher.process(i));

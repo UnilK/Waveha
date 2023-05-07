@@ -4,14 +4,15 @@
 
 #include <complex>
 #include <vector>
+#include <deque>
 
 namespace designi {
 
-class Pitcher1 {
+class Pitcher2 {
 
 public:
 
-    Pitcher1(int framerate, float minPitchHZ);
+    Pitcher2(int framerate, float minPitchHZ);
 
     float process(float sample);
 
@@ -25,47 +26,42 @@ public:
 
     struct Wavelet {
 
-        void increment();
-        
         float frequency_response(float framerate, float frequency);
 
-        float length, state, spins, gain, shift;
+        float length, state, spins, gain, shift, frequency;
     };
 
     struct HodgepodgeSet {
         
-        void init(std::string file);
+        void init(std::string file, float frame_rate);
 
         std::vector<Wavelet> wavelets;
 
-        float max_length, shift;
+        float max_length;
 
         const float max_shift = 8.0f;
     };
 
     struct PulseSegment {
        
-        int left, right, length;
-        float state;
-
+        int left, right;
+        float pointer, shift;
+        
         float previous_peak;
 
-        float zero_offset, max_dist;
+        float zero_offset;
         float slow_cut, fast_precut, fast_postcut;
 
-        void push_left();
-        void update_state(float shift);
+        int offset;
+        std::deque<int> peaks;
 
-        float calculate_position(float relative_shift);
     };
 
     struct Detector {
         
-        float similarity;
+        float similarity, pitch;
         int min, max, pop, period;
         int calc_state, calc_period;
-
-        float momentum;
 
         bool tick();
     };
@@ -85,6 +81,7 @@ public:
         std::vector<float> mse;
 
     };
+
     Debug dbg;
 
 private:
@@ -93,9 +90,21 @@ private:
 
     void apply_splitter();
 
-    void move_segment();
+    bool add_peak();
+    
+    void push_segment();
 
+    void update_pointer();
+    
+    void update_segment();
+
+    float shift_curve(float frequency, float spins, float shift);
+
+    float calculate_position(float shift);
+    
     void apply_wavelet(Wavelet &w);
+
+    float frame_rate;
 
     HodgepodgeSet hpset;
     PulseSegment segment;

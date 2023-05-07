@@ -1,6 +1,6 @@
 #pragma once
 
-#include "designi/pitcher1.h"
+#include "designi/pitcher2.h"
 #include "designi/equalizer.h"
 #include "designi/binder.h"
 
@@ -46,7 +46,7 @@ private:
 
     bool pitcher_x, equalizer_x, binder_x;
 
-    Pitcher1 pitcher;
+    Pitcher2 pitcher;
     Equalizer equalizer;
     Binder binder;
 
