@@ -70,12 +70,10 @@ Pitcher2::Pitcher2(int framerate, float minPitchHZ) : frame_rate(framerate) {
     ibuff.resize(2 * input_radius + splitter.length, 0.0f);
     obuff.resize(2 * max_wavelet_radius + 2, 0.0f);
     ebuff.resize(2 * input_radius + splitter.length, 0.0f);
-    lbuff.resize(2 * input_radius + splitter.length, 0.0f);
 
     ibuff.set_offset(input_radius);
     obuff.set_offset(max_wavelet_radius + 1);
     ebuff.set_offset(input_radius);
-    lbuff.set_offset(input_radius);
 }
 
 float Pitcher2::process(float sample){
@@ -83,7 +81,6 @@ float Pitcher2::process(float sample){
     ibuff.push(sample);
     obuff.push(0.0f);
     ebuff.push(0.0f);
-    lbuff.push(0.0f);
 
     if(splitter.tick()) apply_splitter();
 
@@ -106,7 +103,6 @@ float Pitcher2::process(float sample){
     }
 
     // return ebuff[0];
-    // return lbuff[0];
     return obuff[-obuff.left()] / 6;
 }
 
@@ -135,8 +131,8 @@ void Pitcher2::find_period(){
     std::vector<float> mse;
 
     {
-        auto l = lbuff.slice(-detector.max-detector.pop, detector.pop);
-        auto r = lbuff.slice(-detector.pop, detector.max+detector.pop);
+        auto l = ibuff.slice(-detector.max-detector.pop, detector.pop);
+        auto r = ibuff.slice(-detector.pop, detector.max+detector.pop);
 
         for(int i=0; i < detector.max + 2 * detector.pop; i++){
             const float noise = rnd(1e-4f);
@@ -183,16 +179,11 @@ void Pitcher2::apply_splitter(){
     energy *= normalize;
 
     for(int i=0; i<splitter.length; i++){
-        ebuff[pointer + i] += splitter.window[i] * energy;
-        lbuff[pointer + i] += normalize * (
+        ebuff[pointer + i] += splitter.window[i] * energy * splitter.energy_weight
+            + splitter.lowpass_weight * normalize * (
                 freq[0].real() * splitter.window[i]
                 + (freq[1] * splitter.wavelet1[i]).real()
                 + (freq[2] * splitter.wavelet2[i]).real());
-    }
-    
-    for(int i=0; i<splitter.tick_period; i++){
-        ebuff[pointer + i] = ebuff[pointer + i] * splitter.energy_weight
-            + lbuff[pointer + i] * splitter.lowpass_weight;
     }
 }
 
@@ -371,50 +362,50 @@ void Pitcher2::apply_wavelet(Wavelet &w){
     {
         // calculate correlation from input
 
-        int input_left = std::floor(wavelet_position);
-        while(wavelet_position - input_left + 1 < radius) input_left--;
-        
-        int input_right = input_left;
-        while(input_right + 1 - wavelet_position < radius) input_right++;
+        int input_left = std::ceil(wavelet_position - radius);
+        int input_right = std::floor(wavelet_position + radius);
 
         input_left = std::max(-ibuff.left(), input_left);
         input_right = std::min(input_right, ibuff.right()-1);
 
+        std::complex<float> srot = std::polar(1.0f, -sfreq);
+        std::complex<float> sp = std::polar(1.0f, -sfreq *
+                (input_left - wavelet_position + radius));
+        
+        std::complex<float> wrot = std::polar(1.0f, wfreq);
+        std::complex<float> wp = std::polar(1.0f, wfreq *
+                (input_left - wavelet_position + radius));
+
         for(int i=input_left; i<=input_right; i++){
-            const float t = i - wavelet_position + radius;
-            sum += ibuff[i] * std::polar<float>(1.0f - std::cos(wfreq * t), -sfreq * t);
+            sum += ibuff[i] * (1.0f - wp.real()) * sp;
+            sp *= srot;
+            wp *= wrot;
         }
         
-        sum /= w.length;
+        sum *= w.gain / w.length;
     }
-
-    float amplitude = std::abs(sum) * w.gain;
-    float phase = std::arg(sum);
 
     {
         // add resampled wavelet to output
         
-        int output_left = 0;
-        float pointer = input_position;
-        while(wavelet_position - pointer + shift < radius){
-            output_left--;
-            pointer -= shift;
-        }
-        
-        int output_right = output_left;
-        while(pointer - wavelet_position + shift < radius){
-            output_right++;
-            pointer += shift;
-        }
+        int output_left = -std::floor((radius+w.state)/shift);
+        int output_right = std::ceil((radius-w.state)/shift);
 
         output_left = std::max(-obuff.left(), output_left);
         output_right = std::min(output_right, obuff.right()-1);
 
-        pointer = input_position + output_left * shift;
+        std::complex<float> srot = std::polar(1.0f, sfreq * shift);
+        std::complex<float> sp = std::polar(1.0f, sfreq * shift *
+                (output_left * shift - w.state + radius));
+        
+        std::complex<float> wrot = std::polar(1.0f, wfreq * shift);
+        std::complex<float> wp = std::polar(1.0f, wfreq * shift *
+                (output_left * shift - w.state + radius));
+
         for(int i=output_left; i<=output_right; i++){
-            const float t = pointer - wavelet_position + radius;
-            obuff[i] += amplitude * (1.0f - std::cos(wfreq * t)) * std::cos(phase + sfreq * t);
-            pointer += shift;
+            obuff[i] += (1.0f - wp.real()) * (sum * sp).real();
+            sp *= srot;
+            wp *= wrot;
         }
     }
 }

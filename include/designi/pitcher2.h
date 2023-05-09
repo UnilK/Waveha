@@ -111,7 +111,7 @@ private:
     Detector detector;
     Splitter splitter;
 
-    rbuffer<float> ibuff, ebuff, lbuff, obuff;
+    rbuffer<float> ibuff, ebuff, obuff;
 
 };
 
