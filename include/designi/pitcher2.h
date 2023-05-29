@@ -28,7 +28,8 @@ public:
 
         float frequency_response(float framerate, float frequency);
 
-        float length, state, spins, gain, shift, frequency;
+        float target_shift, shift;
+        float length, state, spins, gain, frequency;
     };
 
     struct HodgepodgeSet {
@@ -98,11 +99,11 @@ private:
     
     void update_segment();
 
-    float shift_curve(float frequency, float spins, float shift);
+    void update_shifts();
 
-    float calculate_position(float shift);
+    std::vector<float> calculate_positions(float shift);
     
-    void apply_wavelet(Wavelet &w);
+    void apply_wavelet(Wavelet &w, float input_position);
 
     float frame_rate;
 

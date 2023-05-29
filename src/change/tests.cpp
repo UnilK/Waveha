@@ -47,8 +47,8 @@ std::vector<float> translate(const std::vector<float> &audio){
     knot.set_absolute_pitch_shift(2.7f);
     knot.set_color_shift(0.18f);
     */
-    knot.set_absolute_pitch_shift(2.7f);
-    knot.set_color_shift(1.3f);
+    knot.set_absolute_pitch_shift(1.4f);
+    knot.set_color_shift(1.30f);
 
     knot.enable_equalizer(0);
     knot.enable_binder(0);
