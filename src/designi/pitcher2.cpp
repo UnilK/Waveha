@@ -269,7 +269,12 @@ bool Pitcher2::add_peak(){
 
 void Pitcher2::update_pointer(){
 
-    if(3 * std::abs(segment.pointer) > 2 * detector.period){
+    float state = (segment.pointer - segment.left) / (segment.right - segment.left);
+    
+    if(
+        5 * std::abs(segment.pointer) > 4 * detector.max
+        || (state > 0.2f && state < 0.9f && 3 * std::abs(segment.pointer) > 2 * detector.period))
+    {
         float dir = (segment.pointer > 0) - (segment.pointer < 0);
         float len = 0.0;
         while((segment.pointer - len * dir) * dir > 0) len += detector.period;
@@ -281,7 +286,7 @@ void Pitcher2::update_segment(){
 
     if(segment.pointer < segment.left || segment.pointer > segment.right){
 
-        while(segment.peaks.front() + segment.offset < - 3 * detector.max){
+        while(segment.peaks.front() + segment.offset < -3 * detector.max){
             segment.peaks.pop_front();
         }
 
@@ -310,16 +315,11 @@ void Pitcher2::update_segment(){
 void Pitcher2::update_shifts(){
     
     for(auto &w : hpset.wavelets){
-
-        float factor = 1.0f;
-        
-        if(w.frequency < 2 * detector.pitch || w.spins < 2.0f){
-            factor = 0.0f;
-        } else if(w.frequency < 4 * detector.pitch){
-            factor = 0.5f - 0.5f * std::cos(M_PI * (w.frequency / (2.0f * detector.pitch) - 1.0f));
+        if(w.spins < 2.0f){
+            w.shift = segment.shift;
+        } else {
+            w.shift = w.target_shift;
         }
-
-        w.shift = factor * w.target_shift + segment.shift * (1.0f - factor);
     }
 }
 
@@ -333,10 +333,11 @@ std::vector<float> Pitcher2::calculate_positions(float shift){
 
     if(relative_shift <= 1.0f){
       
+
         if(state < segment.slow_cut){
             positions.push_back(state * relative_shift);
         }
-        if(state >= segment.slow_cut){
+        else {
             positions.push_back(1.0f - (1.0f - state) * relative_shift);
         }
 
@@ -362,8 +363,39 @@ std::vector<float> Pitcher2::calculate_positions(float shift){
     return positions;
 }
 
+int lol = -1;
 
 void Pitcher2::apply_wavelet(Wavelet &w, float input_position){
+
+    /*
+    static std::vector<float> fff = {
+        0,
+        172.266,
+        344.531,
+        542.637,
+        770.458,
+        1032.45,
+        1333.75,
+        1680.23,
+        2078.69,
+        2536.92,
+        3063.89,
+        3669.9,
+        4366.81,
+        5168.26,
+        6089.92,
+        7149.83,
+        8368.73,
+        9770.47,
+        11382.5,
+        13236.3,
+        15368.1,
+        17819.8,
+        20639.2
+    };
+
+    if(std::abs(w.frequency-fff[lol]) > 0.1f) return;
+    */
 
     float radius = w.length / 2;
     float sfreq = 2 * w.spins * M_PI / w.length;
@@ -479,6 +511,9 @@ void Pitcher2::HodgepodgeSet::init(std::string version, float frame_rate){
         wavelets.emplace_back(wavelet);
         max_length = std::max(max_length, wavelet.length);
     }
+
+    lol = (lol + 1) % wavelets.size();
+    std::cerr << wavelets[lol].frequency << '\n';
 }
 
 // Detector ///////////////////////////////////////////////////////////////////

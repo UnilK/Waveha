@@ -7,6 +7,8 @@ namespace designi {
 
 float rnd(const float &d);
 
+int rnd_int(int min, int max);
+
 std::complex<float> unit_complex(const std::complex<float> &c);
 
 std::vector<float> cos_window(int length);

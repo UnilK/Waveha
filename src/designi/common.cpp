@@ -14,6 +14,11 @@ float rnd(const float &d){
     return std::uniform_real_distribution<float>(-d, d)(rng32);
 }
 
+int rnd_int(int min, int max){
+    static std::mt19937 rng32;
+    return std::uniform_int_distribution<int>(min, max)(rng32);
+}
+
 complex<float> unit_complex(const complex<float> &c){
     return c / (std::abs(c) + 1e-18f);
 }
